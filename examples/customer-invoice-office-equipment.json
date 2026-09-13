@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "fakturapass.invoice.v1",
+  "source": {
+    "system": "wholesale-order-system",
+    "recordId": "SYNTH-SHIP-2026-90317",
+    "receivedAt": "2026-09-13T11:40:00Z",
+    "fileName": "office-equipment-90317.json"
+  },
+  "document": {
+    "type": "INVOICE",
+    "number": "HW-2026-90317",
+    "issueDate": "2026-09-12",
+    "currency": "EUR",
+    "buyerReference": "NEUES-BUERO-BONN",
+    "purchaseOrderReference": "BEST-4600281",
+    "contractReference": null
+  },
+  "seller": {
+    "name": "Rheinland Buerobedarf GmbH",
+    "tradingName": "Rheinland Office",
+    "address": {
+      "street": "Industriepark 24",
+      "additional": "Halle B",
+      "city": "Koeln",
+      "postalCode": "50829",
+      "countryCode": "DE"
+    },
+    "vatId": "DE123456789",
+    "taxNumber": null,
+    "electronicAddress": {
+      "schemeId": "EM",
+      "value": "rechnung@rheinland-office.example"
+    },
+    "legalRegistrationId": null,
+    "contact": {
+      "name": "Mara Hoffmann",
+      "email": "service@rheinland-office.example",
+      "phone": "+49 221 55509031"
+    }
+  },
+  "buyer": {
+    "name": "Helios Projektentwicklung GmbH",
+    "tradingName": null,
+    "address": {
+      "street": "Bundesufer 42",
+      "additional": null,
+      "city": "Bonn",
+      "postalCode": "53113",
+      "countryCode": "DE"
+    },
+    "vatId": "DE987654321",
+    "taxNumber": null,
+    "electronicAddress": {
+      "schemeId": "EM",
+      "value": "invoice@helios-projekt.example"
+    },
+    "legalRegistrationId": null,
+    "contact": {
+      "name": "Einkauf",
+      "email": "einkauf@helios-projekt.example",
+      "phone": "+49 228 55504600"
+    }
+  },
+  "lines": [
+    {
+      "id": "10",
+      "name": "Ergonomischer Buerostuhl",
+      "description": "Drehstuhl mit Lordosenstuetze, Modell E7, anthrazit",
+      "quantity": "6",
+      "unitCode": "C62",
+      "unitPrice": { "amount": "289.00", "baseQuantity": "1" },
+      "lineNetAmount": "1734.00",
+      "tax": { "categoryCode": "S", "rate": "19" },
+      "allowancesCharges": [],
+      "buyerAccountingReference": "KST-220",
+      "purchaseOrderLineReference": "10"
+    },
+    {
+      "id": "20",
+      "name": "Monitorarm Duo",
+      "description": "Tischhalterung fuer zwei Bildschirme",
+      "quantity": "6",
+      "unitCode": "C62",
+      "unitPrice": { "amount": "119.50", "baseQuantity": "1" },
+      "lineNetAmount": "717.00",
+      "tax": { "categoryCode": "S", "rate": "19" },
+      "allowancesCharges": [],
+      "buyerAccountingReference": "KST-220",
+      "purchaseOrderLineReference": "20"
+    },
+    {
+      "id": "30",
+      "name": "Anlieferung und Montage",
+      "description": "Terminierte Anlieferung und Aufbau vor Ort",
+      "quantity": "2",
+      "unitCode": "HUR",
+      "unitPrice": { "amount": "145.00", "baseQuantity": "1" },
+      "lineNetAmount": "290.00",
+      "tax": { "categoryCode": "S", "rate": "19" },
+      "allowancesCharges": [],
+      "buyerAccountingReference": "KST-220",
+      "purchaseOrderLineReference": "30"
+    }
+  ],
+  "allowancesCharges": [
+    {
+      "charge": false,
+      "amount": "137.05",
+      "reason": "Projektkondition 5 Prozent",
+      "reasonCode": null,
+      "baseAmount": "2741.00",
+      "percentage": "5",
+      "tax": { "categoryCode": "S", "rate": "19" }
+    }
+  ],
+  "taxBreakdown": [
+    {
+      "categoryCode": "S",
+      "rate": "19",
+      "taxableAmount": "2603.95",
+      "taxAmount": "494.75"
+    }
+  ],
+  "totals": {
+    "lineNetAmount": "2741.00",
+    "allowanceTotal": "137.05",
+    "chargeTotal": "0.00",
+    "taxExclusiveAmount": "2603.95",
+    "taxAmount": "494.75",
+    "taxInclusiveAmount": "3098.70",
+    "prepaidAmount": "0.00",
+    "payableRoundingAmount": "0.00",
+    "payableAmount": "3098.70"
+  },
+  "payment": {
+    "meansCode": "58",
+    "dueDate": "2026-09-26",
+    "terms": "Zahlbar innerhalb von 14 Tagen ohne Abzug",
+    "iban": "DE02120300000000202051",
+    "bic": null,
+    "accountName": "Rheinland Buerobedarf GmbH",
+    "paymentReference": "HW-2026-90317"
+  },
+  "attachments": [],
+  "extensions": {}
+}

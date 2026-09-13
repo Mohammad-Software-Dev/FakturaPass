@@ -34,7 +34,7 @@ test("customer workspace keeps setup noise out of the primary flow", async ({
   ).toBeVisible();
   await expect(page.locator("#fixture")).not.toBeVisible();
   await page.getByText("See a format example", { exact: true }).click();
-  await expect(page.locator("#fixture option")).toHaveCount(2);
+  await expect(page.locator("#fixture option")).toHaveCount(4);
   await page.locator("#fixture").selectOption("0");
   await expect(page.locator("#canonical")).toHaveValue(/Nordlicht/);
   await page.getByRole("button", { name: "Check preview" }).click();

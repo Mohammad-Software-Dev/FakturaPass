@@ -4,7 +4,7 @@ FakturaPass gives every invoice a clear path: **import → review → approve �
 
 ## Maya starts her day with one invoice
 
-Maya has an invoice export from her accounting system. She opens **Import invoice**, chooses the JSON file and clicks **Check preview**. The recipient, invoice date and amount appear beside her source data, so she can confirm she has selected the right document before saving anything.
+Maya has an invoice export from her accounting system. She opens **Import invoice**, chooses the JSON file and clicks **Check preview**. The preview shows both parties, item descriptions, references, payment details and a complete breakdown from line subtotal through discounts, VAT and prepayments to the remaining amount due. She can confirm the document before saving anything. After previewing, grouped fields let her edit the invoice without touching JSON; the source editor remains under **Advanced: edit JSON**.
 
 If she needs to understand the file format, **See a format example** reveals a consulting-invoice template. Its information is explicitly fictional; she replaces it with the appropriate invoice values. The example is optional, and the test-case library is not part of her workspace.
 
@@ -14,15 +14,15 @@ She clicks **Import invoice**. Her document now has its own workspace with an ov
 
 Maya selects **Validate**. FakturaPass checks the amounts and official XRechnung rules in the background. She can follow the status without losing her place. Once the revision is technically valid, she selects **Approve revision**, then **Generate XRechnung**.
 
-When the generated file has passed official validation, **Download XML** becomes available. In **Artifacts & evidence**, she also downloads the evidence manifest containing checksums, rule versions, findings and the original validator report. She now has the file and the record of how it was checked, ready for her organization's chosen delivery channel. FakturaPass provides downloads; it does not send the invoice.
+When the generated file has passed official validation, **Download XML** becomes available. In **Artifacts & evidence**, she also downloads the evidence manifest containing checksums, rule versions, findings and the original validator report. A completion message explains that the invoice has not been sent. She now has the file and the record of how it was checked, ready for her organization's chosen delivery channel. FakturaPass provides downloads; it does not send the invoice.
 
 ## Jonas resolves a discrepancy without starting over
 
 Jonas notices **Errors found** on an invoice. In **Validation results**, the declared total and calculated total sit side by side. He selects the affected field to jump directly to **Source & data**, where the relevant value is highlighted.
 
-He chooses **Corrected revision**, updates the JSON consistently, checks its preview and selects **Save new revision**. The original stays intact. Jonas validates the new revision, approves it and generates its XML. He never needs to delete an earlier record to make progress.
+He chooses **Corrected revision**, edits the relevant fields and checks the preview. A before-and-after summary highlights every changed value. After changing quantities or prices, **Recalculate amounts** updates line totals, tax and the remaining balance using the stated adjustment bases. Imported figures are never silently recalculated. Jonas reviews the amounts, then selects **Save new revision**. **Cancel and return to invoice** leaves the saved revision unchanged. The original stays intact. Jonas validates the new revision, approves it and generates its XML. He never needs to delete an earlier record to make progress.
 
-A missing field or invalid JSON can be resolved even earlier: **Check preview** explains the problem before import. The editor keeps his input while he corrects it. If he imports an already-recorded source, the app directs him to its existing invoice; a correction belongs there, rather than in a duplicate record.
+A missing field or invalid JSON can be resolved even earlier: **Check preview** explains the problem before import. The editor keeps his input while he corrects it. If he imports an already-recorded source, **Open existing invoice** takes him straight to the existing invoice; a correction belongs there, rather than in a duplicate record.
 
 ## Leila prepares the reference her recipient expects
 

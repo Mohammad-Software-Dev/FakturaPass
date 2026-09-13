@@ -1,4 +1,6 @@
 "use client";
+import { InvoiceReview } from "./invoice-review";
+import { InvoiceEditor, ChangeSummary } from "./invoice-editor";
 import { AppearanceControls } from "./theme";
 import { useLanguage } from "./language";
 import {
@@ -111,6 +113,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
     [validationFilter, setValidationFilter] = useState(""),
     [text, setText] = useState(""),
     [preview, setPreview] = useState<any>(null),
+    [editData, setEditData] = useState<any>(null),
     [profile, setProfile] = useState<string>(""),
     [correcting, setCorrecting] = useState(false),
     [toast, setToast] = useState(""),
@@ -186,6 +189,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
     setError(null);
     if (v === "import") {
       setText("");
+      setEditData(null);
       setPreview(null);
       setImportKey(crypto.randomUUID());
       setCorrecting(false);
@@ -206,6 +210,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
           { details: { findings } },
         );
       setPreview(p);
+      setEditData(p);
     } catch (e) {
       setError(e);
       setPreview(null);
@@ -297,6 +302,14 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
             <code>{f.canonicalPath}</code> — {findingDescription(locale, f)}
           </p>
         ))}
+        {error.code === "SOURCE_DUPLICATE" && error.details?.invoiceId && (
+          <button
+            className="secondary"
+            onClick={() => open(error.details.invoiceId)}
+          >
+            {t("Vorhandene Rechnung öffnen")}
+          </button>
+        )}
         {error.requestId && (
           <small>
             {t("Anfrage-ID:")} {error.requestId}
@@ -612,9 +625,18 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
           )}
           {view === "import" && (
             <>
-              <button className="back" onClick={() => go("invoices")}>
+              <button
+                className="back"
+                onClick={() =>
+                  correcting
+                    ? (setView("detail"), setCorrecting(false), setError(null))
+                    : go("invoices")
+                }
+              >
                 <ArrowLeft size={16} />
-                {t("Zurück zu Rechnungen")}{" "}
+                {correcting
+                  ? t("Abbrechen und zur Rechnung")
+                  : t("Zurück zu Rechnungen")}{" "}
               </button>
               <div className="page-heading">
                 <div className="eyebrow">
@@ -639,7 +661,9 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                   <div className="panel-title">
                     <h2>
                       <span className="step">1</span>
-                      {t("Quelldaten auswählen")}{" "}
+                      {editData
+                        ? t("Rechnung bearbeiten")
+                        : t("Quelldaten auswählen")}{" "}
                     </h2>
                     <span className="muted">{t("JSON · Max. 1 MiB")}</span>
                   </div>
@@ -668,6 +692,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                                 return;
                               }
                               setText(await file.text());
+                              setEditData(null);
                               setPreview(null);
                               setError(null);
                             }}
@@ -686,6 +711,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                                 fixtures[Number(event.target.value)];
                               if (example) {
                                 setText(JSON.stringify(example.data, null, 2));
+                                setEditData(null);
                                 setPreview(null);
                                 setError(null);
                               }
@@ -711,22 +737,40 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                         </div>
                       </>
                     )}
-                    <label className="field-label" htmlFor="canonical">
-                      {t("Canonical JSON")}{" "}
-                    </label>
-                    <textarea
-                      id="canonical"
-                      className="code-editor"
-                      spellCheck={false}
-                      value={text}
-                      placeholder={
-                        '{\n  "schemaVersion": "fakturapass.invoice.v1",\n  ...\n}'
-                      }
-                      onChange={(e) => {
-                        setText(e.target.value);
-                        setPreview(null);
-                      }}
-                    />
+                    {editData && (
+                      <InvoiceEditor
+                        value={editData}
+                        onChange={(next) => {
+                          setEditData(next);
+                          setText(JSON.stringify(next, null, 2));
+                          setPreview(null);
+                          setError(null);
+                        }}
+                      />
+                    )}
+                    <details
+                      className="advanced-json"
+                      open={!editData ? true : undefined}
+                    >
+                      <summary>{t("Erweitert: JSON bearbeiten")}</summary>
+                      <label className="field-label" htmlFor="canonical">
+                        {t("Canonical JSON")}{" "}
+                      </label>
+                      <textarea
+                        id="canonical"
+                        className="code-editor"
+                        spellCheck={false}
+                        value={text}
+                        placeholder={
+                          '{\n  "schemaVersion": "fakturapass.invoice.v1",\n  ...\n}'
+                        }
+                        onChange={(e) => {
+                          setText(e.target.value);
+                          setEditData(null);
+                          setPreview(null);
+                        }}
+                      />
+                    </details>
                     <div className="actions">
                       <button
                         className="secondary"
@@ -755,33 +799,29 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                         {preview.document?.number ?? t("Rechnungsnummer fehlt")}
                       </h2>
                       <p>{preview.buyer?.name ?? t("Empfänger fehlt")}</p>
+                      <small>{t("Zahlbetrag")}</small>
                       <div className="preview-amount">
                         {typeof preview.totals?.payableAmount === "string"
                           ? money(preview.totals.payableAmount)
                           : t("Betrag fehlt")}
                       </div>
-                      <dl>
-                        <div>
-                          <dt>{t("Quelle")}</dt>
-                          <dd>{preview.source?.system ?? "—"}</dd>
-                        </div>
-                        <div>
-                          <dt>{t("Quell-ID")}</dt>
-                          <dd>{preview.source?.recordId ?? "—"}</dd>
-                        </div>
-                        <div>
-                          <dt>{t("Rechnungsdatum")}</dt>
-                          <dd>
-                            {preview.document?.issueDate
-                              ? date(preview.document.issueDate)
-                              : "—"}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>{t("Positionen")}</dt>
-                          <dd>{preview.lines?.length ?? 0}</dd>
-                        </div>
-                      </dl>
+                      <details className="source-details">
+                        <summary>{t("Quelldetails")}</summary>
+                        <dl>
+                          <div>
+                            <dt>{t("Quelle")}</dt>
+                            <dd>{preview.source.system}</dd>
+                          </div>
+                          <div>
+                            <dt>{t("Quell-ID")}</dt>
+                            <dd>{preview.source.recordId}</dd>
+                          </div>
+                        </dl>
+                      </details>
+                      {correcting && (
+                        <ChangeSummary before={invoice} after={preview} />
+                      )}
+                      <InvoiceReview invoice={preview} />
                       <div className="notice">
                         <Info size={18} />
                         <p>
@@ -808,7 +848,11 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                   ) : (
                     <div className="empty compact">
                       <FolderOpen size={38} />
-                      <h3>{t("Zuerst die Quelle auswählen.")}</h3>
+                      <h3>
+                        {editData
+                          ? t("Entwurf geändert. Vorschau erneut prüfen.")
+                          : t("Zuerst die Quelle auswählen.")}
+                      </h3>
                       <p>
                         {t("Hier sehen Sie die Rechnungsdaten,")} <br />
                         {t("bevor Sie den Import bestätigen.")}{" "}
@@ -841,7 +885,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                 </div>
                 <div className="detail-amount">
                   {money(invoice.totals.payableAmount)}
-                  <small>{t("Rechnungsbetrag inkl. USt.")}</small>
+                  <small>{t("Zahlbetrag")}</small>
                 </div>
               </div>
               {errorView}
@@ -935,7 +979,9 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                         className="secondary"
                         onClick={() => {
                           setText(JSON.stringify(invoice, null, 2));
-                          setPreview(null);
+                          setEditData(invoice);
+                          setPreview(invoice);
+                          setError(null);
                           setCorrecting(true);
                           setView("import");
                         }}
@@ -946,6 +992,21 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                   )}
                 </div>
               </div>
+              {!historical && (
+                <p className="workflow-guidance" role="status">
+                  {t(
+                    r.status === "ARTIFACT_VALIDATED"
+                      ? "Bereit zum Herunterladen. Die Rechnung wurde nicht versendet. Laden Sie XML und Nachweis herunter und übergeben Sie die XML-Datei über Ihren Versandkanal."
+                      : r.status === "VALID"
+                        ? "Prüfung bestanden. Kontrollieren Sie die Angaben und geben Sie diese Revision zur XML-Erstellung frei."
+                        : r.status === "APPROVED"
+                          ? "Revision freigegeben. Erstellen Sie jetzt die XRechnung für den Download."
+                          : r.status.includes("PENDING")
+                            ? "Die Prüfung läuft. Sie können die Angaben weiterhin ansehen."
+                            : "Nächster Schritt: Prüfen Sie die Rechnung. Bei Fehlern können Sie eine korrigierte Revision erstellen.",
+                  )}
+                </p>
+              )}
               <div className="progress-track">
                 {[
                   t("Importiert"),
@@ -1010,99 +1071,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                         <h2>{t("Rechnungsübersicht")}</h2>
                         <span className="muted">{t("Originalangaben")}</span>
                       </div>
-                      <div className="parties">
-                        {[
-                          [t("Rechnungssteller"), invoice.seller],
-                          [t("Rechnungsempfänger"), invoice.buyer],
-                        ].map(([label, p]: any) => (
-                          <div key={label}>
-                            <span className="eyebrow">{label}</span>
-                            <h3>{p.name}</h3>
-                            <p>
-                              {p.address.street}
-                              <br />
-                              {p.address.postalCode} {p.address.city}
-                              <br />
-                              {t("Deutschland")}{" "}
-                            </p>
-                            <small>
-                              {t("USt-ID:")} {p.vatId ?? t("Nicht angegeben")}
-                            </small>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="references">
-                        <div>
-                          <small>{t("Käuferreferenz")}</small>
-                          <strong>
-                            {invoice.document.buyerReference ??
-                              t("Nicht angegeben")}
-                          </strong>
-                        </div>
-                        <div>
-                          <small>{t("Bestellnummer")}</small>
-                          <strong>
-                            {invoice.document.purchaseOrderReference ??
-                              t("Nicht angegeben")}
-                          </strong>
-                        </div>
-                        <div>
-                          <small>{t("Fällig am")}</small>
-                          <strong>
-                            {invoice.payment?.dueDate
-                              ? date(invoice.payment.dueDate)
-                              : t("Nicht angegeben")}
-                          </strong>
-                        </div>
-                      </div>
-                      <div className="table-scroll">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>{t("Position / Beschreibung")}</th>
-                              <th>{t("Menge")}</th>
-                              <th>{t("Einzelpreis")}</th>
-                              <th>{t("Netto")}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {invoice.lines.map((l: any) => (
-                              <tr key={l.id}>
-                                <td>
-                                  <strong>{l.name}</strong>
-                                  <small>
-                                    {t("Pos.")} {l.id}
-                                    {t("· USt.")} {decimal(l.tax.rate)} %
-                                  </small>
-                                </td>
-                                <td>
-                                  {decimal(l.quantity)} {l.unitCode}
-                                </td>
-                                <td>{money(l.unitPrice.amount)}</td>
-                                <td className="amount">
-                                  {money(l.lineNetAmount)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      <div className="totals">
-                        <div>
-                          <span>{t("Nettobetrag")}</span>
-                          <strong>
-                            {money(invoice.totals.taxExclusiveAmount)}
-                          </strong>
-                        </div>
-                        <div>
-                          <span>{t("Umsatzsteuer")}</span>
-                          <strong>{money(invoice.totals.taxAmount)}</strong>
-                        </div>
-                        <div className="total">
-                          <span>{t("Zahlbetrag")}</span>
-                          <strong>{money(invoice.totals.payableAmount)}</strong>
-                        </div>
-                      </div>
+                      <InvoiceReview invoice={invoice} />
                     </section>
                   </div>
                   <div>

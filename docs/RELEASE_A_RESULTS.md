@@ -48,3 +48,9 @@ Added dark-mode end-to-end workflows, persistent server-rendered theme checks, l
 ## Customer workspace refinement
 
 The blue light and dark themes and customer-facing workflow passed all 59 tests: 17 domain/localization tests, 7 integration tests, 3 API suites and 32 browser tests. The optimized build, formatting, strict TypeScript, ESLint and dependency audit passed. Customer-flow checks cover a clean empty state, one primary import action, optional format examples and collapsed technical information. Demo branding has been removed from the interface; existing invoice records and immutable evidence remain unchanged. The usage guide now follows realistic customer journeys through preparation, correction, reference checks and export.
+
+## Invoice review and correction improvements
+
+The final acceptance run passed all 70 checks: 20 domain/localization tests, 7 database/official-validator integration tests, 3 API suites and 40 Chromium/WebKit browser tests. Formatting, strict TypeScript, ESLint, the production build and dependency audit passed; zero vulnerabilities were reported.
+
+The three customer examples each passed import, complete preview, cancellation, correction, duplicate recovery, approval, official validation and XML download. Additional coverage verifies explicit decimal recalculation, inline schema errors, form/JSON synchronization, translation coverage, mobile layout and dark-mode rendering. The original invoice files and existing stored evidence were preserved. See reviews/2026-09-13-import-ux.md for the findings and their resolution.

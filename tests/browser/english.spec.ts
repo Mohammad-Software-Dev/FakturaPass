@@ -50,6 +50,7 @@ test("import, validate, approve, generate, evidence and correction", async ({
   ).toBe("PASS");
   await page.getByRole("button", { name: "Corrected revision" }).click();
   input.document.buyerReference = "CHANGED";
+  await page.locator(".advanced-json summary").click();
   await page.locator("#canonical").fill(JSON.stringify(input));
   await page.getByRole("button", { name: "Check preview" }).click();
   await page.getByRole("button", { name: "Save new revision" }).click();

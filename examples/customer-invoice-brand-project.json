@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "fakturapass.invoice.v1",
+  "source": {
+    "system": "agency-time-and-billing",
+    "recordId": "SYNTH-AGENCY-2026-1184",
+    "receivedAt": "2026-09-13T14:05:00Z",
+    "fileName": "project-orbit-final-1184.json"
+  },
+  "document": {
+    "type": "INVOICE",
+    "number": "AG-2026-1184",
+    "issueDate": "2026-09-13",
+    "currency": "EUR",
+    "buyerReference": "KST-MARKETING-310",
+    "purchaseOrderReference": null,
+    "contractReference": "PROJEKT-ORBIT-2026"
+  },
+  "seller": {
+    "name": "Studio Komet Kreativgesellschaft mbH",
+    "tradingName": "Studio Komet",
+    "address": {
+      "street": "Kreativkai 9",
+      "additional": "Studio 4",
+      "city": "Duesseldorf",
+      "postalCode": "40221",
+      "countryCode": "DE"
+    },
+    "vatId": "DE123456789",
+    "taxNumber": null,
+    "electronicAddress": {
+      "schemeId": "EM",
+      "value": "finance@studio-komet.example"
+    },
+    "legalRegistrationId": null,
+    "contact": {
+      "name": "Noah Klein",
+      "email": "abrechnung@studio-komet.example",
+      "phone": "+49 211 55501184"
+    }
+  },
+  "buyer": {
+    "name": "Waldwerk Naturprodukte GmbH",
+    "tradingName": "Waldwerk",
+    "address": {
+      "street": "Gruener Weg 31",
+      "additional": null,
+      "city": "Freiburg im Breisgau",
+      "postalCode": "79098",
+      "countryCode": "DE"
+    },
+    "vatId": "DE987654321",
+    "taxNumber": null,
+    "electronicAddress": {
+      "schemeId": "EM",
+      "value": "rechnungen@waldwerk.example"
+    },
+    "legalRegistrationId": null,
+    "contact": {
+      "name": "Mila Roth",
+      "email": "mila.roth@waldwerk.example",
+      "phone": "+49 761 55503100"
+    }
+  },
+  "lines": [
+    {
+      "id": "1",
+      "name": "Markenworkshop und Konzeption",
+      "description": "Vorbereitung, Workshop und Ausarbeitung der Markenpositionierung",
+      "quantity": "14.75",
+      "unitCode": "HUR",
+      "unitPrice": { "amount": "110.00", "baseQuantity": "1" },
+      "lineNetAmount": "1622.50",
+      "tax": { "categoryCode": "S", "rate": "19" },
+      "allowancesCharges": [],
+      "buyerAccountingReference": "KST-310",
+      "purchaseOrderLineReference": null
+    },
+    {
+      "id": "2",
+      "name": "Digitales Brand-Kit",
+      "description": "Logo-Varianten, Farbwelt und kompakter Anwendungsleitfaden",
+      "quantity": "1",
+      "unitCode": "C62",
+      "unitPrice": { "amount": "680.00", "baseQuantity": "1" },
+      "lineNetAmount": "680.00",
+      "tax": { "categoryCode": "S", "rate": "19" },
+      "allowancesCharges": [],
+      "buyerAccountingReference": "KST-310",
+      "purchaseOrderLineReference": null
+    }
+  ],
+  "allowancesCharges": [],
+  "taxBreakdown": [
+    {
+      "categoryCode": "S",
+      "rate": "19",
+      "taxableAmount": "2302.50",
+      "taxAmount": "437.48"
+    }
+  ],
+  "totals": {
+    "lineNetAmount": "2302.50",
+    "allowanceTotal": "0.00",
+    "chargeTotal": "0.00",
+    "taxExclusiveAmount": "2302.50",
+    "taxAmount": "437.48",
+    "taxInclusiveAmount": "2739.98",
+    "prepaidAmount": "500.00",
+    "payableRoundingAmount": "0.00",
+    "payableAmount": "2239.98"
+  },
+  "payment": {
+    "meansCode": "58",
+    "dueDate": "2026-10-13",
+    "terms": "Restbetrag zahlbar innerhalb von 30 Tagen; Anzahlung von 500,00 EUR beruecksichtigt",
+    "iban": "DE02120300000000202051",
+    "bic": null,
+    "accountName": "Studio Komet Kreativgesellschaft mbH",
+    "paymentReference": "AG-2026-1184"
+  },
+  "attachments": [],
+  "extensions": {}
+}

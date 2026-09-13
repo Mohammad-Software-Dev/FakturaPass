@@ -179,7 +179,20 @@ export async function ingest(
         canonical.source.recordId,
       ],
     );
-    if (!inserted.rowCount) throw new ApiError("SOURCE_DUPLICATE", 409);
+    if (!inserted.rowCount) {
+      const existing = await db.query(
+        "SELECT id FROM invoices WHERE tenant_id=$1 AND environment=$2 AND source_system=$3 AND source_record_id=$4",
+        [
+          ctx.tenantId,
+          ctx.environment,
+          canonical.source.system,
+          canonical.source.recordId,
+        ],
+      );
+      throw new ApiError("SOURCE_DUPLICATE", 409, {
+        invoiceId: existing.rows[0]?.id,
+      });
+    }
     const response = await insertRevision(db, ctx, id, 1, canonical, raw);
     await db.query(
       "INSERT INTO idempotency_records(id,tenant_id,route_key,idempotency_key,request_sha256,response_status,response_json) VALUES($1,$2,$3,$4,$5,201,$6)",

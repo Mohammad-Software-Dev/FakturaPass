@@ -148,3 +148,59 @@ test("customer-like consulting example remains ready for successful validation",
   );
   assert.equal(invoice.totals.payableAmount, "2045.61");
 });
+
+test("additional customer examples cover discount and prepayment scenarios", () => {
+  const cases = [
+    ["examples/customer-invoice-office-equipment.json", "3098.70", "137.05"],
+    ["examples/customer-invoice-brand-project.json", "2239.98", "0.00"],
+  ];
+
+  for (const [path, payable, allowance] of cases) {
+    const invoice = JSON.parse(readFileSync(path, "utf8"));
+    assert.deepEqual(schemaFindings(invoice), [], path);
+    assert.deepEqual(
+      semanticFindings(invoice).map((finding) => ({
+        code: finding.code,
+        severity: finding.severity,
+      })),
+      [{ code: "RECIPIENT_PROFILE_UNKNOWN", severity: "INFO" }],
+      path,
+    );
+    assert.equal(invoice.totals.payableAmount, payable);
+    assert.equal(invoice.totals.allowanceTotal, allowance);
+  }
+});
+
+test("explicit draft recalculation preserves examples and recomputes edited amounts without mutating source", async () => {
+  const { recalculateInvoice } = await import("../packages/domain/recalculate");
+  for (const name of ["consulting", "office-equipment", "brand-project"]) {
+    const invoice = JSON.parse(
+      readFileSync(`examples/customer-invoice-${name}.json`, "utf8"),
+    );
+    const original = JSON.stringify(invoice);
+    const result = recalculateInvoice(invoice);
+    assert.deepEqual(result.totals, invoice.totals);
+    assert.equal(JSON.stringify(invoice), original);
+    assert.equal(
+      semanticFindings(result).filter((f) => f.severity === "ERROR").length,
+      0,
+    );
+  }
+  const invoice = JSON.parse(
+    readFileSync("examples/customer-invoice-brand-project.json", "utf8"),
+  );
+  invoice.lines[0].quantity = "15";
+  const result = recalculateInvoice(invoice);
+  assert.equal(result.lines[0].lineNetAmount, "1650.00");
+  assert.equal(result.totals.taxInclusiveAmount, "2772.70");
+  assert.equal(result.totals.payableAmount, "2272.70");
+  assert.equal(
+    semanticFindings(result).filter((f) => f.severity === "ERROR").length,
+    0,
+  );
+  invoice.lines[0].quantity = "";
+  assert.throws(() => recalculateInvoice(invoice));
+  invoice.lines[0].quantity = "15";
+  invoice.lines[0].tax.rate = "7";
+  assert.throws(() => recalculateInvoice(invoice));
+});

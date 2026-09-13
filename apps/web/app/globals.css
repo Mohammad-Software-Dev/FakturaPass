@@ -1980,3 +1980,271 @@ td,
   order: 2;
   margin-top: 0;
 }
+
+/* Invoice review and correction share a readable, responsive layout. */
+.invoice-review {
+  min-width: 0;
+}
+.invoice-review .parties {
+  padding: 24px;
+}
+.review-references {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding: 24px;
+  margin: 0;
+}
+.review-references dt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.review-references dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.invoice-review td {
+  white-space: normal;
+  min-width: 75px;
+}
+.invoice-review td:first-child {
+  min-width: 170px;
+}
+.invoice-review td small {
+  display: block;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.review-totals {
+  width: auto;
+  max-width: none;
+  margin: 20px 24px;
+}
+.review-totals > div {
+  gap: 16px;
+}
+.review-totals strong {
+  white-space: nowrap;
+}
+.payment-details {
+  padding: 24px;
+  border-top: 1px solid var(--line);
+}
+.payment-details .review-references {
+  padding: 12px 0 0;
+}
+.payment-details p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.preview-panel .invoice-review {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin: 20px 0;
+}
+.preview-panel .parties {
+  grid-template-columns: 1fr;
+}
+.editor-sections {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.editor-sections .active {
+  background: var(--pale);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.editor-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+.editor-field input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 10px;
+}
+.invoice-editor fieldset {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+  margin: 18px 0;
+}
+.invoice-editor legend {
+  padding: 0 8px;
+}
+.advanced-json {
+  margin: 24px 0;
+}
+.advanced-json summary,
+.payment-details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.advanced-json .field-label {
+  margin-top: 18px;
+}
+.change-summary {
+  padding: 18px;
+  background: var(--pale);
+  border-radius: 10px;
+  margin: 20px 0;
+}
+.change-summary ul {
+  padding-left: 20px;
+}
+.change-summary li {
+  margin: 14px 0;
+  overflow-wrap: anywhere;
+}
+.change-summary small {
+  display: block;
+  color: var(--muted);
+}
+.change-summary ins {
+  text-decoration: none;
+  font-weight: 600;
+}
+.workflow-guidance {
+  padding: 16px 20px;
+  background: var(--pale);
+  border-radius: 10px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+@media (max-width: 650px) {
+  .editor-fields,
+  .review-references {
+    grid-template-columns: 1fr;
+  }
+  .invoice-review .parties {
+    grid-template-columns: 1fr;
+  }
+}
+.source-details {
+  margin: 16px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.source-details summary {
+  cursor: pointer;
+}
+.recalculation {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--soft);
+  border-radius: 10px;
+}
+.recalculation p {
+  color: var(--muted);
+  margin-top: 10px;
+  line-height: 1.6;
+  font-size: 12px;
+}
+.field-error {
+  color: var(--error-ink);
+}
+.editor-field input[aria-invalid="true"] {
+  border-color: var(--error-ink);
+}
+.editor-field input {
+  background: var(--surface);
+  color: var(--ink);
+}
+.preview-panel .review-references > div {
+  display: block;
+  padding: 0;
+  border: 0;
+}
+.preview-panel .review-references dd {
+  text-align: left;
+}
+.preview-panel .review-references {
+  grid-template-columns: 1fr;
+}
+.preview-panel .invoice-review table,
+.preview-panel .invoice-review tbody {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+.preview-panel .invoice-review thead {
+  display: none;
+}
+.preview-panel .invoice-review tr {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line);
+  padding: 16px;
+}
+.preview-panel .invoice-review td {
+  display: block;
+  min-width: 0;
+  padding: 8px;
+  border: 0;
+  overflow-wrap: anywhere;
+}
+.preview-panel .invoice-review td:first-child {
+  grid-column: 1 / -1;
+}
+.preview-panel .invoice-review td[data-label]::before {
+  content: attr(data-label);
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+@media (max-width: 650px) {
+  .invoice-review table,
+  .invoice-review tbody {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+  .invoice-review thead {
+    display: none;
+  }
+  .invoice-review tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .invoice-review td {
+    display: block;
+    min-width: 0;
+    padding: 6px;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  .invoice-review td:first-child {
+    grid-column: 1 / -1;
+  }
+  .invoice-review td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+}
+@media (min-width: 1100px) {
+  .import-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  }
+  .preview-panel .parties,
+  .preview-panel .review-references {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

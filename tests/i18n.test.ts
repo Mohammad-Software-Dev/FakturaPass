@@ -149,3 +149,44 @@ test("workspace UI copy is catalog-backed including accessible attributes", () =
   }
   walk(source);
 });
+
+test("invoice review and editor labels are translated in both catalogs", () => {
+  for (const file of ["invoice-editor.tsx", "invoice-review.tsx"]) {
+    const source = ts.createSourceFile(
+      file,
+      readFileSync(`apps/web/app/${file}`, "utf8"),
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
+    function walk(node: ts.Node) {
+      if (
+        ts.isCallExpression(node) &&
+        node.expression.getText(source) === "t" &&
+        node.arguments[0] &&
+        ts.isStringLiteral(node.arguments[0])
+      )
+        assert(
+          Object.hasOwn(dictionaries.en, node.arguments[0].text),
+          node.arguments[0].text,
+        );
+      if (
+        ts.isVariableDeclaration(node) &&
+        node.name.getText(source) === "editorLabels" &&
+        node.initializer &&
+        ts.isObjectLiteralExpression(node.initializer)
+      )
+        for (const property of node.initializer.properties)
+          if (
+            ts.isPropertyAssignment(property) &&
+            ts.isStringLiteral(property.initializer)
+          )
+            assert(
+              Object.hasOwn(dictionaries.en, property.initializer.text),
+              property.initializer.text,
+            );
+      ts.forEachChild(node, walk);
+    }
+    walk(source);
+  }
+});

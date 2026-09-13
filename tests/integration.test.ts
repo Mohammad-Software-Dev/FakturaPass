@@ -88,7 +88,10 @@ test("complete persisted pipeline, idempotency, hashes, immutable source and cor
     s.ingest(ctx, { ...i, extensions: { changed: true } }, raw, key),
     { code: "IDEMPOTENCY_CONFLICT" },
   );
-  await assert.rejects(create(i), { code: "SOURCE_DUPLICATE" });
+  await assert.rejects(create(i), {
+    code: "SOURCE_DUPLICATE",
+    details: { invoiceId: first.invoiceId },
+  });
   const v = await s.enqueueValidation(
     ctx,
     first.invoiceId,
