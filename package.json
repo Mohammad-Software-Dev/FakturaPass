@@ -1,0 +1,57 @@
+{
+  "name": "fakturapass",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.6.1",
+  "engines": {
+    "node": ">=22.15.0 <23"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "next dev apps/web -p 3010 --hostname 127.0.0.1",
+    "worker": "tsx apps/worker/index.ts",
+    "engine": "node scripts/engine.mjs",
+    "db:migrate": "tsx packages/database/migrate.ts",
+    "build": "next build apps/web",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "tsx --test tests/domain.test.ts tests/i18n.test.ts",
+    "test:integration": "tsx --test --test-concurrency=1 tests/integration.test.ts",
+    "test:e2e": "playwright test",
+    "contracts:check": "tsx scripts/check-contracts.ts",
+    "verify": "node scripts/verify.mjs",
+    "engine:setup": "node scripts/setup-engine.mjs",
+    "test:api": "node --import tsx --test --test-concurrency=1 tests/api.test.ts",
+    "start": "next start apps/web -p 3010 --hostname 127.0.0.1"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "decimal.js": "10.6.0",
+    "fast-xml-parser": "5.11.1",
+    "lucide-react": "0.468.0",
+    "next": "16.3.5",
+    "pg": "8.16.3",
+    "react": "19.1.6",
+    "react-dom": "19.1.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "@types/node": "22.19.15",
+    "@types/pg": "8.15.6",
+    "@types/react": "19.1.17",
+    "@types/react-dom": "19.1.11",
+    "eslint": "9.39.4",
+    "prettier": "3.8.1",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.57.0",
+    "yaml": "2.9.1"
+  },
+  "overrides": {
+    "esbuild": "0.28.2"
+  }
+}

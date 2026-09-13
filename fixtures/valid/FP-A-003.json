@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "fakturapass.invoice.v1",
+  "source": {
+    "system": "demo-erp",
+    "recordId": "INV-1003",
+    "receivedAt": "2026-01-15T10:00:00Z",
+    "fileName": "inv-1001.json"
+  },
+  "document": {
+    "type": "INVOICE",
+    "number": "2026-1003",
+    "issueDate": "2026-01-15",
+    "currency": "EUR",
+    "buyerReference": "04011000-12345-34",
+    "purchaseOrderReference": "PO-7788",
+    "contractReference": null
+  },
+  "seller": {
+    "name": "Demo Lieferant GmbH",
+    "tradingName": null,
+    "address": {
+      "street": "Musterstraße 10",
+      "additional": null,
+      "city": "Berlin",
+      "postalCode": "10115",
+      "countryCode": "DE"
+    },
+    "vatId": "DE123456789",
+    "taxNumber": null,
+    "electronicAddress": {
+      "schemeId": "EM",
+      "value": "rechnung@example.invalid"
+    },
+    "legalRegistrationId": null,
+    "contact": {
+      "name": "Rechnungsteam",
+      "email": "rechnung@example.invalid",
+      "phone": "+49 30 5550100"
+    }
+  },
+  "buyer": {
+    "name": "Demo Käufer GmbH",
+    "tradingName": null,
+    "address": {
+      "street": "Beispielweg 20",
+      "additional": null,
+      "city": "Hamburg",
+      "postalCode": "20095",
+      "countryCode": "DE"
+    },
+    "vatId": "DE987654321",
+    "taxNumber": null,
+    "electronicAddress": {
+      "schemeId": "0204",
+      "value": "04011000-12345-34"
+    },
+    "legalRegistrationId": null,
+    "contact": null
+  },
+  "lines": [
+    {
+      "id": "1",
+      "name": "Beratungsleistung",
+      "description": null,
+      "quantity": "1.25",
+      "unitCode": "HUR",
+      "unitPrice": {
+        "amount": "99.99",
+        "baseQuantity": "1"
+      },
+      "lineNetAmount": "124.99",
+      "tax": {
+        "categoryCode": "S",
+        "rate": "19"
+      },
+      "allowancesCharges": [],
+      "buyerAccountingReference": null,
+      "purchaseOrderLineReference": null
+    }
+  ],
+  "allowancesCharges": [],
+  "taxBreakdown": [
+    {
+      "categoryCode": "S",
+      "rate": "19",
+      "taxableAmount": "124.99",
+      "taxAmount": "23.75"
+    }
+  ],
+  "totals": {
+    "lineNetAmount": "124.99",
+    "allowanceTotal": "0.00",
+    "chargeTotal": "0.00",
+    "taxExclusiveAmount": "124.99",
+    "taxAmount": "23.75",
+    "taxInclusiveAmount": "148.74",
+    "prepaidAmount": "0.00",
+    "payableRoundingAmount": "0.00",
+    "payableAmount": "148.74"
+  },
+  "payment": {
+    "meansCode": "58",
+    "dueDate": "2026-02-14",
+    "terms": "Zahlbar innerhalb von 30 Tagen",
+    "iban": "DE02120300000000202051",
+    "bic": null,
+    "accountName": "Demo Lieferant GmbH",
+    "paymentReference": "2026-1001"
+  },
+  "attachments": [],
+  "extensions": {}
+}

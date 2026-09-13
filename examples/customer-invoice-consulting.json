@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "fakturapass.invoice.v1",
+  "source": {
+    "system": "customer-erp-export",
+    "recordId": "SYNTH-ERP-2026-4711",
+    "receivedAt": "2026-09-13T09:15:00Z",
+    "fileName": "rechnung-2026-4711.json"
+  },
+  "document": {
+    "type": "INVOICE",
+    "number": "RE-2026-4711",
+    "issueDate": "2026-09-10",
+    "currency": "EUR",
+    "buyerReference": "PROJEKT-ATLAS-2026",
+    "purchaseOrderReference": "PO-2026-8842",
+    "contractReference": "RV-DIGITAL-2026"
+  },
+  "seller": {
+    "name": "Nordlicht Digitalberatung GmbH",
+    "tradingName": "Nordlicht Digital",
+    "address": {
+      "street": "Hafenallee 18",
+      "additional": "3. Obergeschoss",
+      "city": "Hamburg",
+      "postalCode": "20457",
+      "countryCode": "DE"
+    },
+    "vatId": "DE123456789",
+    "taxNumber": null,
+    "electronicAddress": {
+      "schemeId": "EM",
+      "value": "rechnung@nordlicht-digital.example"
+    },
+    "legalRegistrationId": {
+      "schemeId": "0200",
+      "value": "SYNTH-HRB-47110"
+    },
+    "contact": {
+      "name": "Lea Sommer",
+      "email": "buchhaltung@nordlicht-digital.example",
+      "phone": "+49 40 55501471"
+    }
+  },
+  "buyer": {
+    "name": "Bergstrom Handel GmbH",
+    "tradingName": "Bergstrom",
+    "address": {
+      "street": "Marktplatz 7",
+      "additional": "Einkauf und Finanzen",
+      "city": "Muenchen",
+      "postalCode": "80331",
+      "countryCode": "DE"
+    },
+    "vatId": "DE987654321",
+    "taxNumber": null,
+    "electronicAddress": {
+      "schemeId": "EM",
+      "value": "eingangsrechnungen@bergstrom-handel.example"
+    },
+    "legalRegistrationId": {
+      "schemeId": "0200",
+      "value": "SYNTH-HRB-88420"
+    },
+    "contact": {
+      "name": "Team Kreditorenbuchhaltung",
+      "email": "kreditoren@bergstrom-handel.example",
+      "phone": "+49 89 55508842"
+    }
+  },
+  "lines": [
+    {
+      "id": "1",
+      "name": "Prozessanalyse Eingangsrechnungen",
+      "description": "Workshop, Ist-Aufnahme und dokumentierte Handlungsempfehlungen",
+      "quantity": "12.5",
+      "unitCode": "HUR",
+      "unitPrice": {
+        "amount": "120.00",
+        "baseQuantity": "1"
+      },
+      "lineNetAmount": "1500.00",
+      "tax": {
+        "categoryCode": "S",
+        "rate": "19"
+      },
+      "allowancesCharges": [],
+      "buyerAccountingReference": "CC-4100",
+      "purchaseOrderLineReference": "10"
+    },
+    {
+      "id": "2",
+      "name": "Einrichtung Exportvorlage",
+      "description": "Konfiguration und Test des strukturierten Rechnungsexports",
+      "quantity": "2",
+      "unitCode": "HUR",
+      "unitPrice": {
+        "amount": "85.00",
+        "baseQuantity": "1"
+      },
+      "lineNetAmount": "170.00",
+      "tax": {
+        "categoryCode": "S",
+        "rate": "19"
+      },
+      "allowancesCharges": [],
+      "buyerAccountingReference": "CC-4100",
+      "purchaseOrderLineReference": "20"
+    },
+    {
+      "id": "3",
+      "name": "Dokumentation und Uebergabe",
+      "description": "Technische Kurzdokumentation und Abschlussgespraech",
+      "quantity": "1",
+      "unitCode": "C62",
+      "unitPrice": {
+        "amount": "49.00",
+        "baseQuantity": "1"
+      },
+      "lineNetAmount": "49.00",
+      "tax": {
+        "categoryCode": "S",
+        "rate": "19"
+      },
+      "allowancesCharges": [],
+      "buyerAccountingReference": "CC-4100",
+      "purchaseOrderLineReference": "30"
+    }
+  ],
+  "allowancesCharges": [],
+  "taxBreakdown": [
+    {
+      "categoryCode": "S",
+      "rate": "19",
+      "taxableAmount": "1719.00",
+      "taxAmount": "326.61"
+    }
+  ],
+  "totals": {
+    "lineNetAmount": "1719.00",
+    "allowanceTotal": "0.00",
+    "chargeTotal": "0.00",
+    "taxExclusiveAmount": "1719.00",
+    "taxAmount": "326.61",
+    "taxInclusiveAmount": "2045.61",
+    "prepaidAmount": "0.00",
+    "payableRoundingAmount": "0.00",
+    "payableAmount": "2045.61"
+  },
+  "payment": {
+    "meansCode": "58",
+    "dueDate": "2026-10-10",
+    "terms": "Zahlbar innerhalb von 30 Tagen ohne Abzug",
+    "iban": "DE02120300000000202051",
+    "bic": null,
+    "accountName": "Nordlicht Digitalberatung GmbH",
+    "paymentReference": "RE-2026-4711"
+  },
+  "attachments": [],
+  "extensions": {}
+}

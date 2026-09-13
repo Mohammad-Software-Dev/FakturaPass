@@ -1,0 +1,32 @@
+{
+  "manifestVersion": "1",
+  "standard": "XRechnung 3.0.2",
+  "components": [
+    {
+      "component": "KoSIT Validator",
+      "purpose": "Official offline validation",
+      "upstreamUrl": "https://github.com/itplr-kosit/validator/releases/download/v1.6.3/validator-1.6.3-standalone.jar",
+      "version": "1.6.3",
+      "releaseTag": "v1.6.3",
+      "artifactName": "validator-1.6.3-standalone.jar",
+      "sha256": "799e64befca97d4080e03608c80b85dd5a5ecc5f4ae4f35d1116ec2855b9a7c9",
+      "license": "Apache-2.0",
+      "retrievedAt": "2026-09-12T08:00:00Z",
+      "supportNotes": "Latest official executable verified at implementation; STRICT_LOCAL URI security fix included.",
+      "replacementReviewDate": "2026-10-12"
+    },
+    {
+      "component": "XRechnung rules",
+      "purpose": "Pinned XRechnung UBL scenarios",
+      "upstreamUrl": "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/v2026-01-31/xrechnung-3.0.2-validator-configuration-2026-01-31.zip",
+      "version": "2026-01-31",
+      "releaseTag": "v2026-01-31",
+      "artifactName": "xrechnung-3.0.2-validator-configuration-2026-01-31.zip",
+      "sha256": "6a5a5911a421b25fbc423f62f93f894df7b236f5d73ca4f84bb222a945082704",
+      "license": "Apache-2.0 (configuration); bundled components retain upstream licenses",
+      "retrievedAt": "2026-09-12T08:00:00Z",
+      "supportNotes": "Specified Release A baseline; no runtime floating updates.",
+      "replacementReviewDate": "2026-10-12"
+    }
+  ]
+}

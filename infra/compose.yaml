@@ -1,0 +1,31 @@
+name: fakturapass
+services:
+  postgres:
+    image: postgres:17.9-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
+    environment:
+      POSTGRES_USER: fakturapass
+      POSTGRES_PASSWORD: local-synthetic-only
+      POSTGRES_DB: fakturapass
+    ports: ["127.0.0.1:5440:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fakturapass"]
+      interval: 2s
+      retries: 30
+  invoice-engine:
+    profiles: [container-engine]
+    build:
+      context: ../services/invoice-engine
+    stdin_open: true
+    ports: ["127.0.0.1:${ENGINE_PORT:-8089}:8089"]
+    networks: [engine]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    mem_limit: 1g
+networks:
+  engine:
+    driver: bridge
+volumes:
+  postgres-data:

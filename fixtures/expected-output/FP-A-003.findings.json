@@ -1,0 +1,16 @@
+[
+  {
+    "code": "VALIDATION_FAILED",
+    "severity": "INFO",
+    "layer": "STANDARD",
+    "canonicalPath": "",
+    "sourcePath": null,
+    "ruleId": "BR-DE-TMP-32",
+    "messageKey": "VALIDATION_FAILED",
+    "parameters": {
+      "message": "[BR-DE-TMP-32] Eine Rechnung sollte zur Angabe des Liefer-/Leistungsdatums entweder BT-72 \"Actual delivery date\", BG-14 \"Invoicing period\" oder in jeder Rechnungsposition BG-26 \"Invoice line period\" enthalten.",
+      "xmlPath": "/Q{urn:oasis:names:specification:ubl:schema:xsd:Invoice-2}Invoice[1]"
+    },
+    "evidenceSource": "KoSIT 1.6.3 / XRechnung 2026-01-31"
+  }
+]

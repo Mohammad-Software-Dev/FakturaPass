@@ -1,0 +1,4 @@
+# Fixture inputs and generated evidence are byte-sensitive.
+fixtures/** -text
+# Preserve whitespace emitted by the official validator in archived reports.
+fixtures/expected-output/*.report.xml -whitespace

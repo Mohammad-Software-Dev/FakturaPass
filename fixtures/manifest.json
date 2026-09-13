@@ -1,0 +1,64 @@
+{
+  "version": "1",
+  "cases": [
+    {
+      "id": "FP-A-001",
+      "input": "valid/FP-A-001.json",
+      "expected": "PASS",
+      "notes": "Explicit synthetic seller telephone; original retained as BR-DE-6 failure."
+    },
+    {
+      "id": "FP-A-002",
+      "expected": "PENDING_SUPPORT",
+      "notes": "Reduced VAT requires domain review TBD-010."
+    },
+    { "id": "FP-A-003", "input": "valid/FP-A-003.json", "expected": "PASS" },
+    {
+      "id": "FP-A-101",
+      "input": "invalid/FP-A-101.json",
+      "profile": "synthetic-reference-v1",
+      "expectedCode": "RECIPIENT_REQUIREMENT_MISSING"
+    },
+    {
+      "id": "FP-A-102",
+      "input": "invalid/FP-A-102.json",
+      "expectedCode": "TOTAL_MISMATCH"
+    },
+    {
+      "id": "FP-A-103",
+      "input": "invalid/FP-A-103.json",
+      "expectedCode": "TAX_BREAKDOWN_MISMATCH"
+    },
+    {
+      "id": "FP-A-104",
+      "input": "invalid/FP-A-104.json",
+      "expectedCode": "SCHEMA_INVALID"
+    },
+    {
+      "id": "FP-A-105",
+      "input": "invalid/FP-A-105.json",
+      "expectedCode": "UNSUPPORTED_CASE",
+      "expected": "BLOCKED_UNSUPPORTED"
+    },
+    {
+      "id": "FP-A-106",
+      "input": "invalid/FP-A-106.json",
+      "expectedCode": "SCHEMA_INVALID",
+      "notes": "Higher precedence EUR-only schema rejects prior to persistence; see ADR-0009."
+    },
+    {
+      "id": "FP-A-107",
+      "input": "valid/FP-A-001.json",
+      "expectedCode": "IDEMPOTENCY_CONFLICT",
+      "notes": "Replay same key/body, then change body; executable integration test."
+    },
+    {
+      "id": "FP-A-108",
+      "input": "invalid/FP-A-108.json",
+      "expected": "PASS",
+      "expectedCode": "RECIPIENT_PROFILE_UNKNOWN",
+      "severity": "INFO",
+      "notes": "Unknown coverage is informational, not a failed invoice."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "code": "RECIPIENT_PROFILE_UNKNOWN",
+    "severity": "INFO",
+    "layer": "RECIPIENT",
+    "canonicalPath": "",
+    "sourcePath": null,
+    "ruleId": null,
+    "messageKey": "RECIPIENT_PROFILE_UNKNOWN",
+    "parameters": {},
+    "evidenceSource": null
+  }
+]
