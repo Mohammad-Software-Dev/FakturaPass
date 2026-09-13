@@ -15,7 +15,7 @@ Open **http://127.0.0.1:3010**. `npm run dev` starts PostgreSQL, applies explici
 
 Only one local launcher can use port 3010 at a time. Stop the running launcher with Ctrl+C before starting another one. If another application needs that port, use `PORT=3011 npm run dev` and open the address printed after `FakturaPass is ready`.
 
-In **Importieren**, choose FP-A-001, inspect the preview, import, click **Prüfen**, **Revision freigeben**, then **XRechnung erstellen**. Download the XML and evidence from the invoice workspace. FP-A-102 demonstrates mismatched totals; FP-A-105 demonstrates blocked reverse charge. Select the synthetic buyer-reference profile when exercising FP-A-101.
+In **Importieren**, select your structured invoice JSON, review the preview, import, then choose **Prüfen**, **Revision freigeben** and **XRechnung erstellen**. Download XML and evidence from the invoice workspace. **Formatbeispiel ansehen** provides an optional fictional consulting example; replace its values before importing. Negative and unsupported fixtures remain in the repository test corpus rather than the customer interface.
 
 Stop the application with Ctrl+C. Stop local PostgreSQL separately with `docker compose -f infra/compose.yaml stop`. Do not remove the volume unless you intentionally want to discard the demo database.
 
@@ -25,7 +25,7 @@ Use the **Sprache / Language** selector in the top bar to switch between German 
 
 ## Appearance and walkthrough
 
-Use the moon/sun button in the top bar to switch between the refined light and dark themes. Your choice is remembered without discarding work. Read `docs/USER_GUIDE.md` for story-based walkthroughs of importing, validating, correcting, approving, exporting and auditing invoices. Theme implementation details are in `docs/APPEARANCE.md`.
+Use the moon/sun button in the top bar to switch between the blue light and midnight-dark themes. Your choice is remembered without discarding work. Read `docs/USER_GUIDE.md` for story-based walkthroughs of importing, validating, correcting, approving, exporting and auditing invoices. Theme implementation details are in `docs/APPEARANCE.md`.
 
 ## Verify
 

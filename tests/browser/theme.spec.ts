@@ -8,7 +8,7 @@ test("theme persists in server HTML and preserves language and unsaved drafts", 
   await page
     .getByRole("button", { name: "Rechnung importieren", exact: true })
     .click();
-  await page.getByLabel("Canonical JSON", { exact: true }).fill(fixture);
+  await page.locator("#canonical").fill(fixture);
   await page
     .getByRole("button", { name: "Dunkles Design", exact: true })
     .click();
@@ -16,9 +16,7 @@ test("theme persists in server HTML and preserves language and unsaved drafts", 
   await expect(
     page.getByRole("button", { name: "Dunkles Design", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByLabel("Canonical JSON", { exact: true })).toHaveValue(
-    fixture,
-  );
+  await expect(page.locator("#canonical")).toHaveValue(fixture);
   await page.getByLabel("Sprache", { exact: true }).selectOption("en");
   await expect(
     page.getByRole("button", { name: "Dark appearance", exact: true }),

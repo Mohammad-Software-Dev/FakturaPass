@@ -278,5 +278,5 @@ test("API errors and profile labels honor Accept-Language without changing codes
     "test-a",
     { "Accept-Language": "en" },
   );
-  assert.equal((await profile.json()).displayName, "Demo · Buyer reference");
+  assert.equal((await profile.json()).displayName, "Buyer reference");
 });

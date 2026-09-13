@@ -54,7 +54,7 @@ function Badge({ status }: { status: string }) {
   const { t } = useLanguage();
   return (
     <span
-      className={`badge ${["VALID", "ARTIFACT_VALIDATED", "APPROVED", "PASS"].includes(status) ? "green" : ["INVALID", "BLOCKED_UNSUPPORTED", "FAIL"].includes(status) ? "red" : status?.includes("PENDING") ? "blue" : "neutral"}`}
+      className={`badge ${["VALID", "ARTIFACT_VALIDATED", "APPROVED", "PASS"].includes(status) ? "success" : ["INVALID", "BLOCKED_UNSUPPORTED", "FAIL"].includes(status) ? "red" : status?.includes("PENDING") ? "blue" : "neutral"}`}
     >
       <span className="dot" />
       {t(
@@ -321,13 +321,6 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
           </span>
           Faktura<span>Pass</span>
         </a>
-        <div className="workspace-select">
-          <span className="workspace-avatar">D</span>
-          <div>
-            <strong>{t("Demo-Arbeitsbereich")}</strong>
-            <small>{t("Lokale Umgebung")}</small>
-          </div>
-        </div>
         <div className="nav-label">{t("ARBEITSPLATZ")}</div>
         <nav>
           <button
@@ -354,25 +347,10 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
           </button>
         </nav>
         <div className="sidebar-bottom">
-          <div className="local-note">
-            <ShieldCheck size={22} />
-            <strong>{t("Ein sicherer Probelauf.")}</strong>
-            <p>
-              {t("Synthetische Daten. Echte Prüfung. Kein Rechnungsversand.")}
-            </p>
-            <span>
-              {t("RELEASE A")} <span className="dot" />
-              {t("LOCAL")}{" "}
-            </span>
-          </div>
-          <div className="user">
-            <span className="avatar">DO</span>
-            <div>
-              <strong>{t("Demo Operator")}</strong>
-              <small>{t("Administrator")}</small>
-            </div>
-            <span className="online-dot" />
-          </div>
+          <p className="sidebar-assurance">
+            <ShieldCheck size={17} />
+            {t("Jeder Stand bleibt erhalten.")}
+          </p>
         </div>
       </aside>
       <div className="main-shell">
@@ -390,10 +368,6 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
             </strong>
           </div>
           <AppearanceControls />
-          <span className="environment">
-            <span className="dot" />
-            {t("Lokale Demo")}{" "}
-          </span>
         </header>
         <main>
           {view === "invoices" && (
@@ -407,10 +381,12 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                       {t("Prüfen, freigeben und als XRechnung exportieren.")}
                     </p>
                   </div>
-                  <button className="primary" onClick={() => go("import")}>
-                    <Plus size={18} />
-                    {t("Rechnung importieren")}{" "}
-                  </button>
+                  {items.length > 0 && (
+                    <button className="primary" onClick={() => go("import")}>
+                      <Plus size={18} />
+                      {t("Rechnung importieren")}{" "}
+                    </button>
+                  )}
                 </div>
               </div>
               {errorView}
@@ -632,14 +608,6 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                   </span>
                 </div>
               </section>
-              <div className="bottom-note">
-                <Info size={16} />
-                <p>
-                  {t(
-                    "Eine bestandene XRechnung-Prüfung bestätigt technische Regeln. Empfängerannahme und steuerliche Beurteilung sind davon unabhängig.",
-                  )}{" "}
-                </p>
-              </div>
             </>
           )}
           {view === "import" && (
@@ -705,30 +673,39 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                             }}
                           />
                         </label>
-                        <label className="field-label" htmlFor="fixture">
-                          {t("Demo-Vorlage")}{" "}
-                        </label>
-                        <select
-                          id="fixture"
-                          defaultValue=""
-                          onChange={(e) => {
-                            const f = fixtures[Number(e.target.value)];
-                            if (f) {
-                              setText(JSON.stringify(f.data, null, 2));
-                              setPreview(null);
-                              setError(null);
-                            }
-                          }}
-                        >
-                          <option value="" disabled>
-                            {t("Eine synthetische Rechnung auswählen …")}{" "}
-                          </option>
-                          {fixtures.map((f, n) => (
-                            <option value={n} key={f.code}>
-                              {f.code} — {t(f.name)}
+                        <details className="format-help">
+                          <summary>{t("Formatbeispiel ansehen")}</summary>
+                          <label className="field-label" htmlFor="fixture">
+                            {t("Rechnungsvorlage")}
+                          </label>
+                          <select
+                            id="fixture"
+                            defaultValue=""
+                            onChange={(event) => {
+                              const example =
+                                fixtures[Number(event.target.value)];
+                              if (example) {
+                                setText(JSON.stringify(example.data, null, 2));
+                                setPreview(null);
+                                setError(null);
+                              }
+                            }}
+                          >
+                            <option value="" disabled>
+                              {t("Vorlage auswählen …")}
                             </option>
-                          ))}
-                        </select>
+                            {fixtures.map((example, index) => (
+                              <option value={index} key={example.code}>
+                                {t(example.name)}
+                              </option>
+                            ))}
+                          </select>
+                          <p>
+                            {t(
+                              "Die Vorlage enthält fiktive Angaben. Ersetzen Sie diese vor dem Import.",
+                            )}
+                          </p>
+                        </details>
                         <div className="or-label">
                           {t("ODER JSON EINFÜGEN")}
                         </div>
@@ -751,7 +728,6 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                       }}
                     />
                     <div className="actions">
-                      <span className="muted">fakturapass.invoice.v1</span>
                       <button
                         className="secondary"
                         disabled={!text || busy}
@@ -1588,17 +1564,13 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                   )}{" "}
                 </p>
               </div>
-              <div className="detail-grid">
-                <section className="panel">
-                  <div className="panel-title">
-                    <h2>{t("Systeminformationen")}</h2>
-                    <Badge status={health ? "PASS" : "PENDING"} />
-                  </div>
+              <div className="settings-grid">
+                <details className="panel technical-information">
+                  <summary>{t("Technische Informationen")}</summary>
                   <div className="panel-body">
                     <dl>
                       {[
-                        [t("Umgebung"), t("LOCAL · Synthetische Daten")],
-                        [t("Release"), t("A · Technischer Demonstrator")],
+                        [t("Umgebung"), t("Lokale Installation")],
                         [t("Kanonisches Schema"), "fakturapass.invoice.v1"],
                         [t("Generator"), "fakturapass-ubl/1.0.0"],
                         [t("Offizieller Validator"), "KoSIT 1.6.3"],
@@ -1616,7 +1588,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                       ))}
                     </dl>
                   </div>
-                </section>
+                </details>
                 <section className="panel">
                   <div className="panel-title">
                     <h2>{t("Unterstützter Umfang")}</h2>

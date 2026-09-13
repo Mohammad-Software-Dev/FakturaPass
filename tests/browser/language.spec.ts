@@ -8,11 +8,9 @@ test("language switch preserves drafts, updates metadata and survives reload", a
   await page
     .getByRole("button", { name: "Rechnung importieren", exact: true })
     .click();
-  await page.getByLabel("Canonical JSON", { exact: true }).fill(input);
+  await page.locator("#canonical").fill(input);
   await page.getByLabel("Sprache", { exact: true }).selectOption("en");
-  await expect(page.getByLabel("Canonical JSON", { exact: true })).toHaveValue(
-    input,
-  );
+  await expect(page.locator("#canonical")).toHaveValue(input);
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page).toHaveTitle("FakturaPass · Validate invoices");
   await expect(
@@ -23,9 +21,7 @@ test("language switch preserves drafts, updates metadata and survives reload", a
   await expect(page.getByText("15/01/2026", { exact: true })).toBeVisible();
   await page.getByLabel("Language", { exact: true }).selectOption("de");
   await expect(page.locator(".preview-amount")).toContainText("238,00");
-  await expect(page.getByLabel("Canonical JSON", { exact: true })).toHaveValue(
-    input,
-  );
+  await expect(page.locator("#canonical")).toHaveValue(input);
   await page.getByLabel("Sprache", { exact: true }).selectOption("en");
   await page.reload();
   await expect(page.getByLabel("Language", { exact: true })).toHaveValue("en");
@@ -38,6 +34,7 @@ test("language switch preserves drafts, updates metadata and survives reload", a
   await expect(
     page.getByRole("heading", { name: "Supported scope" }),
   ).toBeVisible();
+  await page.getByText("Technical information", { exact: true }).click();
   await expect(page.getByText("Durable PostgreSQL job queue")).toBeVisible();
   await expect(page.getByText("German domestic invoices in EUR")).toBeVisible();
 });
@@ -49,14 +46,14 @@ test("schema and syntax errors retranslate in place and switch remains accessibl
   await page
     .getByRole("button", { name: "Rechnung importieren", exact: true })
     .click();
-  await page.getByLabel("Canonical JSON", { exact: true }).fill("{");
+  await page.locator("#canonical").fill("{");
   await page.getByRole("button", { name: "Vorschau prüfen" }).click();
   await expect(page.locator(".error-banner")).toContainText("Ungültiges JSON");
   await page.getByLabel("Sprache", { exact: true }).selectOption("en");
   await expect(page.locator(".error-banner")).toContainText(
     "Invalid JSON. Please check the syntax.",
   );
-  await page.getByLabel("Canonical JSON", { exact: true }).fill("{}");
+  await page.locator("#canonical").fill("{}");
   await page.getByRole("button", { name: "Check preview" }).click();
   await expect(page.locator(".error-banner")).toContainText(
     "A required field is missing.",

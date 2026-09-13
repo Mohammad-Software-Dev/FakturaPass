@@ -20,9 +20,7 @@ test("import, validate, approve, generate, evidence and correction", async ({
   await page
     .getByRole("button", { name: "Import invoice", exact: true })
     .click();
-  await page
-    .getByLabel("Canonical JSON", { exact: true })
-    .fill(JSON.stringify(input, null, 2));
+  await page.locator("#canonical").fill(JSON.stringify(input, null, 2));
   await page.getByRole("button", { name: "Check preview" }).click();
   await expect(
     page.getByRole("heading", { name: input.document.number }),
@@ -52,9 +50,7 @@ test("import, validate, approve, generate, evidence and correction", async ({
   ).toBe("PASS");
   await page.getByRole("button", { name: "Corrected revision" }).click();
   input.document.buyerReference = "CHANGED";
-  await page
-    .getByLabel("Canonical JSON", { exact: true })
-    .fill(JSON.stringify(input));
+  await page.locator("#canonical").fill(JSON.stringify(input));
   await page.getByRole("button", { name: "Check preview" }).click();
   await page.getByRole("button", { name: "Save new revision" }).click();
   await page.getByRole("tab", { name: "History", exact: true }).click();
@@ -72,9 +68,7 @@ test("negative totals show declared versus computed and block approval", async (
   await page
     .getByRole("button", { name: "Import invoice", exact: true })
     .click();
-  await page
-    .getByLabel("Canonical JSON", { exact: true })
-    .fill(JSON.stringify(input));
+  await page.locator("#canonical").fill(JSON.stringify(input));
   await page.getByRole("button", { name: "Check preview" }).click();
   await page
     .getByRole("button", { name: "Import invoice", exact: true })
@@ -101,9 +95,7 @@ test("schema errors identify a missing field and mobile layout remains usable", 
   await page
     .getByRole("button", { name: "Import invoice", exact: true })
     .click();
-  await page
-    .getByLabel("Canonical JSON", { exact: true })
-    .fill(JSON.stringify(input));
+  await page.locator("#canonical").fill(JSON.stringify(input));
   await page.getByRole("button", { name: "Check preview" }).click();
   await expect(page.locator(".error-banner")).toContainText(
     "seller.electronicAddress",

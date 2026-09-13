@@ -1,22 +1,22 @@
-/* Semantic palette: warm porcelain by day, deep forest by night. */
+/* Semantic palette: crisp porcelain by day, midnight blue by night. */
 :root {
   color-scheme: light;
-  --bg: #f5f4f0;
-  --surface: #fffefa;
-  --surface-soft: #eeeee7;
-  --ink: #20332d;
-  --muted: #59685e;
-  --line: #dcded3;
-  --green: #23644e;
-  --green-dark: #174d3a;
-  --pale: #e8efe6;
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-soft: #edf2f9;
+  --ink: #192c46;
+  --muted: #536580;
+  --line: #d9e2ee;
+  --accent: #245bc4;
+  --accent-hover: #1948a7;
+  --pale: #e8effd;
   --white: var(--surface);
   --on-accent: #ffffff;
-  --focus: #94763e;
-  --gold: #92743e;
-  --shadow-color: #20332d09;
-  --success-bg: #e8f2eb;
-  --success-ink: #286448;
+  --focus: #396fd0;
+  --detail-accent: #4a6caa;
+  --shadow-color: #192c4609;
+  --success-bg: #e8f0fd;
+  --success-ink: #2353a0;
   --error-bg: #fff0eb;
   --error-ink: #943e30;
   --info-bg: #eaf0f8;
@@ -24,21 +24,21 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #101815;
-  --surface: #18231e;
-  --surface-soft: #202e27;
-  --ink: #e9eee5;
-  --muted: #b0beb0;
-  --line: #36473d;
-  --green: #a9d2b7;
-  --green-dark: #c2e5cc;
-  --pale: #293e31;
-  --on-accent: #12271b;
-  --focus: #dbc18d;
-  --gold: #d0b780;
+  --bg: #0e1625;
+  --surface: #152237;
+  --surface-soft: #1d304b;
+  --ink: #edf3ff;
+  --muted: #b1c1d9;
+  --line: #334964;
+  --accent: #97bcff;
+  --accent-hover: #bdd4ff;
+  --pale: #263e62;
+  --on-accent: #12233e;
+  --focus: #adcaff;
+  --detail-accent: #a7c4ef;
   --shadow-color: #00000026;
-  --success-bg: #253f30;
-  --success-ink: #b7e4c7;
+  --success-bg: #203b60;
+  --success-ink: #bdd8ff;
   --error-bg: #432a25;
   --error-ink: #ffc1ae;
   --info-bg: #24374a;
@@ -156,13 +156,13 @@ code {
   padding-left: 8px;
 }
 .brand > span:last-child {
-  color: var(--green);
+  color: var(--accent);
   margin-left: -9px;
 }
 .brand-icon {
   width: 34px;
   height: 35px;
-  background: var(--green);
+  background: var(--accent);
   color: var(--on-accent);
   display: grid;
   place-items: center;
@@ -228,7 +228,7 @@ nav button:hover {
 }
 nav button.active {
   background: var(--pale);
-  color: var(--green);
+  color: var(--accent);
   font-weight: 650;
 }
 .nav-count {
@@ -249,7 +249,7 @@ nav button.active {
   border-radius: 9px;
 }
 .local-note > svg {
-  color: var(--green);
+  color: var(--accent);
   margin-bottom: 9px;
 }
 .local-note strong {
@@ -297,7 +297,7 @@ nav button.active {
 .online-dot {
   width: 6px;
   height: 6px;
-  background: var(--green);
+  background: var(--accent);
   border-radius: 50%;
   margin-left: auto;
 }
@@ -382,16 +382,16 @@ main {
   font-size: 11px;
   font-weight: 600;
   min-height: 37px;
-  transition: background 0.15s;
+  transition: border-color 0.15s;
 }
 .primary {
-  border: 1px solid var(--green);
-  background: var(--green);
+  border: 1px solid var(--accent);
+  background: var(--accent);
   color: var(--on-accent);
   box-shadow: 0 2px 3px var(--shadow-color);
 }
 .primary:hover {
-  background: var(--green-dark);
+  background: var(--accent-hover);
 }
 .secondary {
   border: 1px solid var(--line);
@@ -434,12 +434,12 @@ main {
   margin: 10px 0 5px;
 }
 .stat:nth-child(2) > strong {
-  color: var(--green);
+  color: var(--accent);
 }
 .stat-chip {
   letter-spacing: 0;
   font-size: 8px;
-  color: var(--green);
+  color: var(--accent);
   background: var(--surface-soft);
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -658,7 +658,7 @@ tbody tr:hover {
   font-weight: 500;
   white-space: nowrap;
 }
-.badge.green {
+.badge.success {
   background: var(--surface-soft);
   color: var(--muted);
   border: 1px solid var(--line);
@@ -914,7 +914,7 @@ dd {
   bottom: 25px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--green);
+  background: var(--accent);
   color: var(--on-accent);
   padding: 13px 20px;
   display: flex;
@@ -1302,7 +1302,7 @@ dd {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--green);
+  background: var(--accent);
   position: absolute;
   left: -5px;
   top: 5px;
@@ -1735,11 +1735,11 @@ h1 {
 }
 .page-heading .eyebrow,
 .detail-heading .eyebrow {
-  color: var(--gold);
+  color: var(--detail-accent);
   letter-spacing: 1.8px;
 }
 .sidebar {
-  border-top: 3px solid var(--gold);
+  border-top: 3px solid var(--detail-accent);
 }
 .panel,
 .stat {
@@ -1768,7 +1768,7 @@ input,
 select,
 textarea {
   color: var(--ink);
-  accent-color: var(--green);
+  accent-color: var(--accent);
 }
 input::placeholder,
 textarea::placeholder {
@@ -1780,15 +1780,13 @@ select,
 textarea,
 .icon-button,
 .theme-toggle {
-  transition:
-    background-color 150ms,
-    border-color 150ms;
+  transition: border-color 150ms;
 }
 select option {
   background: var(--surface);
   color: var(--ink);
 }
-.badge.green {
+.badge.success {
   color: var(--success-ink);
   background: var(--success-bg);
   border-color: var(--line);
@@ -1824,7 +1822,7 @@ td,
   font-size: 12px;
 }
 .toast {
-  background: var(--green);
+  background: var(--accent);
   color: var(--on-accent);
   box-shadow: 0 12px 40px var(--shadow-color);
 }
@@ -1855,7 +1853,7 @@ td,
   background: var(--surface-soft);
 }
 .theme-toggle svg {
-  color: var(--gold);
+  color: var(--detail-accent);
 }
 .standalone-message .appearance-controls {
   justify-content: flex-end;
@@ -1911,4 +1909,74 @@ td,
 .upload-zone:focus-within {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
+}
+
+/* Customer workspace: fewer competing labels, progressive technical detail. */
+.nav-label {
+  margin-top: 34px;
+}
+.sidebar-bottom {
+  padding: 24px 12px;
+  border-top: 1px solid var(--line);
+}
+.sidebar-assurance {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.sidebar-assurance svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.format-help {
+  margin: 16px 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+.format-help summary,
+.technical-information summary {
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+.format-help[open] summary {
+  margin-bottom: 12px;
+}
+.format-help p {
+  margin: 12px 0 0;
+  font-size: 11px;
+}
+.technical-information {
+  margin-top: 24px;
+}
+.technical-information > summary {
+  padding: 18px 22px;
+}
+.technical-information .panel-body {
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 900px) {
+  .sidebar-assurance {
+    display: none;
+  }
+  .sidebar-bottom {
+    padding: 0;
+    border: 0;
+  }
+}
+.import-grid .actions {
+  justify-content: flex-end;
+}
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.settings-grid > .technical-information {
+  order: 2;
+  margin-top: 0;
 }

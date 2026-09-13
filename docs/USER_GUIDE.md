@@ -1,57 +1,55 @@
-# A working day with FakturaPass
+# From the first import to a finished invoice
 
-FakturaPass is a local workspace for reviewing synthetic German invoices in EUR, validating XRechnung rules, approving a revision and downloading its XML and evidence. It does not send invoices. Start the local stack with `npm run dev`, then open http://127.0.0.1:3010. The stories below use the English interface; choose English in the language selector to follow the button names exactly.
+FakturaPass gives every invoice a clear path: **import → review → approve → export**. Choose German or English in the top bar, and use the moon/sun button for your preferred appearance. Both choices are remembered without interrupting your work. The stories below use the English button names.
 
-## 1. Anna makes the workspace her own
+## Maya starts her day with one invoice
 
-Anna opens FakturaPass in the morning. She chooses English in the top bar and uses the moon button to turn on dark appearance. Deep green panels replace the ivory surfaces. Later, the sun button brings back light appearance. Her choices survive a reload, and changing either preference while editing does not discard her draft. On a small screen, the same controls remain in the top bar; the appearance button becomes an icon with an accessible label.
+Maya has an invoice export from her accounting system. She opens **Import invoice**, chooses the JSON file and clicks **Check preview**. The recipient, invoice date and amount appear beside her source data, so she can confirm she has selected the right document before saving anything.
 
-Before doing any work, Anna visits **Settings & information**. She sees the pinned validator and supported scope. This release supports ordinary domestic German invoices in EUR with explicitly supplied 19% standard VAT. Reduced VAT, other tax treatments, credit notes, ZUGFeRD and delivery are not enabled. The local workspace uses a demo administrator identity and synthetic data.
+If she needs to understand the file format, **See a format example** reveals a consulting-invoice template. Its information is explicitly fictional; she replaces it with the appropriate invoice values. The example is optional, and the test-case library is not part of her workspace.
 
-## 2. Her first invoice becomes an XRechnung
+She clicks **Import invoice**. Her document now has its own workspace with an overview, validation results, source data, artifacts and history. Import accepts the documented structured JSON format, up to 1 MiB; PDF and spreadsheet extraction are not available.
 
-Anna selects **Import invoice**. She can choose a JSON file, paste canonical JSON, or choose a supplied **Demo template**. For a first run she picks **Standard invoice · 19% VAT**. **Check preview** shows the recipient, amount, date and source identity. This preview checks the input structure; it is not the final invoice validation.
+## Maya finishes the handoff
 
-She selects **Import invoice**, then **Validate** in the invoice workspace. The background job checks monetary consistency and the real official XRechnung rules. When the revision is technically valid, **Approve revision** becomes available. Approval binds that exact revision to its validation and chosen recipient profile. She then selects **Generate XRechnung**. After the generated XML passes official validation, **Download XML** appears.
+Maya selects **Validate**. FakturaPass checks the amounts and official XRechnung rules in the background. She can follow the status without losing her place. Once the revision is technically valid, she selects **Approve revision**, then **Generate XRechnung**.
 
-In **Artifacts & evidence**, Anna downloads the evidence manifest as well. It records checksums, rule versions, findings and the original validator report. These are downloads for a later handoff; FakturaPass has not sent the invoice or confirmed that a recipient will accept it.
+When the generated file has passed official validation, **Download XML** becomes available. In **Artifacts & evidence**, she also downloads the evidence manifest containing checksums, rule versions, findings and the original validator report. She now has the file and the record of how it was checked, ready for her organization's chosen delivery channel. FakturaPass provides downloads; it does not send the invoice.
 
-## 3. A missing field stops the import
+## Jonas resolves a discrepancy without starting over
 
-Ben pastes JSON with a missing seller electronic address. **Check preview** identifies `seller.electronicAddress` and explains that a required field is missing. If his JSON has invalid syntax or exceeds 1 MiB, he sees that error before importing.
+Jonas notices **Errors found** on an invoice. In **Validation results**, the declared total and calculated total sit side by side. He selects the affected field to jump directly to **Source & data**, where the relevant value is highlighted.
 
-He corrects the JSON and checks the preview again. The editor expects the supplied canonical schema, including monetary values as decimal strings. It does not convert an arbitrary PDF, spreadsheet or accounting export into an invoice. He uses the demo JSON as a structural example and supplies the actual synthetic values himself.
+He chooses **Corrected revision**, updates the JSON consistently, checks its preview and selects **Save new revision**. The original stays intact. Jonas validates the new revision, approves it and generates its XML. He never needs to delete an earlier record to make progress.
 
-## 4. A one-cent difference leads to a new revision
+A missing field or invalid JSON can be resolved even earlier: **Check preview** explains the problem before import. The editor keeps his input while he corrects it. If he imports an already-recorded source, the app directs him to its existing invoice; a correction belongs there, rather than in a duplicate record.
 
-Clara imports **Mismatched invoice total** and selects **Validate**. The revision shows **Errors found**, and approval is unavailable. In **Validation results**, she compares the declared and calculated amounts. A field link opens **Source & data**, highlights the affected field and shows the immutable canonical JSON. **Technical details** retains the original diagnostic and rule information.
+## Leila prepares the reference her recipient expects
 
-Clara selects **Corrected revision**, edits the JSON and fixes the relevant values consistently. **Check preview**, followed by **Save new revision**, creates a new revision. The original is retained; it is not overwritten. She validates the new revision and approves it only after it passes.
+Leila knows an order reference is required for the handoff. Under **Reference check**, she chooses **Purchase order reference** before validation. The other presets check buyer and contract references. The app identifies missing references separately from official technical findings.
 
-In **History**, she opens the earlier revision to inspect what changed. Historical revisions are read-only. **Open current revision** returns her to the version she can validate or approve. A corrected revision needs its own validation and approval; an old approval cannot authorize changed data.
+Leila obtains the correct reference, adds it through a corrected revision and validates again. If she changes the selected reference check, she revalidates before approval. These presets check the selected fields; they are not verified recipient-specific requirements. **Requirements unverified** keeps that distinction visible, and **Recipient unknown** means no verified recipient requirements are available.
 
-## 5. A technically valid invoice still needs a reference
+## Amira reviews the work with confidence
 
-David knows the synthetic recipient requires an order reference. Before validation he chooses **Demo · Purchase order reference** from **Recipient profile**. Other examples cover a buyer reference or contract reference. Missing required references appear separately from official technical findings.
+At the end of the day, Amira searches by invoice number, recipient or source ID and narrows the list by status or validation result. She opens an invoice and uses:
 
-He obtains and explicitly adds the missing reference in a corrected revision, then validates against the same profile. If he changes profiles, he runs validation again before approving. With no selected profile, **Recipient unknown** means the recipient's requirements are unverified; an official technical pass does not change that. The supplied profiles are demos, not verified customer requirements.
+- **Overview** for parties, references, line items and totals.
+- **Validation results** for the issues that need attention and the completed checks.
+- **Source & data** to inspect or copy the selected revision's JSON and checksums.
+- **Artifacts & evidence** for available XML and evidence downloads.
+- **History** to inspect prior revisions, validation runs and approvals.
 
-## 6. An unsupported case stays blocked
+Opening an earlier revision does not make it editable. **Open current revision** brings her back to the version she can act on. Approval always belongs to the exact validated revision, so changed data needs a new validation and approval. Language and appearance changes never alter invoice content or stored evidence.
 
-Eva imports **Unsupported VAT treatment**. The workspace marks it **Unsupported** and explains the restriction. She cannot approve or generate it. She does not change its tax category merely to get a green result: that would misrepresent the invoice. The case needs support and domain review beyond this release.
+## Oliver handles an exception without losing the invoice
 
-Completed failed validations can still have downloadable evidence. Eva keeps the findings for review without treating them as a valid invoice artifact.
+An unsupported tax case arrives. The app clearly marks it **Unsupported**, explains the restriction and keeps approval unavailable. Oliver retains the findings for review instead of altering tax information just to obtain a pass. Completed failed checks can still provide evidence.
 
-## 7. A second import and an interrupted service
+On another day, the validation service is temporarily unavailable. The invoice and durable job remain stored. After the service is restored, the worker retries the job; Oliver does not need to reimport. A page-level failure offers **Try again** and a route back to the workspace. Operators can follow OPERATIONS.md for service recovery.
 
-Farid accidentally imports the same source again. FakturaPass reports that the source already exists. He finds the existing invoice and uses **Corrected revision** if the data needs changing, preserving the source identity. Integrations can also replay the same idempotency key and body without creating duplicate invoices; changing a body under the same key produces a conflict.
+## Know what is available
 
-Later, the validation service becomes unavailable during a job. The stored invoice remains intact and the durable job is retryable. After the local service is restored, the worker retries it; an expired worker lease can also be recovered. Farid does not reimport to recover a technical failure. If needed, the operator follows OPERATIONS.md to restart the engine or worker. Unexpected page errors have **Try again** and a route back to the workspace.
+**Settings & information** explains the supported scope first. **Technical information** opens only when version or installation details are needed.
 
-## 8. The afternoon audit
-
-Greta returns to **All invoices**, searches by invoice number, recipient or source ID, and narrows the list by status or validation result. She refreshes the list when needed and opens a record.
-
-**Overview** gives her the parties, references, line items, totals and validation status. **Validation results** separates consistency, official standards, recipient requirements and system issues. **Source & data** exposes the selected revision's JSON and SHA-256 hashes, with **Copy JSON** for inspection. **Artifacts & evidence** provides available XML and evidence downloads. **History** lets her inspect earlier revisions, validation runs and approvals.
-
-She switches back to German for a colleague. Labels, explanations, dates and amounts change; the supplied invoice text, identifiers, XML bytes and archived evidence do not. Original external diagnostics remain labelled as unchanged technical evidence. Her audit trail is the same in either language and either appearance.
+The current build supports ordinary German domestic invoices in EUR with explicitly supplied 19% standard VAT. Other tax cases, reduced rates, credit notes, Peppol delivery and ZUGFeRD are not enabled. Technical validation does not guarantee recipient acceptance or tax correctness. Production identity, hosting and operational readiness remain separate deployment requirements described in the repository documentation.
