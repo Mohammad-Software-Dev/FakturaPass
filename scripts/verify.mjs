@@ -97,6 +97,7 @@ try {
   );
   await wait("http://127.0.0.1:3011/api/v1/health/ready");
   await run("npm", ["run", "test:e2e"], env);
+  await run("npm", ["run", "test:recovery"], env);
   await run("npm", ["audit", "--audit-level=high"]);
   console.log(
     "Release A verification passed against an isolated temporary database and production web build.",
