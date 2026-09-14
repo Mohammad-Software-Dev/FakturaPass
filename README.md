@@ -70,3 +70,5 @@ CSV batch import is available through **Import → CSV batch**. Try `examples/cu
 Recipient profiles now support tenant-scoped versions, evidence and review deadlines. See [Recipient requirements](docs/RECIPIENT_PROFILES.md) and the [plan comparison](docs/reviews/2026-09-14-plan-comparison.md).
 
 Use **Review queue** to claim open invoice tasks and follow them to completion. See [Review queue](docs/REVIEW_QUEUE.md) for ownership, resolution and API details.
+
+Local database backup and verified recovery: [Recovery guide](docs/RECOVERY.md).

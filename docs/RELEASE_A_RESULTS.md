@@ -78,3 +78,11 @@ The final isolated-database acceptance run passed all 95 tests: 29 domain/locali
 Coverage includes derived task resolution, expired recipient evidence, processing errors, concurrent ownership claims, stale revision/version conflicts, tenant isolation, role enforcement, server-derived ownership and audit records. Browser checks exercise import, assignment, ownership filters, German switching, mobile dark appearance, validation, approval, XML generation and removal from the queue. The running local queue was also visually checked in light and dark appearance. Migration 006 was applied locally while preserving existing invoices.
 
 This completes the local FP-010 review queue milestone. Production identity and tenant administration, operational readiness and real customer pilot acceptance remain open. See REVIEW_QUEUE.md, USER_GUIDE.md and IMPLEMENTATION_PLAN.md for behavior and the next development steps.
+
+## Local recovery milestone — 15 September 2026
+
+The complete acceptance run passed all 97 tests: 29 domain/localization tests, 10 integration tests, 6 API suites, 50 Chromium/WebKit browser tests and 2 recovery tests. Formatting, TypeScript, ESLint, the 23-operation contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+Recovery acceptance uses the populated isolated database after browser workflows, including generated XML and evidence. It verifies full-table fingerprints after restore, retained recovery copies, restored immutability triggers, archive corruption rejection, record mismatch rejection, cleanup and local-target restrictions. A separate backup of the current local workspace was restored and verified successfully: 18 tables and 408 rows. The working database was preserved and the temporary restore removed.
+
+This closes the local backup/recovery engineering step. Off-site encrypted backups, production-volume recovery timings, point-in-time recovery, production identities and an approved RPO/RTO remain open. See RECOVERY.md for the operator commands and limitations.

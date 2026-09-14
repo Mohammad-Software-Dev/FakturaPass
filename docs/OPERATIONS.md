@@ -6,6 +6,8 @@ The launcher checks its web port before starting child services, waits for the w
 
 ## Recovery
 
+Create a local database snapshot with `npm run backup:create`, then run `npm run backup:verify -- <directory>` to restore and verify it in a separate temporary database. See [RECOVERY.md](RECOVERY.md) for retained recovery copies, integrity checks and limitations.
+
 If Java is unavailable, the worker leaves the validation in ERROR, keeps its durable job pending, and retries after five seconds. Restart `npm run engine` (or the pinned container). The worker reclaims expired leases after 120 seconds. Do not reimport with a new source identity to recover a technical failure.
 
 Stopping the worker leaves jobs in PostgreSQL. Restart `npm run worker` with the same DATABASE_URL to resume. The source revision and approval remain immutable. Successful validation/artifact/evidence writes commit atomically; replay cannot duplicate artifacts or approvals. A stale approval or correction is rejected with a stable conflict code.
@@ -22,4 +24,4 @@ Create a new dependency manifest and ADR; verify licenses/checksums; run all pos
 
 ## Release boundary
 
-Backup/restore guarantees, customer retention periods, external security review, production identity, monitoring SLAs, billing and transport remain Release B/C gates. No real customer data or production secrets belong in this demonstrator.
+Production backup/restore guarantees, customer retention periods, external security review, production identity, monitoring SLAs, billing and transport remain Release B/C gates. No real customer data or production secrets belong in this demonstrator.

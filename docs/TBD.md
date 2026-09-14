@@ -21,3 +21,5 @@ The supplied START HERE document selects Release A. These decisions gate later p
 | 015 | Legal wording, DPA and subprocessors   | Product/legal      | Production         | No legal/tax advice                             |
 
 Decisions must cite evidence and update the relevant support matrix and fixtures. No production vendor, price, retention duration, tax rule or delivery route has been invented to close these gates.
+
+On 15 September 2026, the product owner indicated no preferred sign-in provider and requested a recommendation later. Provider selection remains open; local backup and restore verification are now implemented (RECOVERY.md).
