@@ -7,6 +7,9 @@ const spec = YAML.parse(
 );
 assert.equal(spec.openapi, "3.1.0");
 const expected = [
+  "listRecipientProfiles",
+  "publishRecipientProfile",
+  "listRecipientProfileVersions",
   "listMappingRecipes",
   "previewCsv",
   "importCsv",

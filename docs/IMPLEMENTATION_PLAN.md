@@ -14,8 +14,11 @@ Acceptance evidence is recorded in RELEASE_A_RESULTS.md. A task is complete only
 ## Pilot preparation after Release A
 
 7. **FP-008 — CSV import:** implement deterministic grouped dry runs, immutable tenant mappings, row/column findings, full preview, atomic import and source/recipe evidence. The local engineering slice is implemented; see CSV_IMPORT.md. Acceptance against a real customer export remains open.
-8. **FP-009 — recipient requirements:** add versioned evidence, expiry and coverage checks. Verified recipient requirements depend on supplied authoritative evidence; current reference presets remain unverified.
-9. **FP-004 and operational readiness:** replace local identities with the selected production OIDC provider and complete production membership/scoped-key behavior, then verify hosting, backups and recovery. Provider and deployment decisions remain in TBD.md.
-10. Run the controlled pilot acceptance with approved customer mappings, recipient evidence and operational ownership. Only then assess the next release gates.
+8. **FP-009 — recipient requirements:** local versioned profiles, evidence/expiry, tenant isolation and pass/fail/unknown checks implemented. See RECIPIENT_PROFILES.md. Actual recipient evidence and pilot acceptance remain open; reference presets remain unverified.
+9. **FP-010 — review queue:** next independent step: a dedicated queue for exceptions and ownership, building on the existing invoice list, correction and approval workflow.
+10. **FP-004 and operational readiness:** replace local identities with the selected production OIDC provider and complete production membership/scoped-key behavior, then verify hosting, backups and recovery. Provider and deployment decisions remain in TBD.md.
+11. Run the controlled pilot acceptance with approved customer mappings, recipient evidence and operational ownership. Only then assess the next release gates.
 
 These steps preserve the original plan's production/customer gates. Completing the CSV engineering work does not constitute production or pilot acceptance.
+
+See reviews/2026-09-14-plan-comparison.md for the comparison against the original plan and technical contracts.

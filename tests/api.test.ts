@@ -334,3 +334,71 @@ test("CSV endpoints enforce contracts, preview binding and tenant boundaries", a
     await (await call("csv/import", commit, "test-a", headers)).json(),
   );
 });
+
+test("recipient API versions enforce roles, optimistic concurrency and tenant isolation", async () => {
+  const profile = {
+    ...JSON.parse(readFileSync("examples/recipient-profile.json", "utf8")),
+    recipientKey: `api-${randomUUID()}`,
+  };
+  const input = { profile, priorVersionId: null };
+  assert.equal((await call("recipient-profiles")).status, 200);
+  assert.equal(
+    (await call("recipient-profiles", input, "test-reader")).status,
+    403,
+  );
+  assert.equal(
+    (
+      await call("recipient-profiles", input, "", {
+        Origin: "http://evil.invalid",
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await call("recipient-profiles", {
+        ...input,
+        profile: { ...profile, status: "VERIFIED" },
+      })
+    ).status,
+    400,
+  );
+  const first = await call("recipient-profiles", input);
+  assert.equal(first.status, 201);
+  const v1 = await first.json();
+  assert.equal(
+    (await call(`recipient-profiles/${profile.recipientKey}`)).status,
+    200,
+  );
+  assert.equal(
+    (
+      await call(
+        `recipient-profiles/${profile.recipientKey}`,
+        undefined,
+        "test-b",
+      )
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await call(
+        `recipient-profiles/${profile.recipientKey}/versions`,
+        undefined,
+        "test-b",
+      )
+    ).status,
+    404,
+  );
+  assert.equal((await call("recipient-profiles", input)).status, 409);
+  const second = await call("recipient-profiles", {
+    profile: { ...profile, displayName: "New source review" },
+    priorVersionId: v1.versionId,
+  });
+  assert.equal(second.status, 201);
+  const history = await (
+    await call(`recipient-profiles/${profile.recipientKey}/versions`)
+  ).json();
+  assert.equal(history.items.length, 2);
+  assert.equal(history.items[1].sha256, v1.sha256);
+});

@@ -61,3 +61,11 @@ Nina exports her invoices in the format her team has already mapped. She opens *
 One invoice repeats a different total on its second line. The preview points to that row and column. Nina fixes the export and uploads it again; nothing has been saved yet. When all cards are ready, she chooses **Import all invoices**. The completion list gives her a direct route to each invoice; an already imported source opens its existing record.
 
 Nina opens the first invoice. A changed purchase order reference is easy to handle through **Corrected revision**. She reviews the change, saves, validates, approves and generates the XML. She repeats the handoff for the remaining invoices, confident that each one keeps its original CSV and mapping evidence. The CSV preview was her preparation step; official validation and approval still happen for each saved invoice.
+
+## Leila keeps changing recipient instructions under control
+
+Leila's purchasing contact sends updated invoice instructions. As the workspace administrator, she opens **Recipients**, adds the recipient's electronic address and required references, and records the source and review dates. She chooses a review deadline and confirms her review. Her team sees who published the version and what supports it.
+
+When preparing an invoice, Leila selects the profile under **Reference check** and opens **Requirements and evidence**. A missing purchase order produces a finding tied to the source. She makes a corrected revision, validates again and follows approval and XML generation. The evidence retains the exact instructions used for that check.
+
+Months later, the instructions change. Leila publishes **New profile version**. Old evidence remains available in **Version history**; an old approval cannot be used with superseded requirements. If evidence expires, the invoice shows the coverage gap. Leila reviews the source, publishes the applicable version and revalidates. Recorded requirements support her preparation; they do not claim that the recipient has accepted an invoice.

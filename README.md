@@ -66,3 +66,5 @@ Release A supports ordinary DE-to-DE EUR invoices with explicit 19% standard VAT
 The original positive fixture omits a mandatory seller telephone number. Its original bytes are retained as a negative case; the positive synthetic fixture explicitly provides a demo number. Foreign currency is rejected by the higher-precedence EUR-only schema. See `docs/adr/0009-release-a-implementation.md`, `docs/TBD.md`, `docs/SUPPORT_MATRIX.md`, `docs/compliance-dependencies.md`, and `docs/RELEASE_A_RESULTS.md`.
 
 CSV batch import is available through **Import → CSV batch**. Try `examples/customer-invoices.csv` with the included saved mapping. See [CSV import](docs/CSV_IMPORT.md) for limits, mapping registration and the path from preview to validated XML.
+
+Recipient profiles now support tenant-scoped versions, evidence and review deadlines. See [Recipient requirements](docs/RECIPIENT_PROFILES.md) and the [plan comparison](docs/reviews/2026-09-14-plan-comparison.md).

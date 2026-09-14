@@ -155,6 +155,7 @@ test("invoice review and editor labels are translated in both catalogs", () => {
     "invoice-editor.tsx",
     "invoice-review.tsx",
     "csv-import.tsx",
+    "recipients.tsx",
   ]) {
     const source = ts.createSourceFile(
       file,

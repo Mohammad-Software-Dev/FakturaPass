@@ -122,7 +122,7 @@ const operations: [
     "/recipient-profiles/{recipientKey}",
     "get",
     "getRecipientProfile",
-    "Read a synthetic recipient profile; no real recipient claim.",
+    "Read the current recipient profile, its provenance and immutable version.",
     undefined,
     200,
   ],
@@ -144,6 +144,30 @@ const operations: [
   ],
 ];
 operations.push(
+  [
+    "/recipient-profiles",
+    "get",
+    "listRecipientProfiles",
+    "List tenant profiles and unverified reference presets.",
+    undefined,
+    200,
+  ],
+  [
+    "/recipient-profiles",
+    "post",
+    "publishRecipientProfile",
+    "Publish an immutable tenant-owned profile version as an administrator.",
+    "PublishRecipientProfile",
+    201,
+  ],
+  [
+    "/recipient-profiles/{recipientKey}/versions",
+    "get",
+    "listRecipientProfileVersions",
+    "Read immutable version history within the tenant.",
+    undefined,
+    200,
+  ],
   [
     "/mapping-recipes",
     "get",
@@ -182,6 +206,9 @@ const responseNames: Record<string, string> = {
   getArtifact: "Artifact",
   getInvoiceEvidence: "Evidence",
   getRecipientProfile: "RecipientProfile",
+  listRecipientProfiles: "RecipientProfileList",
+  publishRecipientProfile: "RecipientProfile",
+  listRecipientProfileVersions: "RecipientProfileList",
   healthLive: "Health",
   healthReady: "Health",
   listMappingRecipes: "RecipeList",
@@ -321,6 +348,7 @@ const schemas: any = {
     ruleManifest: { type: "object" },
     engineVersion: str,
     recipientProfileVersionId: nullable,
+    recipientSnapshot: { type: ["object", "null"] },
     summary: { type: "object" },
     findings: { type: "array", items: ref("Finding") },
     createdAt: str,
@@ -369,15 +397,71 @@ const schemas: any = {
     recipientProfile: { type: "object" },
     createdAt: str,
   }),
-  RecipientProfile: object({
-    recipientKey: str,
-    versionId: str,
-    displayName: str,
-    status: { const: "SYNTHETIC" },
-    required: { type: "array", items: str },
-  }),
   Health: object({ status: { enum: ["ok", "ready", "not_ready"] } }),
 };
+schemas.RecipientProfileInput = object({
+  recipientKey: str,
+  displayName: str,
+  status: { enum: ["UNVERIFIED", "TENANT_VERIFIED", "RETIRED"] },
+  identifiers: { type: "array", items: object({ schemeId: str, value: str }) },
+  accepted: object({
+    syntaxes: { type: "array", items: str },
+    profiles: { type: "array", items: str },
+    channels: { type: "array", items: str },
+  }),
+  requirements: {
+    type: "array",
+    items: object({
+      id: str,
+      fieldPath: str,
+      predicate: { const: "PRESENT" },
+      severity: { enum: ["ERROR", "WARNING"] },
+      messageKey: { const: "RECIPIENT_REQUIREMENT_MISSING" },
+    }),
+  },
+  evidence: {
+    type: "array",
+    items: object({
+      sourceType: str,
+      title: str,
+      urlOrReference: str,
+      retrievedAt: str,
+      effectiveFrom: nullable,
+      reviewedAt: str,
+    }),
+  },
+  expiresAt: nullable,
+});
+schemas.RecipientProfile = object(
+  {
+    ...schemas.RecipientProfileInput.properties,
+    status: { enum: ["UNVERIFIED", "TENANT_VERIFIED", "RETIRED", "SYNTHETIC"] },
+    required: { type: "array", items: str },
+    versionId: str,
+    version: str,
+    sha256: str,
+    createdBy: nullable,
+    createdAt: nullable,
+    current: { type: "boolean" },
+    coverage: str,
+  },
+  [
+    ...schemas.RecipientProfileInput.required,
+    "versionId",
+    "version",
+    "sha256",
+    "createdBy",
+    "createdAt",
+    "current",
+  ],
+);
+schemas.RecipientProfileList = object({
+  items: { type: "array", items: ref("RecipientProfile") },
+});
+schemas.PublishRecipientProfile = object({
+  profile: ref("RecipientProfileInput"),
+  priorVersionId: nullable,
+});
 schemas.CsvInput = object({
   csv: { type: "string", maxLength: 524288 },
   recipeId: str,

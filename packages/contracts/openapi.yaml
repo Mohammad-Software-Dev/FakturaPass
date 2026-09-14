@@ -1211,7 +1211,7 @@ paths:
   /recipient-profiles/{recipientKey}:
     get:
       operationId: getRecipientProfile
-      description: Read a synthetic recipient profile; no real recipient claim.
+      description: Read the current recipient profile, its provenance and immutable version.
       security:
         - localDev: []
         - oidcBearer: []
@@ -1420,6 +1420,283 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Health"
+        "400":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /recipient-profiles:
+    get:
+      operationId: listRecipientProfiles
+      description: List tenant profiles and unverified reference presets.
+      security:
+        - localDev: []
+        - oidcBearer: []
+        - apiKey: []
+      parameters:
+        - name: X-Request-Id
+          in: header
+          schema:
+            type: string
+            maxLength: 100
+        - name: Accept-Language
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Optional language preference for error messages and recipient
+            display labels. Supports de and en (including regional tags and
+            quality weights), default de. Codes, invoice data, XML and saved
+            evidence are language-independent.
+      responses:
+        "200":
+          description: Successful operation
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipientProfileList"
+        "400":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: publishRecipientProfile
+      description: Publish an immutable tenant-owned profile version as an administrator.
+      security:
+        - localDev: []
+        - oidcBearer: []
+        - apiKey: []
+      parameters:
+        - name: X-Request-Id
+          in: header
+          schema:
+            type: string
+            maxLength: 100
+        - name: Accept-Language
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Optional language preference for error messages and recipient
+            display labels. Supports de and en (including regional tags and
+            quality weights), default de. Codes, invoice data, XML and saved
+            evidence are language-independent.
+      responses:
+        "201":
+          description: Successful operation
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipientProfile"
+        "400":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishRecipientProfile"
+  /recipient-profiles/{recipientKey}/versions:
+    get:
+      operationId: listRecipientProfileVersions
+      description: Read immutable version history within the tenant.
+      security:
+        - localDev: []
+        - oidcBearer: []
+        - apiKey: []
+      parameters:
+        - name: recipientKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          schema:
+            type: string
+            maxLength: 100
+        - name: Accept-Language
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Optional language preference for error messages and recipient
+            display labels. Supports de and en (including regional tags and
+            quality weights), default de. Codes, invoice data, XML and saved
+            evidence are language-independent.
+      responses:
+        "200":
+          description: Successful operation
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipientProfileList"
         "400":
           description: Safe stable error envelope
           content:
@@ -2670,6 +2947,10 @@ components:
           type:
             - string
             - "null"
+        recipientSnapshot:
+          type:
+            - object
+            - "null"
         summary:
           type: object
         findings:
@@ -2693,6 +2974,7 @@ components:
         - ruleManifest
         - engineVersion
         - recipientProfileVersionId
+        - recipientSnapshot
         - summary
         - findings
         - createdAt
@@ -2829,28 +3111,6 @@ components:
         - recipientProfile
         - createdAt
       additionalProperties: false
-    RecipientProfile:
-      type: object
-      properties:
-        recipientKey:
-          type: string
-        versionId:
-          type: string
-        displayName:
-          type: string
-        status:
-          const: SYNTHETIC
-        required:
-          type: array
-          items:
-            type: string
-      required:
-        - recipientKey
-        - versionId
-        - displayName
-        - status
-        - required
-      additionalProperties: false
     Health:
       type: object
       properties:
@@ -2861,6 +3121,278 @@ components:
             - not_ready
       required:
         - status
+      additionalProperties: false
+    RecipientProfileInput:
+      type: object
+      properties:
+        recipientKey:
+          type: string
+        displayName:
+          type: string
+        status:
+          enum:
+            - UNVERIFIED
+            - TENANT_VERIFIED
+            - RETIRED
+        identifiers:
+          type: array
+          items:
+            type: object
+            properties:
+              schemeId:
+                type: string
+              value:
+                type: string
+            required:
+              - schemeId
+              - value
+            additionalProperties: false
+        accepted:
+          type: object
+          properties:
+            syntaxes:
+              type: array
+              items:
+                type: string
+            profiles:
+              type: array
+              items:
+                type: string
+            channels:
+              type: array
+              items:
+                type: string
+          required:
+            - syntaxes
+            - profiles
+            - channels
+          additionalProperties: false
+        requirements:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              fieldPath:
+                type: string
+              predicate:
+                const: PRESENT
+              severity:
+                enum:
+                  - ERROR
+                  - WARNING
+              messageKey:
+                const: RECIPIENT_REQUIREMENT_MISSING
+            required:
+              - id
+              - fieldPath
+              - predicate
+              - severity
+              - messageKey
+            additionalProperties: false
+        evidence:
+          type: array
+          items:
+            type: object
+            properties:
+              sourceType:
+                type: string
+              title:
+                type: string
+              urlOrReference:
+                type: string
+              retrievedAt:
+                type: string
+              effectiveFrom:
+                type:
+                  - string
+                  - "null"
+              reviewedAt:
+                type: string
+            required:
+              - sourceType
+              - title
+              - urlOrReference
+              - retrievedAt
+              - effectiveFrom
+              - reviewedAt
+            additionalProperties: false
+        expiresAt:
+          type:
+            - string
+            - "null"
+      required:
+        - recipientKey
+        - displayName
+        - status
+        - identifiers
+        - accepted
+        - requirements
+        - evidence
+        - expiresAt
+      additionalProperties: false
+    RecipientProfile:
+      type: object
+      properties:
+        recipientKey:
+          type: string
+        displayName:
+          type: string
+        status:
+          enum:
+            - UNVERIFIED
+            - TENANT_VERIFIED
+            - RETIRED
+            - SYNTHETIC
+        identifiers:
+          type: array
+          items:
+            type: object
+            properties:
+              schemeId:
+                type: string
+              value:
+                type: string
+            required:
+              - schemeId
+              - value
+            additionalProperties: false
+        accepted:
+          type: object
+          properties:
+            syntaxes:
+              type: array
+              items:
+                type: string
+            profiles:
+              type: array
+              items:
+                type: string
+            channels:
+              type: array
+              items:
+                type: string
+          required:
+            - syntaxes
+            - profiles
+            - channels
+          additionalProperties: false
+        requirements:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              fieldPath:
+                type: string
+              predicate:
+                const: PRESENT
+              severity:
+                enum:
+                  - ERROR
+                  - WARNING
+              messageKey:
+                const: RECIPIENT_REQUIREMENT_MISSING
+            required:
+              - id
+              - fieldPath
+              - predicate
+              - severity
+              - messageKey
+            additionalProperties: false
+        evidence:
+          type: array
+          items:
+            type: object
+            properties:
+              sourceType:
+                type: string
+              title:
+                type: string
+              urlOrReference:
+                type: string
+              retrievedAt:
+                type: string
+              effectiveFrom:
+                type:
+                  - string
+                  - "null"
+              reviewedAt:
+                type: string
+            required:
+              - sourceType
+              - title
+              - urlOrReference
+              - retrievedAt
+              - effectiveFrom
+              - reviewedAt
+            additionalProperties: false
+        expiresAt:
+          type:
+            - string
+            - "null"
+        required:
+          type: array
+          items:
+            type: string
+        versionId:
+          type: string
+        version:
+          type: string
+        sha256:
+          type: string
+        createdBy:
+          type:
+            - string
+            - "null"
+        createdAt:
+          type:
+            - string
+            - "null"
+        current:
+          type: boolean
+        coverage:
+          type: string
+      required:
+        - recipientKey
+        - displayName
+        - status
+        - identifiers
+        - accepted
+        - requirements
+        - evidence
+        - expiresAt
+        - versionId
+        - version
+        - sha256
+        - createdBy
+        - createdAt
+        - current
+      additionalProperties: false
+    RecipientProfileList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipientProfile"
+      required:
+        - items
+      additionalProperties: false
+    PublishRecipientProfile:
+      type: object
+      properties:
+        profile:
+          $ref: "#/components/schemas/RecipientProfileInput"
+        priorVersionId:
+          type:
+            - string
+            - "null"
+      required:
+        - profile
+        - priorVersionId
       additionalProperties: false
     CsvInput:
       type: object

@@ -1,4 +1,10 @@
 "use client";
+import {
+  Recipients,
+  ProfileDetails,
+  coverageLabels,
+  profileName,
+} from "./recipients";
 import { CsvImport } from "./csv-import";
 import { InvoiceReview } from "./invoice-review";
 import { InvoiceEditor, ChangeSummary } from "./invoice-editor";
@@ -116,11 +122,19 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
     [text, setText] = useState(""),
     [preview, setPreview] = useState<any>(null),
     [editData, setEditData] = useState<any>(null),
+    [recipientProfiles, setRecipientProfiles] = useState<any[]>([]),
     [profile, setProfile] = useState<string>(""),
     [correcting, setCorrecting] = useState(false),
     [toast, setToast] = useState(""),
     [importKey, setImportKey] = useState(""),
     [health, setHealth] = useState(false);
+  const loadProfiles = useCallback(async () => {
+    const data = await api("recipient-profiles");
+    setRecipientProfiles(data.items);
+  }, []);
+  useEffect(() => {
+    loadProfiles().catch(setError);
+  }, [loadProfiles]);
   const load = useCallback(async () => {
     let cursor: string | null = null;
     const all: any[] = [];
@@ -355,6 +369,16 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
             {t("Importieren")}{" "}
           </button>
           <button
+            className={view === "recipients" ? "active" : ""}
+            onClick={() => {
+              go("recipients");
+              loadProfiles().catch(setError);
+            }}
+          >
+            <ShieldCheck size={19} />
+            {t("Empfänger")}
+          </button>
+          <button
             className={view === "settings" ? "active" : ""}
             onClick={() => go("settings")}
           >
@@ -378,14 +402,19 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                 ? t("Rechnungsdetails")
                 : view === "import"
                   ? t("Importieren")
-                  : view === "settings"
-                    ? t("Einstellungen & Info")
-                    : t("Rechnungen")}
+                  : view === "recipients"
+                    ? t("Empfänger")
+                    : view === "settings"
+                      ? t("Einstellungen & Info")
+                      : t("Rechnungen")}
             </strong>
           </div>
           <AppearanceControls />
         </header>
         <main>
+          {view === "recipients" && (
+            <Recipients onChanged={() => loadProfiles().catch(setError)} />
+          )}
           {view === "invoices" && (
             <>
               <div className="page-heading">
@@ -565,9 +594,10 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                                     : t("Ausstehend")}
                               </span>
                               <small>
-                                {i.recipientCoverage === "SYNTHETIC"
-                                  ? t("Demo · nicht verifiziert")
-                                  : t("Empfänger unbekannt")}
+                                {t(
+                                  coverageLabels[i.recipientCoverage] ||
+                                    coverageLabels.UNKNOWN,
+                                )}
                               </small>
                             </td>
                             <td>
@@ -922,6 +952,19 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                 </div>
               </div>
               {errorView}
+              {profile &&
+                recipientProfiles.find((p) => p.versionId === profile) && (
+                  <details className="panel profile-selection">
+                    <summary>{t("Anforderungen und Nachweise")}</summary>
+                    <div className="panel-body">
+                      <ProfileDetails
+                        profile={recipientProfiles.find(
+                          (p) => p.versionId === profile,
+                        )}
+                      />
+                    </div>
+                  </details>
+                )}
               <div className="workflow-bar">
                 <Badge status={r.status} />
                 <div className="workflow-actions">
@@ -935,6 +978,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                   ) : (
                     <>
                       {[
+                        "APPROVED",
                         "NORMALIZED",
                         "INVALID",
                         "BLOCKED_UNSUPPORTED",
@@ -947,15 +991,23 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                             onChange={(e) => setProfile(e.target.value)}
                           >
                             <option value="">{t("Empfänger unbekannt")}</option>
-                            <option value="synthetic-reference-v1">
-                              {t("Demo · Käuferreferenz")}{" "}
-                            </option>
-                            <option value="synthetic-po-v1">
-                              {t("Demo · Bestellbezug")}{" "}
-                            </option>
-                            <option value="synthetic-contract-v1">
-                              {t("Demo · Vertragsbezug")}{" "}
-                            </option>
+                            {profile &&
+                              !recipientProfiles.some(
+                                (p) => p.versionId === profile,
+                              ) && (
+                                <option value={profile} disabled>
+                                  {t("Neuere Version verfügbar")}
+                                </option>
+                              )}
+                            {recipientProfiles.map((p) => (
+                              <option key={p.versionId} value={p.versionId}>
+                                {profileName(p, t)} ·{" "}
+                                {t(
+                                  coverageLabels[p.coverage] ||
+                                    coverageLabels.UNKNOWN,
+                                )}
+                              </option>
+                            ))}
                           </select>
                           <button
                             className="secondary"

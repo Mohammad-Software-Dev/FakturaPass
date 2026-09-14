@@ -2268,3 +2268,45 @@ td,
 .csv-invoice .invoice-review {
   margin-top: 20px;
 }
+.recipient-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 20px;
+}
+.recipient-form {
+  margin-bottom: 24px;
+}
+.recipient-form fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.recipient-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+.recipient-checks label,
+.recipient-attest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.recipient-attest {
+  margin: 16px 0;
+}
+.profile-details {
+  overflow-wrap: anywhere;
+}
+.profile-evidence {
+  border-left: 2px solid var(--line);
+  padding-left: 12px;
+  margin: 16px 0;
+}
+.profile-details p {
+  margin: 12px 0;
+}
+.recipient-grid button + button {
+  margin: 8px;
+}

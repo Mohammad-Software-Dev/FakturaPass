@@ -1,3 +1,5 @@
+import * as recipients from "../recipients/service";
+import { checkRecipient, coverage } from "../recipients/model";
 import { randomUUID } from "node:crypto";
 import { pool, transaction, type DB } from "../database";
 import {
@@ -6,7 +8,6 @@ import {
   schemaFindings,
   semanticFindings,
   GENERATOR_VERSION,
-  profiles,
 } from "./index";
 import { generateUbl } from "./ubl";
 import {
@@ -266,7 +267,9 @@ export function summary(r: any) {
     status: r.status,
     validationResult: r.validation_status ?? null,
     standardResult: r.xml_sha256 ? (r.validation_status ?? null) : null,
-    recipientCoverage: r.profile_version_id ? "SYNTHETIC" : "UNKNOWN",
+    recipientCoverage:
+      r.recipient_snapshot?.status ??
+      (r.profile_version_id ? "SYNTHETIC" : "UNKNOWN"),
     updatedAt: r.created_at,
   };
 }
@@ -294,12 +297,20 @@ export async function list(
   }
   const rs = (
     await pool.query(
-      `SELECT r.*,v.status validation_status,v.profile_version_id,v.xml_sha256 FROM invoice_revisions r LEFT JOIN LATERAL (SELECT status,profile_version_id,xml_sha256 FROM validation_runs WHERE tenant_id=r.tenant_id AND revision_id=r.id ORDER BY created_at DESC LIMIT 1) v ON true WHERE r.tenant_id=$1 AND r.revision_number=(SELECT max(revision_number) FROM invoice_revisions WHERE tenant_id=$1 AND invoice_id=r.invoice_id) AND ($2::text IS NULL OR r.status=$2) ORDER BY r.created_at DESC,r.id LIMIT $3 OFFSET $4`,
+      `SELECT r.*,v.status validation_status,v.profile_version_id,v.xml_sha256,v.recipient_snapshot FROM invoice_revisions r LEFT JOIN LATERAL (SELECT status,profile_version_id,xml_sha256,recipient_snapshot FROM validation_runs WHERE tenant_id=r.tenant_id AND revision_id=r.id ORDER BY created_at DESC LIMIT 1) v ON true WHERE r.tenant_id=$1 AND r.revision_number=(SELECT max(revision_number) FROM invoice_revisions WHERE tenant_id=$1 AND invoice_id=r.invoice_id) AND ($2::text IS NULL OR r.status=$2) ORDER BY r.created_at DESC,r.id LIMIT $3 OFFSET $4`,
       [ctx.tenantId, status, limit + 1, offset],
     )
   ).rows;
   return {
-    items: rs.slice(0, limit).map(summary),
+    items: await Promise.all(
+      rs.slice(0, limit).map(async (r) => ({
+        ...summary(r),
+        recipientCoverage: coverage(
+          await recipients.resolve(ctx, r.profile_version_id ?? null),
+          r.canonical_json,
+        ),
+      })),
+    ),
     nextCursor:
       rs.length > limit
         ? Buffer.from(
@@ -377,6 +388,7 @@ export function runResponse(r: any) {
     ruleManifest: r.rule_manifest_json,
     engineVersion: r.engine_version,
     recipientProfileVersionId: r.profile_version_id,
+    recipientSnapshot: r.recipient_snapshot ?? null,
     summary: counts(r.findings),
     findings: r.findings,
     createdAt: r.created_at,
@@ -401,8 +413,7 @@ export async function enqueueValidation(
   profileId: string | null,
 ) {
   authorize(ctx, ["ADMIN", "OPERATOR"]);
-  if (profileId && !profiles.some((p) => p.versionId === profileId))
-    throw new ApiError("RECIPIENT_PROFILE_UNKNOWN", 404);
+  const selectedProfile = await recipients.resolve(ctx, profileId);
   return transaction(async (db) => {
     const latest = await current(ctx, invoiceId, db, true);
     const r = await revision(ctx, invoiceId, revisionId, db);
@@ -411,6 +422,8 @@ export async function enqueueValidation(
         revisionId,
         r.canonical_sha256,
         profileId,
+        selectedProfile?.sha256,
+        coverage(selectedProfile, r.canonical_json),
         ruleManifestHash,
         "VALIDATE",
       ]),
@@ -424,9 +437,13 @@ export async function enqueueValidation(
     if (old) return { validationRunId: old.id, status: "PENDING" };
     if (
       latest.id !== revisionId ||
-      !["NORMALIZED", "INVALID", "BLOCKED_UNSUPPORTED", "VALID"].includes(
-        r.status,
-      )
+      ![
+        "NORMALIZED",
+        "INVALID",
+        "BLOCKED_UNSUPPORTED",
+        "VALID",
+        "APPROVED",
+      ].includes(r.status)
     )
       throw new ApiError("REVISION_CONFLICT", 409);
     const id = uid();
@@ -485,6 +502,17 @@ export async function approve(
       run.profile_version_id !== profileId ||
       run.canonical_sha256 !== r.canonical_sha256 ||
       sha256(stable(run.rule_manifest_json)) !== ruleManifestHash
+    )
+      throw new ApiError("APPROVAL_STALE", 409);
+    const selectedProfile = await recipients.assertCurrent(
+      ctx,
+      profileId,
+      r.canonical_json,
+      db,
+    );
+    if (
+      run.recipient_snapshot?.profile?.sha256 &&
+      run.recipient_snapshot.profile.sha256 !== selectedProfile?.sha256
     )
       throw new ApiError("APPROVAL_STALE", 409);
     const existing = (
@@ -555,6 +583,12 @@ export async function enqueueGeneration(
     ).rows[0];
     if (!a || a.canonical_sha256 !== r.canonical_sha256)
       throw new ApiError("APPROVAL_BLOCKED", 409);
+    await recipients.assertCurrent(
+      ctx,
+      a.profile_version_id,
+      r.canonical_json,
+      db,
+    );
     const dedupe = sha256(
       stable([
         revisionId,
@@ -679,7 +713,16 @@ export async function processJob(): Promise<boolean> {
       );
       return true;
     }
-    let fs = semanticFindings(r.canonical_json, p.profileId);
+    let recipientSnapshot = checkRecipient(
+      await recipients.resolve(ctx, p.profileId),
+      r.canonical_json,
+    );
+    let fs = [
+      ...semanticFindings(r.canonical_json).filter(
+        (f) => f.layer !== "RECIPIENT",
+      ),
+      ...recipientSnapshot.findings,
+    ];
     const unsupported = fs.some((f) => f.code === "UNSUPPORTED_CASE");
     let xml: string | null = null,
       report: string | null = null;
@@ -704,7 +747,7 @@ export async function processJob(): Promise<boolean> {
           ? { ...f, sourcePath: `row ${origin.row}, column ${origin.column}` }
           : f;
       });
-    const pass = officialPass && !counts(fs).error;
+    let pass = officialPass && !counts(fs).error;
     await transaction(async (db) => {
       const locked = (
         await db.query(
@@ -714,8 +757,29 @@ export async function processJob(): Promise<boolean> {
       ).rows[0];
       if (locked.state !== "RUNNING" || locked.attempts !== job.attempts)
         return;
+      if (
+        recipientSnapshot.profile &&
+        recipientSnapshot.profile.status !== "SYNTHETIC"
+      ) {
+        await db.query(
+          "SELECT id FROM recipient_profiles WHERE tenant_id=$1 AND recipient_key=$2 FOR SHARE",
+          [ctx.tenantId, recipientSnapshot.profile.recipientKey],
+        );
+        const fresh = checkRecipient(
+          await recipients.resolve(ctx, p.profileId, db),
+          r.canonical_json,
+        );
+        if (fresh.status !== recipientSnapshot.status) {
+          fs = [
+            ...fs.filter((f) => f.layer !== "RECIPIENT"),
+            ...fresh.findings,
+          ];
+          recipientSnapshot = fresh;
+          pass = officialPass && !counts(fs).error;
+        }
+      }
       await db.query(
-        "UPDATE validation_runs SET status=$1,findings=$2,raw_report=$3,xml_sha256=$4,completed_at=now() WHERE tenant_id=$5 AND id=$6",
+        "UPDATE validation_runs SET status=$1,findings=$2,raw_report=$3,xml_sha256=$4,completed_at=now(),recipient_snapshot=$7 WHERE tenant_id=$5 AND id=$6",
         [
           pass ? "PASS" : "FAIL",
           JSON.stringify(fs),
@@ -723,6 +787,7 @@ export async function processJob(): Promise<boolean> {
           xml ? sha256(xml) : null,
           ctx.tenantId,
           p.validationRunId,
+          recipientSnapshot,
         ],
       );
       for (const f of fs)
@@ -811,10 +876,7 @@ export async function processJob(): Promise<boolean> {
           reportSha256: report ? sha256(report) : null,
           rawReport: report,
         },
-        recipientProfile: {
-          versionId: p.profileId,
-          status: p.profileId ? "SYNTHETIC" : "UNKNOWN",
-        },
+        recipientProfile: recipientSnapshot,
         createdAt: new Date().toISOString(),
       };
       await db.query(

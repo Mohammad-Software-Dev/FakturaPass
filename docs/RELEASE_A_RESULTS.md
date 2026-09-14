@@ -62,3 +62,11 @@ The final isolated-database acceptance run passed all 80 tests: 24 domain/locali
 CSV coverage includes grouped invoice previews, explicit decimal parsing, header drift, source-row conflicts, quote and BOM handling, limits, tenant isolation, role checks, preview hash binding, idempotent batch saving, duplicate recovery, immutable recipe versions and original CSV/mapping evidence. Browser checks cover import through official validation, actionable malformed-export errors, German retranslation and mobile dark mode. The sample preview was also inspected in the running app in light and dark appearance.
 
 This completes the local FP-008 engineering slice using synthetic fixtures. A real customer export mapping and controlled pilot acceptance remain open. See CSV_IMPORT.md and the next milestones in IMPLEMENTATION_PLAN.md.
+
+## Recipient profile milestone — 14 September 2026
+
+The final isolated-database acceptance run passed all 89 tests: 27 domain/localization/CSV/recipient tests, 9 database/official-validator integration tests, 5 API suites and 48 Chromium/WebKit browser tests. Formatting, strict TypeScript, ESLint, the 21-operation OpenAPI contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+Coverage includes tenant isolation and administrator-only publication, immutable versions and history, optimistic concurrency, review evidence, expiry/effective dates, recipient identity and output-route matching, required-field pass/fail/unknown outcomes, stale approval/generation rejection and preservation of historical evidence. A valid evidenced profile is exercised through official validation and XML generation. Browser checks cover creating an unverified profile, publishing a reviewed version with explicit evidence and attestation, source-linked invoice findings, German switching and mobile dark mode. The recipient cards and form were also visually inspected in the running app.
+
+This completes the local FP-009 engineering milestone. Real recipient evidence review, production identity/operations and controlled-pilot acceptance remain open. See RECIPIENT_PROFILES.md and reviews/2026-09-14-plan-comparison.md. The next independent engineering milestone is the FP-010 review queue.

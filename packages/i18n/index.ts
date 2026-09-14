@@ -174,13 +174,21 @@ export function findingDescription(locale: Locale, finding: Finding): string {
     Object.hasOwn(de, finding.parameters.reason)
   )
     return t(finding.parameters.reason);
+  if (
+    finding.code === "RECIPIENT_PROFILE_UNKNOWN" &&
+    finding.parameters.coverage &&
+    finding.parameters.coverage !== "UNKNOWN"
+  )
+    return t(
+      "Das Empfängerprofil ist nicht aktuell oder passt nicht zu dieser Rechnung. Prüfen Sie die Anforderungen und wählen Sie eine gültige Version.",
+    );
   if (finding.code === "RECIPIENT_PROFILE_UNKNOWN")
     return t(
       "Für diesen Empfänger liegen keine verifizierten Anforderungen vor.",
     );
   if (finding.code === "RECIPIENT_REQUIREMENT_MISSING")
     return t(
-      "Für das gewählte synthetische Demo-Profil ist diese Angabe erforderlich.",
+      "Für das gewählte Empfängerprofil ist diese Angabe erforderlich. Prüfen Sie den hinterlegten Nachweis.",
     );
   if (finding.code === "TOTAL_MISMATCH")
     return t(

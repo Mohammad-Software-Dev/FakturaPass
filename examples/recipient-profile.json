@@ -1,0 +1,22 @@
+{
+  "recipientKey": "synthetic-customer-requirements",
+  "displayName": "Example purchasing team",
+  "status": "UNVERIFIED",
+  "identifiers": [{ "schemeId": "EM", "value": "buyer@example.invalid" }],
+  "accepted": {
+    "syntaxes": ["XRECHNUNG_UBL"],
+    "profiles": ["XRECHNUNG"],
+    "channels": ["DOWNLOAD"]
+  },
+  "requirements": [
+    {
+      "id": "purchase-order",
+      "fieldPath": "document.purchaseOrderReference",
+      "predicate": "PRESENT",
+      "severity": "ERROR",
+      "messageKey": "RECIPIENT_REQUIREMENT_MISSING"
+    }
+  ],
+  "evidence": [],
+  "expiresAt": null
+}

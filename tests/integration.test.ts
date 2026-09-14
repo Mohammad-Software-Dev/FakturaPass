@@ -387,3 +387,167 @@ test("CSV preview is read-only, batch commit is idempotent and evidence retains 
   assert.equal(evidence.source.sha256, sha256(text));
   assert.equal(evidence.source.mapping.provenance["lines.0.quantity"].row, 2);
 });
+
+test("tenant recipient versions bind validation, evidence and approvals and reject stale coverage", async () => {
+  const recipients = await import("../packages/recipients/service");
+  const canonical = structuredClone(basic);
+  canonical.source.recordId = randomUUID();
+  canonical.document.purchaseOrderReference = "PO-VERIFIED";
+  const profile = {
+    ...JSON.parse(readFileSync("examples/recipient-profile.json", "utf8")),
+    recipientKey: `recipient-${randomUUID()}`,
+    status: "TENANT_VERIFIED",
+    identifiers: [canonical.buyer.electronicAddress],
+    evidence: [
+      {
+        sourceType: "TEST",
+        title: "Synthetic acceptance fixture",
+        urlOrReference: "fixture:recipient-requirements",
+        retrievedAt: "2026-01-01T00:00:00Z",
+        reviewedAt: "2026-01-02T00:00:00Z",
+        effectiveFrom: null,
+      },
+    ],
+    expiresAt: new Date(Date.now() + 86400000).toISOString(),
+  };
+  await assert.rejects(
+    recipients.publish(
+      { ...ctx, role: "OPERATOR" },
+      { profile, priorVersionId: null },
+    ),
+    { code: "ACCESS_DENIED" },
+  );
+  const v1 = (await recipients.publish(ctx, {
+    profile,
+    priorVersionId: null,
+  }))!;
+  await assert.rejects(recipients.resolve(other, v1.versionId), {
+    code: "RECIPIENT_PROFILE_UNKNOWN",
+  });
+  assert(
+    !(await recipients.list(other)).some((p) => p.versionId === v1.versionId),
+  );
+  const otherVersion = (await recipients.publish(other, {
+    profile,
+    priorVersionId: null,
+  }))!;
+  assert.notEqual(otherVersion.versionId, v1.versionId);
+  const created = await s.ingest(
+    ctx,
+    canonical,
+    Buffer.from(JSON.stringify(canonical)),
+    randomUUID(),
+  );
+  const run = await s.enqueueValidation(
+    ctx,
+    created.invoiceId,
+    created.revisionId,
+    v1.versionId,
+  );
+  const completed = await finish(run.validationRunId);
+  assert.equal(completed.status, "PASS");
+  assert.equal(completed.recipientSnapshot.requirementsResult, "PASS");
+  await s.approve(
+    ctx,
+    created.invoiceId,
+    created.revisionId,
+    run.validationRunId,
+    v1.versionId,
+  );
+  const savedEvidence = await s.evidence(ctx, created.invoiceId);
+  assert.equal(savedEvidence.recipientProfile.profile.sha256, v1.sha256);
+  const outputInvoice = structuredClone(canonical);
+  outputInvoice.source.recordId = randomUUID();
+  const output = await create(outputInvoice);
+  const outputRun = await s.enqueueValidation(
+    ctx,
+    output.invoiceId,
+    output.revisionId,
+    v1.versionId,
+  );
+  assert.equal((await finish(outputRun.validationRunId)).status, "PASS");
+  await s.approve(
+    ctx,
+    output.invoiceId,
+    output.revisionId,
+    outputRun.validationRunId,
+    v1.versionId,
+  );
+  const generated = await s.enqueueGeneration(
+    ctx,
+    output.invoiceId,
+    output.revisionId,
+  );
+  assert.equal((await finish(generated.validationRunId)).status, "PASS");
+  assert.equal(
+    (await s.evidence(ctx, output.invoiceId)).recipientProfile.profile.sha256,
+    v1.sha256,
+  );
+  const originalNow = Date.now;
+  try {
+    Date.now = () => originalNow() + 172800000;
+    await assert.rejects(
+      s.enqueueGeneration(ctx, created.invoiceId, created.revisionId),
+      { code: "APPROVAL_STALE" },
+    );
+  } finally {
+    Date.now = originalNow;
+  }
+  const v2 = (await recipients.publish(ctx, {
+    profile: {
+      ...profile,
+      requirements: [
+        ...profile.requirements,
+        {
+          id: "contract",
+          fieldPath: "document.contractReference",
+          predicate: "PRESENT",
+          severity: "ERROR",
+          messageKey: "RECIPIENT_REQUIREMENT_MISSING",
+        },
+      ],
+    },
+    priorVersionId: v1.versionId,
+  }))!;
+  await assert.rejects(
+    s.enqueueGeneration(ctx, created.invoiceId, created.revisionId),
+    { code: "APPROVAL_STALE" },
+  );
+  await assert.rejects(
+    s.approve(
+      ctx,
+      created.invoiceId,
+      created.revisionId,
+      run.validationRunId,
+      v1.versionId,
+    ),
+    { code: "APPROVAL_STALE" },
+  );
+  await assert.rejects(
+    recipients.publish(ctx, { profile, priorVersionId: v1.versionId }),
+    { code: "REVISION_CONFLICT" },
+  );
+  assert.equal((await recipients.history(ctx, profile.recipientKey)).length, 2);
+  assert.deepEqual(await s.evidence(ctx, created.invoiceId), savedEvidence);
+  await assert.rejects(
+    pool.query(
+      "UPDATE recipient_profile_versions SET rules_json='{}' WHERE id=$1",
+      [v1.versionId],
+    ),
+  );
+  const check2 = await s.enqueueValidation(
+    ctx,
+    created.invoiceId,
+    created.revisionId,
+    v2.versionId,
+  );
+  const failed = await finish(check2.validationRunId);
+  assert.equal(failed.status, "FAIL");
+  assert(
+    failed.findings.some(
+      (f: any) =>
+        f.canonicalPath === "document.contractReference" &&
+        f.evidenceSource === "fixture:recipient-requirements",
+    ),
+  );
+});

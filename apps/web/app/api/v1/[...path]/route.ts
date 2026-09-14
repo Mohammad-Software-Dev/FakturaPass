@@ -7,7 +7,7 @@ import {
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import * as service from "../../../../../../packages/domain/service";
 import { pool } from "../../../../../../packages/database";
-import { profiles } from "../../../../../../packages/domain";
+import * as recipients from "../../../../../../packages/recipients/service";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const MAX = 1024 * 1024;
@@ -273,20 +273,28 @@ async function handler(
         validationStatus: a.validation_status,
       });
     }
-    if (p[0] === "recipient-profiles" && p.length === 2 && method === "GET") {
-      const profile = profiles.find((x) => x.recipientKey === p[1]);
-      if (!profile)
-        throw new service.ApiError("RECIPIENT_PROFILE_UNKNOWN", 404);
-      return Response.json(
-        { ...profile, displayName: translate(locale, profile.displayName) },
-        {
-          headers: {
-            ...headers,
-            "Content-Language": locale,
-            Vary: "Accept-Language",
-          },
-        },
-      );
+    if (p[0] === "recipient-profiles") {
+      const localize = (profile: any) => ({
+        ...profile,
+        displayName:
+          profile.status === "SYNTHETIC"
+            ? translate(locale, profile.displayName)
+            : profile.displayName,
+      });
+      if (p.length === 1 && method === "GET")
+        return send({ items: (await recipients.list(ctx)).map(localize) });
+      if (p.length === 1 && method === "POST")
+        return send(await recipients.publish(ctx, (await body(req)).json), 201);
+      if (p.length === 3 && p[2] === "versions" && method === "GET")
+        return send({
+          items: (await recipients.history(ctx, p[1])).map(localize),
+        });
+      if (p.length === 2 && method === "GET")
+        return send(
+          localize(
+            (await recipients.history(ctx, p[1])).find((x) => x.current),
+          ),
+        );
     }
     throw new service.ApiError("RESOURCE_NOT_FOUND", 404);
   } catch (error) {
