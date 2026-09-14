@@ -1,4 +1,5 @@
 "use client";
+import { ReviewQueue } from "./review-queue";
 import {
   Recipients,
   ProfileDetails,
@@ -362,6 +363,13 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
             <span className="nav-count">{items.length}</span>
           </button>
           <button
+            className={view === "review" ? "active" : ""}
+            onClick={() => go("review")}
+          >
+            <FileCheck2 size={19} />
+            {t("Prüfliste")}
+          </button>
+          <button
             className={view === "import" ? "active" : ""}
             onClick={() => go("import")}
           >
@@ -402,16 +410,35 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                 ? t("Rechnungsdetails")
                 : view === "import"
                   ? t("Importieren")
-                  : view === "recipients"
-                    ? t("Empfänger")
-                    : view === "settings"
-                      ? t("Einstellungen & Info")
-                      : t("Rechnungen")}
+                  : view === "review"
+                    ? t("Prüfliste")
+                    : view === "recipients"
+                      ? t("Empfänger")
+                      : view === "settings"
+                        ? t("Einstellungen & Info")
+                        : t("Rechnungen")}
             </strong>
           </div>
           <AppearanceControls />
         </header>
         <main>
+          {view === "review" && errorView}
+          {view === "review" && (
+            <ReviewQueue
+              onOpen={async (id, reason) => {
+                await open(id);
+                if (
+                  [
+                    "TECHNICAL_RETRY",
+                    "DATA_ERRORS",
+                    "UNSUPPORTED_CASE",
+                    "RECIPIENT_REVIEW",
+                  ].includes(reason)
+                )
+                  setTab("findings");
+              }}
+            />
+          )}
           {view === "recipients" && (
             <Recipients onChanged={() => loadProfiles().catch(setError)} />
           )}

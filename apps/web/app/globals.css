@@ -2310,3 +2310,50 @@ td,
 .recipient-grid button + button {
   margin: 8px;
 }
+.review-filters,
+.review-actions,
+.review-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.review-filters {
+  margin-bottom: 24px;
+}
+.review-item {
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+}
+.review-item-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.review-item-heading h3 {
+  margin: 0;
+}
+.review-item p {
+  margin: 10px 0;
+}
+.review-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.review-note {
+  margin-top: 24px;
+  color: var(--muted);
+}
+.review-queue {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .review-filters select {
+    width: 100%;
+  }
+  .review-item-heading {
+    flex-wrap: wrap;
+  }
+}
