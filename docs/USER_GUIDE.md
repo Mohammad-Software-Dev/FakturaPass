@@ -69,3 +69,11 @@ Leila's purchasing contact sends updated invoice instructions. As the workspace 
 When preparing an invoice, Leila selects the profile under **Reference check** and opens **Requirements and evidence**. A missing purchase order produces a finding tied to the source. She makes a corrected revision, validates again and follows approval and XML generation. The evidence retains the exact instructions used for that check.
 
 Months later, the instructions change. Leila publishes **New profile version**. Old evidence remains available in **Version history**; an old approval cannot be used with superseded requirements. If evidence expires, the invoice shows the coverage gap. Leila reviews the source, publishes the applicable version and revalidates. Recorded requirements support her preparation; they do not claim that the recipient has accepted an invoice.
+
+## Amira and Jonas divide the day's review work
+
+Amira opens **Review queue** and chooses **Unassigned**. Each invoice tells her what is missing: a validation, a correction, a review of recipient requirements, an approval or the final XML. She chooses **Assign to me**, then uses **My invoices** to concentrate on her work. If Jonas reaches for the same invoice, the app shows its current assignment instead of giving both people conflicting ownership.
+
+Amira opens an invoice that needs a correction. The queue takes her to its findings; she creates the corrected revision and validates it. Ownership follows the invoice through that revision. She reviews the result, approves and generates the XML. Back in the queue, the completed invoice has disappeared from her open work. The history and evidence remain available from **Invoices**.
+
+Jonas takes an invoice with outdated recipient evidence. He reviews the source, updates the profile and follows the invoice's revision/validation flow. If he needs someone else to pick up the task, **Release assignment** makes it unassigned again. Taking responsibility never grants approval or hides a failed check.

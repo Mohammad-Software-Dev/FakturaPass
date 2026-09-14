@@ -68,3 +68,5 @@ The original positive fixture omits a mandatory seller telephone number. Its ori
 CSV batch import is available through **Import → CSV batch**. Try `examples/customer-invoices.csv` with the included saved mapping. See [CSV import](docs/CSV_IMPORT.md) for limits, mapping registration and the path from preview to validated XML.
 
 Recipient profiles now support tenant-scoped versions, evidence and review deadlines. See [Recipient requirements](docs/RECIPIENT_PROFILES.md) and the [plan comparison](docs/reviews/2026-09-14-plan-comparison.md).
+
+Use **Review queue** to claim open invoice tasks and follow them to completion. See [Review queue](docs/REVIEW_QUEUE.md) for ownership, resolution and API details.

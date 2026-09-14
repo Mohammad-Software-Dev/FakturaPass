@@ -70,3 +70,11 @@ The final isolated-database acceptance run passed all 89 tests: 27 domain/locali
 Coverage includes tenant isolation and administrator-only publication, immutable versions and history, optimistic concurrency, review evidence, expiry/effective dates, recipient identity and output-route matching, required-field pass/fail/unknown outcomes, stale approval/generation rejection and preservation of historical evidence. A valid evidenced profile is exercised through official validation and XML generation. Browser checks cover creating an unverified profile, publishing a reviewed version with explicit evidence and attestation, source-linked invoice findings, German switching and mobile dark mode. The recipient cards and form were also visually inspected in the running app.
 
 This completes the local FP-009 engineering milestone. Real recipient evidence review, production identity/operations and controlled-pilot acceptance remain open. See RECIPIENT_PROFILES.md and reviews/2026-09-14-plan-comparison.md. The next independent engineering milestone is the FP-010 review queue.
+
+## Review queue milestone — 15 September 2026
+
+The final isolated-database acceptance run passed all 95 tests: 29 domain/localization/CSV/recipient/review tests, 10 database/official-validator integration tests, 6 API suites and 50 Chromium/WebKit browser tests. Formatting, strict TypeScript, ESLint, the 23-operation OpenAPI contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+Coverage includes derived task resolution, expired recipient evidence, processing errors, concurrent ownership claims, stale revision/version conflicts, tenant isolation, role enforcement, server-derived ownership and audit records. Browser checks exercise import, assignment, ownership filters, German switching, mobile dark appearance, validation, approval, XML generation and removal from the queue. The running local queue was also visually checked in light and dark appearance. Migration 006 was applied locally while preserving existing invoices.
+
+This completes the local FP-010 review queue milestone. Production identity and tenant administration, operational readiness and real customer pilot acceptance remain open. See REVIEW_QUEUE.md, USER_GUIDE.md and IMPLEMENTATION_PLAN.md for behavior and the next development steps.
