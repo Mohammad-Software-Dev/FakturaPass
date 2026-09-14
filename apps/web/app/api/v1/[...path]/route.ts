@@ -1,3 +1,4 @@
+import * as csvImport from "../../../../../../packages/mappings/service";
 import {
   apiErrorKeys,
   negotiateLocale,
@@ -113,6 +114,19 @@ async function handler(
       }
     }
     const ctx = identity(req, requestId);
+    if (p.join("/") === "mapping-recipes" && method === "GET")
+      return send({ items: await csvImport.recipes(ctx) });
+    if (p.join("/") === "csv/preview" && method === "POST")
+      return send(await csvImport.preview(ctx, (await body(req)).json));
+    if (p.join("/") === "csv/import" && method === "POST")
+      return send(
+        await csvImport.commit(
+          ctx,
+          (await body(req)).json,
+          req.headers.get("idempotency-key") ?? "",
+        ),
+      );
+
     if (p[0] === "invoices" && p.length === 1) {
       if (method === "GET") {
         const limit = Number(url.searchParams.get("limit") ?? 50);

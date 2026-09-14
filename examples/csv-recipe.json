@@ -1,0 +1,319 @@
+{
+  "id": "structured-export",
+  "version": "1",
+  "name": "Structured ERP export",
+  "delimiter": ";",
+  "groupColumn": "source.recordId",
+  "sourceSchemaFingerprint": "805b0c1fc978759c6fddccad602cf61a448835c58eab8cd9fc3b3fc1a8c00b90",
+  "fields": [
+    {
+      "column": "schemaVersion",
+      "target": "schemaVersion"
+    },
+    {
+      "column": "source.system",
+      "target": "source.system"
+    },
+    {
+      "column": "source.recordId",
+      "target": "source.recordId"
+    },
+    {
+      "column": "source.receivedAt",
+      "target": "source.receivedAt"
+    },
+    {
+      "column": "source.fileName",
+      "target": "source.fileName"
+    },
+    {
+      "column": "document.type",
+      "target": "document.type"
+    },
+    {
+      "column": "document.number",
+      "target": "document.number"
+    },
+    {
+      "column": "document.issueDate",
+      "target": "document.issueDate"
+    },
+    {
+      "column": "document.currency",
+      "target": "document.currency"
+    },
+    {
+      "column": "document.buyerReference",
+      "target": "document.buyerReference"
+    },
+    {
+      "column": "document.purchaseOrderReference",
+      "target": "document.purchaseOrderReference"
+    },
+    {
+      "column": "document.contractReference",
+      "target": "document.contractReference"
+    },
+    {
+      "column": "seller.name",
+      "target": "seller.name"
+    },
+    {
+      "column": "seller.tradingName",
+      "target": "seller.tradingName"
+    },
+    {
+      "column": "seller.address.street",
+      "target": "seller.address.street"
+    },
+    {
+      "column": "seller.address.additional",
+      "target": "seller.address.additional"
+    },
+    {
+      "column": "seller.address.city",
+      "target": "seller.address.city"
+    },
+    {
+      "column": "seller.address.postalCode",
+      "target": "seller.address.postalCode"
+    },
+    {
+      "column": "seller.address.countryCode",
+      "target": "seller.address.countryCode"
+    },
+    {
+      "column": "seller.vatId",
+      "target": "seller.vatId"
+    },
+    {
+      "column": "seller.electronicAddress.schemeId",
+      "target": "seller.electronicAddress.schemeId"
+    },
+    {
+      "column": "seller.electronicAddress.value",
+      "target": "seller.electronicAddress.value"
+    },
+    {
+      "column": "seller.legalRegistrationId.schemeId",
+      "target": "seller.legalRegistrationId.schemeId"
+    },
+    {
+      "column": "seller.legalRegistrationId.value",
+      "target": "seller.legalRegistrationId.value"
+    },
+    {
+      "column": "seller.contact.name",
+      "target": "seller.contact.name"
+    },
+    {
+      "column": "seller.contact.email",
+      "target": "seller.contact.email"
+    },
+    {
+      "column": "seller.contact.phone",
+      "target": "seller.contact.phone"
+    },
+    {
+      "column": "buyer.name",
+      "target": "buyer.name"
+    },
+    {
+      "column": "buyer.tradingName",
+      "target": "buyer.tradingName"
+    },
+    {
+      "column": "buyer.address.street",
+      "target": "buyer.address.street"
+    },
+    {
+      "column": "buyer.address.additional",
+      "target": "buyer.address.additional"
+    },
+    {
+      "column": "buyer.address.city",
+      "target": "buyer.address.city"
+    },
+    {
+      "column": "buyer.address.postalCode",
+      "target": "buyer.address.postalCode"
+    },
+    {
+      "column": "buyer.address.countryCode",
+      "target": "buyer.address.countryCode"
+    },
+    {
+      "column": "buyer.vatId",
+      "target": "buyer.vatId"
+    },
+    {
+      "column": "buyer.electronicAddress.schemeId",
+      "target": "buyer.electronicAddress.schemeId"
+    },
+    {
+      "column": "buyer.electronicAddress.value",
+      "target": "buyer.electronicAddress.value"
+    },
+    {
+      "column": "buyer.legalRegistrationId.schemeId",
+      "target": "buyer.legalRegistrationId.schemeId"
+    },
+    {
+      "column": "buyer.legalRegistrationId.value",
+      "target": "buyer.legalRegistrationId.value"
+    },
+    {
+      "column": "buyer.contact.name",
+      "target": "buyer.contact.name"
+    },
+    {
+      "column": "buyer.contact.email",
+      "target": "buyer.contact.email"
+    },
+    {
+      "column": "buyer.contact.phone",
+      "target": "buyer.contact.phone"
+    },
+    {
+      "column": "taxBreakdown.0.categoryCode",
+      "target": "taxBreakdown.0.categoryCode"
+    },
+    {
+      "column": "taxBreakdown.0.rate",
+      "target": "taxBreakdown.0.rate",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "taxBreakdown.0.taxableAmount",
+      "target": "taxBreakdown.0.taxableAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "taxBreakdown.0.taxAmount",
+      "target": "taxBreakdown.0.taxAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.lineNetAmount",
+      "target": "totals.lineNetAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.allowanceTotal",
+      "target": "totals.allowanceTotal",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.chargeTotal",
+      "target": "totals.chargeTotal",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.taxExclusiveAmount",
+      "target": "totals.taxExclusiveAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.taxAmount",
+      "target": "totals.taxAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.taxInclusiveAmount",
+      "target": "totals.taxInclusiveAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.prepaidAmount",
+      "target": "totals.prepaidAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.payableRoundingAmount",
+      "target": "totals.payableRoundingAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "totals.payableAmount",
+      "target": "totals.payableAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "payment.meansCode",
+      "target": "payment.meansCode"
+    },
+    {
+      "column": "payment.dueDate",
+      "target": "payment.dueDate"
+    },
+    {
+      "column": "payment.terms",
+      "target": "payment.terms"
+    },
+    {
+      "column": "payment.iban",
+      "target": "payment.iban"
+    },
+    {
+      "column": "payment.accountName",
+      "target": "payment.accountName"
+    },
+    {
+      "column": "payment.paymentReference",
+      "target": "payment.paymentReference"
+    },
+    {
+      "column": "lines[].id",
+      "target": "lines[].id"
+    },
+    {
+      "column": "lines[].name",
+      "target": "lines[].name"
+    },
+    {
+      "column": "lines[].description",
+      "target": "lines[].description"
+    },
+    {
+      "column": "lines[].quantity",
+      "target": "lines[].quantity",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "lines[].unitCode",
+      "target": "lines[].unitCode"
+    },
+    {
+      "column": "lines[].unitPrice.amount",
+      "target": "lines[].unitPrice.amount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "lines[].unitPrice.baseQuantity",
+      "target": "lines[].unitPrice.baseQuantity",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "lines[].lineNetAmount",
+      "target": "lines[].lineNetAmount",
+      "decimalSeparator": "."
+    },
+    {
+      "column": "lines[].tax.categoryCode",
+      "target": "lines[].tax.categoryCode"
+    },
+    {
+      "column": "lines[].tax.rate",
+      "target": "lines[].tax.rate",
+      "decimalSeparator": "."
+    }
+  ],
+  "constants": {
+    "seller.taxNumber": null,
+    "buyer.taxNumber": null,
+    "allowancesCharges": [],
+    "payment.bic": null,
+    "attachments": [],
+    "extensions": {}
+  }
+}

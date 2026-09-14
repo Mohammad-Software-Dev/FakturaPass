@@ -143,6 +143,32 @@ const operations: [
     200,
   ],
 ];
+operations.push(
+  [
+    "/mapping-recipes",
+    "get",
+    "listMappingRecipes",
+    "Read configured immutable tenant mapping recipes.",
+    undefined,
+    200,
+  ],
+  [
+    "/csv/preview",
+    "post",
+    "previewCsv",
+    "Group CSV rows and return source-linked findings without saving.",
+    "CsvInput",
+    200,
+  ],
+  [
+    "/csv/import",
+    "post",
+    "importCsv",
+    "Atomically commit a previewed CSV batch, retaining source and mapping provenance.",
+    "CsvCommit",
+    200,
+  ],
+);
 const responseNames: Record<string, string> = {
   createInvoice: "CreatedInvoice",
   listInvoices: "InvoiceList",
@@ -158,6 +184,9 @@ const responseNames: Record<string, string> = {
   getRecipientProfile: "RecipientProfile",
   healthLive: "Health",
   healthReady: "Health",
+  listMappingRecipes: "RecipeList",
+  previewCsv: "CsvPreview",
+  importCsv: "CsvImported",
 };
 for (const [path, method, id, description, request, status] of operations) {
   const op: any = {
@@ -194,7 +223,7 @@ for (const [path, method, id, description, request, status] of operations) {
       description: "Safe stable error envelope",
       content: content(ref("Error")),
     };
-  if (id === "createInvoice")
+  if (id === "createInvoice" || id === "importCsv")
     op.parameters.push({
       name: "Idempotency-Key",
       in: "header",
@@ -349,6 +378,55 @@ const schemas: any = {
   }),
   Health: object({ status: { enum: ["ok", "ready", "not_ready"] } }),
 };
+schemas.CsvInput = object({
+  csv: { type: "string", maxLength: 524288 },
+  recipeId: str,
+  recipeVersion: str,
+});
+schemas.CsvCommit = object({
+  ...schemas.CsvInput.properties,
+  sourceSha256: str,
+  recipeSha256: str,
+});
+schemas.RecipeList = object({
+  items: {
+    type: "array",
+    items: object({
+      id: str,
+      version: str,
+      name: str,
+      sha256: str,
+      delimiter: { enum: [",", ";"] },
+    }),
+  },
+});
+schemas.CsvPreview = object({
+  sourceSha256: str,
+  recipeId: str,
+  recipeVersion: str,
+  recipeSha256: str,
+  items: {
+    type: "array",
+    items: object({
+      sourceId: str,
+      rows: { type: "array", items: { type: "integer" } },
+      canonical: { type: "object" },
+      provenance: { type: "object" },
+      findings: { type: "array", items: ref("Finding") },
+      valid: { type: "boolean" },
+    }),
+  },
+});
+schemas.CsvImported = object({
+  items: {
+    type: "array",
+    items: object({
+      sourceId: str,
+      invoiceId: str,
+      status: { enum: ["IMPORTED", "EXISTS"] },
+    }),
+  },
+});
 schemas.InvoiceDetail = {
   ...schemas.InvoiceSummary,
   properties: {
@@ -409,4 +487,7 @@ const spec = {
     schemas,
   },
 };
-writeFileSync("packages/contracts/openapi.yaml", YAML.stringify(spec));
+writeFileSync(
+  "packages/contracts/openapi.yaml",
+  YAML.stringify(spec, { aliasDuplicateObjects: false }),
+);

@@ -151,7 +151,11 @@ test("workspace UI copy is catalog-backed including accessible attributes", () =
 });
 
 test("invoice review and editor labels are translated in both catalogs", () => {
-  for (const file of ["invoice-editor.tsx", "invoice-review.tsx"]) {
+  for (const file of [
+    "invoice-editor.tsx",
+    "invoice-review.tsx",
+    "csv-import.tsx",
+  ]) {
     const source = ts.createSourceFile(
       file,
       readFileSync(`apps/web/app/${file}`, "utf8"),

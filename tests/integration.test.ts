@@ -288,3 +288,102 @@ test("expired worker lease is reclaimed and completed results cannot be mutated"
     ),
   );
 });
+
+test("CSV preview is read-only, batch commit is idempotent and evidence retains CSV provenance", async () => {
+  const csvService = await import("../packages/mappings/service");
+  const text =
+    "\uFEFF" +
+    readFileSync("examples/customer-invoices.csv", "utf8").replaceAll(
+      "CSV-EXAMPLE",
+      `CSV-${randomUUID()}`,
+    );
+  const recipe = {
+    csv: text,
+    recipeId: "structured-export",
+    recipeVersion: "1",
+  };
+  assert.equal((await csvService.recipes(other)).length, 0);
+  await assert.rejects(csvService.preview(other, recipe), {
+    code: "RESOURCE_NOT_FOUND",
+  });
+  const preview = await csvService.preview(ctx, recipe);
+  assert(preview.items.every((i) => i.valid));
+  const body = {
+    ...recipe,
+    sourceSha256: preview.sourceSha256,
+    recipeSha256: preview.recipeSha256,
+  };
+  const key = randomUUID();
+  await assert.rejects(
+    csvService.commit({ ...ctx, role: "READ_ONLY" }, body, key),
+    { code: "ACCESS_DENIED" },
+  );
+  await assert.rejects(
+    csvService.commit(ctx, { ...body, sourceSha256: "wrong" }, key),
+    { code: "REVISION_CONFLICT" },
+  );
+  const result = await csvService.commit(ctx, body, key);
+  assert.equal(result.items.length, 2);
+  assert.deepEqual(await csvService.commit(ctx, body, key), result);
+  const duplicate = await csvService.commit(ctx, body, randomUUID());
+  assert(duplicate.items.every((item: any) => item.status === "EXISTS"));
+  assert.deepEqual(
+    duplicate.items.map((item: any) => item.invoiceId),
+    result.items.map((item: any) => item.invoiceId),
+  );
+  await assert.rejects(
+    pool.query(
+      "UPDATE csv_recipe_versions SET recipe='{}' WHERE tenant_id=$1 AND id=$2",
+      [ctx.tenantId, recipe.recipeId],
+    ),
+  );
+  const invalid = { ...recipe, csv: text.replace("12.5", "12,5") };
+  const bad = await csvService.preview(ctx, invalid);
+  await assert.rejects(
+    csvService.commit(
+      ctx,
+      {
+        ...invalid,
+        sourceSha256: bad.sourceSha256,
+        recipeSha256: bad.recipeSha256,
+      },
+      randomUUID(),
+    ),
+    { code: "MAPPING_INVALID" },
+  );
+  const changed = { ...recipe, csv: text.replaceAll("CSV-2026", "CHANGED") };
+  const c = await csvService.preview(ctx, changed);
+  await assert.rejects(
+    csvService.commit(
+      ctx,
+      {
+        ...changed,
+        sourceSha256: c.sourceSha256,
+        recipeSha256: c.recipeSha256,
+      },
+      key,
+    ),
+    { code: "IDEMPOTENCY_CONFLICT" },
+  );
+  const detail = await s.detail(ctx, result.items[0].invoiceId);
+  const revision = detail.currentRevision;
+  const source = (
+    await pool.query(
+      "SELECT bytes,media_type,mapping_json FROM source_artifacts WHERE tenant_id=$1 AND id=(SELECT source_artifact_id FROM invoice_revisions WHERE id=$2)",
+      [ctx.tenantId, revision.revisionId],
+    )
+  ).rows[0];
+  assert.equal(source.bytes.toString(), text);
+  assert.equal(source.media_type, "text/csv");
+  assert.equal(source.mapping_json.recipeVersion, "1");
+  const run = await s.enqueueValidation(
+    ctx,
+    result.items[0].invoiceId,
+    revision.revisionId,
+    null,
+  );
+  assert.equal((await finish(run.validationRunId)).status, "PASS");
+  const evidence = await s.evidence(ctx, result.items[0].invoiceId);
+  assert.equal(evidence.source.sha256, sha256(text));
+  assert.equal(evidence.source.mapping.provenance["lines.0.quantity"].row, 2);
+});

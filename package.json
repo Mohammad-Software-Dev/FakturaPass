@@ -8,6 +8,7 @@
     "node": ">=22.15.0 <23"
   },
   "scripts": {
+    "mapping:register": "tsx scripts/register-csv-recipe.ts",
     "dev": "node scripts/dev.mjs",
     "dev:web": "next dev apps/web -p 3010 --hostname 127.0.0.1",
     "worker": "tsx apps/worker/index.ts",
@@ -18,7 +19,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "tsx --test tests/domain.test.ts tests/i18n.test.ts",
+    "test": "tsx --test tests/domain.test.ts tests/i18n.test.ts tests/csv.test.ts",
     "test:integration": "tsx --test --test-concurrency=1 tests/integration.test.ts",
     "test:e2e": "playwright test",
     "contracts:check": "tsx scripts/check-contracts.ts",

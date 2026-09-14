@@ -280,3 +280,57 @@ test("API errors and profile labels honor Accept-Language without changing codes
   );
   assert.equal((await profile.json()).displayName, "Buyer reference");
 });
+
+test("CSV endpoints enforce contracts, preview binding and tenant boundaries", async () => {
+  const csv = readFileSync("examples/customer-invoices.csv", "utf8").replaceAll(
+    "CSV-EXAMPLE",
+    randomUUID(),
+  );
+  const recipe = JSON.parse(readFileSync("examples/csv-recipe.json", "utf8"));
+  const input = { csv, recipeId: recipe.id, recipeVersion: recipe.version };
+  assert.equal((await call("mapping-recipes")).status, 200);
+  assert.deepEqual(
+    (await (await call("mapping-recipes", undefined, "test-b")).json()).items,
+    [],
+  );
+  assert.equal((await call("csv/preview", input, "test-b")).status, 404);
+  const preview = await call("csv/preview", input);
+  assert.equal(preview.status, 200);
+  const result = await preview.json();
+  const commit = {
+    ...input,
+    sourceSha256: result.sourceSha256,
+    recipeSha256: result.recipeSha256,
+  };
+  const headers = { "Idempotency-Key": randomUUID() };
+  assert.equal(
+    (await call("csv/import", commit, "test-reader", headers)).status,
+    403,
+  );
+  assert.equal(
+    (
+      await call("csv/import", commit, "", {
+        ...headers,
+        Origin: "http://evil.invalid",
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await call(
+        "csv/import",
+        { ...commit, sourceSha256: "0".repeat(64) },
+        "test-a",
+        headers,
+      )
+    ).status,
+    409,
+  );
+  const saved = await call("csv/import", commit, "test-a", headers);
+  assert.equal(saved.status, 200);
+  assert.deepEqual(
+    await saved.json(),
+    await (await call("csv/import", commit, "test-a", headers)).json(),
+  );
+});

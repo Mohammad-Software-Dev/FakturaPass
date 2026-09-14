@@ -54,3 +54,11 @@ The blue light and dark themes and customer-facing workflow passed all 59 tests:
 The final acceptance run passed all 70 checks: 20 domain/localization tests, 7 database/official-validator integration tests, 3 API suites and 40 Chromium/WebKit browser tests. Formatting, strict TypeScript, ESLint, the production build and dependency audit passed; zero vulnerabilities were reported.
 
 The three customer examples each passed import, complete preview, cancellation, correction, duplicate recovery, approval, official validation and XML download. Additional coverage verifies explicit decimal recalculation, inline schema errors, form/JSON synchronization, translation coverage, mobile layout and dark-mode rendering. The original invoice files and existing stored evidence were preserved. See reviews/2026-09-13-import-ux.md for the findings and their resolution.
+
+## CSV pilot preparation — 14 September 2026
+
+The final isolated-database acceptance run passed all 80 tests: 24 domain/localization/CSV tests, 8 database/official-validator integration tests, 4 API suites and 44 Chromium/WebKit browser tests. Formatting, strict TypeScript, ESLint, the 18-operation OpenAPI contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+CSV coverage includes grouped invoice previews, explicit decimal parsing, header drift, source-row conflicts, quote and BOM handling, limits, tenant isolation, role checks, preview hash binding, idempotent batch saving, duplicate recovery, immutable recipe versions and original CSV/mapping evidence. Browser checks cover import through official validation, actionable malformed-export errors, German retranslation and mobile dark mode. The sample preview was also inspected in the running app in light and dark appearance.
+
+This completes the local FP-008 engineering slice using synthetic fixtures. A real customer export mapping and controlled pilot acceptance remain open. See CSV_IMPORT.md and the next milestones in IMPLEMENTATION_PLAN.md.

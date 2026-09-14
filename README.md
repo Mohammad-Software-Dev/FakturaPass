@@ -64,3 +64,5 @@ The OpenAPI contract is `packages/contracts/openapi.yaml`. Validation and genera
 Release A supports ordinary DE-to-DE EUR invoices with explicit 19% standard VAT, decimal quantities, supported allowances/charges and supplied references/payment data. It does not decide tax treatment, send invoices or imply recipient acceptance. Reduced VAT, credit notes, ZUGFeRD, live transport, billing and production operations remain gated by the supplied Release B/C requirements.
 
 The original positive fixture omits a mandatory seller telephone number. Its original bytes are retained as a negative case; the positive synthetic fixture explicitly provides a demo number. Foreign currency is rejected by the higher-precedence EUR-only schema. See `docs/adr/0009-release-a-implementation.md`, `docs/TBD.md`, `docs/SUPPORT_MATRIX.md`, `docs/compliance-dependencies.md`, and `docs/RELEASE_A_RESULTS.md`.
+
+CSV batch import is available through **Import → CSV batch**. Try `examples/customer-invoices.csv` with the included saved mapping. See [CSV import](docs/CSV_IMPORT.md) for limits, mapping registration and the path from preview to validated XML.

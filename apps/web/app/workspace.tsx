@@ -1,4 +1,5 @@
 "use client";
+import { CsvImport } from "./csv-import";
 import { InvoiceReview } from "./invoice-review";
 import { InvoiceEditor, ChangeSummary } from "./invoice-editor";
 import { AppearanceControls } from "./theme";
@@ -102,6 +103,7 @@ async function api(path: string, body?: unknown, key?: string, raw?: string) {
 export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
   const { t, locale, intlLocale, money, date, decimal } = useLanguage();
   const [view, setView] = useState("invoices"),
+    [csvMode, setCsvMode] = useState(false),
     [items, setItems] = useState<any[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState<any>(null),
@@ -188,6 +190,7 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
     setView(v);
     setError(null);
     if (v === "import") {
+      setCsvMode(false);
       setText("");
       setEditData(null);
       setPreview(null);
@@ -656,211 +659,241 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                 </p>
               </div>
               {errorView}
-              <div className="import-grid">
-                <section className="panel">
-                  <div className="panel-title">
-                    <h2>
-                      <span className="step">1</span>
-                      {editData
-                        ? t("Rechnung bearbeiten")
-                        : t("Quelldaten auswählen")}{" "}
-                    </h2>
-                    <span className="muted">{t("JSON · Max. 1 MiB")}</span>
-                  </div>
-                  <div className="panel-body">
-                    {!correcting && (
-                      <>
-                        <label className="upload-zone">
-                          <UploadCloud size={32} />
-                          <strong>{t("JSON-Datei auswählen")}</strong>
-                          <span>
-                            {t("oder unten eine Demo-Vorlage verwenden")}
-                          </span>
-                          <input
-                            type="file"
-                            accept=".json,application/json"
-                            aria-label={t("JSON-Datei auswählen")}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              if (file.size > 1024 * 1024) {
-                                setError(
-                                  Error(
-                                    "Die Datei darf höchstens 1 MiB groß sein.",
-                                  ),
-                                );
-                                return;
-                              }
-                              setText(await file.text());
-                              setEditData(null);
-                              setPreview(null);
-                              setError(null);
-                            }}
-                          />
-                        </label>
-                        <details className="format-help">
-                          <summary>{t("Formatbeispiel ansehen")}</summary>
-                          <label className="field-label" htmlFor="fixture">
-                            {t("Rechnungsvorlage")}
-                          </label>
-                          <select
-                            id="fixture"
-                            defaultValue=""
-                            onChange={(event) => {
-                              const example =
-                                fixtures[Number(event.target.value)];
-                              if (example) {
-                                setText(JSON.stringify(example.data, null, 2));
+              {!correcting && (
+                <div className="editor-sections">
+                  <button
+                    className={!csvMode ? "primary" : "secondary"}
+                    aria-pressed={!csvMode}
+                    onClick={() => setCsvMode(false)}
+                  >
+                    {t("JSON-Rechnung")}
+                  </button>
+                  <button
+                    className={csvMode ? "primary" : "secondary"}
+                    aria-pressed={csvMode}
+                    onClick={() => setCsvMode(true)}
+                  >
+                    {t("CSV-Stapel")}
+                  </button>
+                </div>
+              )}
+              {csvMode && !correcting ? (
+                <CsvImport
+                  onOpen={(id) => {
+                    load().catch(setError);
+                    open(id);
+                  }}
+                />
+              ) : (
+                <div className="import-grid">
+                  <section className="panel">
+                    <div className="panel-title">
+                      <h2>
+                        <span className="step">1</span>
+                        {editData
+                          ? t("Rechnung bearbeiten")
+                          : t("Quelldaten auswählen")}{" "}
+                      </h2>
+                      <span className="muted">{t("JSON · Max. 1 MiB")}</span>
+                    </div>
+                    <div className="panel-body">
+                      {!correcting && (
+                        <>
+                          <label className="upload-zone">
+                            <UploadCloud size={32} />
+                            <strong>{t("JSON-Datei auswählen")}</strong>
+                            <span>
+                              {t("oder unten eine Demo-Vorlage verwenden")}
+                            </span>
+                            <input
+                              type="file"
+                              accept=".json,application/json"
+                              aria-label={t("JSON-Datei auswählen")}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (file.size > 1024 * 1024) {
+                                  setError(
+                                    Error(
+                                      "Die Datei darf höchstens 1 MiB groß sein.",
+                                    ),
+                                  );
+                                  return;
+                                }
+                                setText(await file.text());
                                 setEditData(null);
                                 setPreview(null);
                                 setError(null);
-                              }
-                            }}
-                          >
-                            <option value="" disabled>
-                              {t("Vorlage auswählen …")}
-                            </option>
-                            {fixtures.map((example, index) => (
-                              <option value={index} key={example.code}>
-                                {t(example.name)}
+                              }}
+                            />
+                          </label>
+                          <details className="format-help">
+                            <summary>{t("Formatbeispiel ansehen")}</summary>
+                            <label className="field-label" htmlFor="fixture">
+                              {t("Rechnungsvorlage")}
+                            </label>
+                            <select
+                              id="fixture"
+                              defaultValue=""
+                              onChange={(event) => {
+                                const example =
+                                  fixtures[Number(event.target.value)];
+                                if (example) {
+                                  setText(
+                                    JSON.stringify(example.data, null, 2),
+                                  );
+                                  setEditData(null);
+                                  setPreview(null);
+                                  setError(null);
+                                }
+                              }}
+                            >
+                              <option value="" disabled>
+                                {t("Vorlage auswählen …")}
                               </option>
-                            ))}
-                          </select>
+                              {fixtures.map((example, index) => (
+                                <option value={index} key={example.code}>
+                                  {t(example.name)}
+                                </option>
+                              ))}
+                            </select>
+                            <p>
+                              {t(
+                                "Die Vorlage enthält fiktive Angaben. Ersetzen Sie diese vor dem Import.",
+                              )}
+                            </p>
+                          </details>
+                          <div className="or-label">
+                            {t("ODER JSON EINFÜGEN")}
+                          </div>
+                        </>
+                      )}
+                      {editData && (
+                        <InvoiceEditor
+                          value={editData}
+                          onChange={(next) => {
+                            setEditData(next);
+                            setText(JSON.stringify(next, null, 2));
+                            setPreview(null);
+                            setError(null);
+                          }}
+                        />
+                      )}
+                      <details
+                        className="advanced-json"
+                        open={!editData ? true : undefined}
+                      >
+                        <summary>{t("Erweitert: JSON bearbeiten")}</summary>
+                        <label className="field-label" htmlFor="canonical">
+                          {t("Canonical JSON")}{" "}
+                        </label>
+                        <textarea
+                          id="canonical"
+                          className="code-editor"
+                          spellCheck={false}
+                          value={text}
+                          placeholder={
+                            '{\n  "schemaVersion": "fakturapass.invoice.v1",\n  ...\n}'
+                          }
+                          onChange={(e) => {
+                            setText(e.target.value);
+                            setEditData(null);
+                            setPreview(null);
+                          }}
+                        />
+                      </details>
+                      <div className="actions">
+                        <button
+                          className="secondary"
+                          disabled={!text || busy}
+                          onClick={parse}
+                        >
+                          {t("Vorschau prüfen")} <ArrowRight size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                  <section className="panel preview-panel">
+                    <div className="panel-title">
+                      <h2>
+                        <span className="step">2</span>
+                        {t("Importvorschau")}{" "}
+                      </h2>
+                    </div>
+                    {preview ? (
+                      <div className="panel-body">
+                        <span className="badge blue">
+                          <FileJson size={13} />
+                          {t("JSON gelesen")}{" "}
+                        </span>
+                        <h2 className="preview-number">
+                          {preview.document?.number ??
+                            t("Rechnungsnummer fehlt")}
+                        </h2>
+                        <p>{preview.buyer?.name ?? t("Empfänger fehlt")}</p>
+                        <small>{t("Zahlbetrag")}</small>
+                        <div className="preview-amount">
+                          {typeof preview.totals?.payableAmount === "string"
+                            ? money(preview.totals.payableAmount)
+                            : t("Betrag fehlt")}
+                        </div>
+                        <details className="source-details">
+                          <summary>{t("Quelldetails")}</summary>
+                          <dl>
+                            <div>
+                              <dt>{t("Quelle")}</dt>
+                              <dd>{preview.source.system}</dd>
+                            </div>
+                            <div>
+                              <dt>{t("Quell-ID")}</dt>
+                              <dd>{preview.source.recordId}</dd>
+                            </div>
+                          </dl>
+                        </details>
+                        {correcting && (
+                          <ChangeSummary before={invoice} after={preview} />
+                        )}
+                        <InvoiceReview invoice={preview} />
+                        <div className="notice">
+                          <Info size={18} />
                           <p>
                             {t(
-                              "Die Vorlage enthält fiktive Angaben. Ersetzen Sie diese vor dem Import.",
-                            )}
+                              "Die Vorschau ersetzt keine Prüfung. Schema, Beträge und offizielle Regeln werden gesondert geprüft.",
+                            )}{" "}
                           </p>
-                        </details>
-                        <div className="or-label">
-                          {t("ODER JSON EINFÜGEN")}
                         </div>
-                      </>
-                    )}
-                    {editData && (
-                      <InvoiceEditor
-                        value={editData}
-                        onChange={(next) => {
-                          setEditData(next);
-                          setText(JSON.stringify(next, null, 2));
-                          setPreview(null);
-                          setError(null);
-                        }}
-                      />
-                    )}
-                    <details
-                      className="advanced-json"
-                      open={!editData ? true : undefined}
-                    >
-                      <summary>{t("Erweitert: JSON bearbeiten")}</summary>
-                      <label className="field-label" htmlFor="canonical">
-                        {t("Canonical JSON")}{" "}
-                      </label>
-                      <textarea
-                        id="canonical"
-                        className="code-editor"
-                        spellCheck={false}
-                        value={text}
-                        placeholder={
-                          '{\n  "schemaVersion": "fakturapass.invoice.v1",\n  ...\n}'
-                        }
-                        onChange={(e) => {
-                          setText(e.target.value);
-                          setEditData(null);
-                          setPreview(null);
-                        }}
-                      />
-                    </details>
-                    <div className="actions">
-                      <button
-                        className="secondary"
-                        disabled={!text || busy}
-                        onClick={parse}
-                      >
-                        {t("Vorschau prüfen")} <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </section>
-                <section className="panel preview-panel">
-                  <div className="panel-title">
-                    <h2>
-                      <span className="step">2</span>
-                      {t("Importvorschau")}{" "}
-                    </h2>
-                  </div>
-                  {preview ? (
-                    <div className="panel-body">
-                      <span className="badge blue">
-                        <FileJson size={13} />
-                        {t("JSON gelesen")}{" "}
-                      </span>
-                      <h2 className="preview-number">
-                        {preview.document?.number ?? t("Rechnungsnummer fehlt")}
-                      </h2>
-                      <p>{preview.buyer?.name ?? t("Empfänger fehlt")}</p>
-                      <small>{t("Zahlbetrag")}</small>
-                      <div className="preview-amount">
-                        {typeof preview.totals?.payableAmount === "string"
-                          ? money(preview.totals.payableAmount)
-                          : t("Betrag fehlt")}
-                      </div>
-                      <details className="source-details">
-                        <summary>{t("Quelldetails")}</summary>
-                        <dl>
-                          <div>
-                            <dt>{t("Quelle")}</dt>
-                            <dd>{preview.source.system}</dd>
-                          </div>
-                          <div>
-                            <dt>{t("Quell-ID")}</dt>
-                            <dd>{preview.source.recordId}</dd>
-                          </div>
-                        </dl>
-                      </details>
-                      {correcting && (
-                        <ChangeSummary before={invoice} after={preview} />
-                      )}
-                      <InvoiceReview invoice={preview} />
-                      <div className="notice">
-                        <Info size={18} />
-                        <p>
-                          {t(
-                            "Die Vorschau ersetzt keine Prüfung. Schema, Beträge und offizielle Regeln werden gesondert geprüft.",
+                        <button
+                          className="primary full"
+                          disabled={busy}
+                          onClick={importInvoice}
+                        >
+                          {busy ? (
+                            <LoaderCircle className="spin" size={17} />
+                          ) : (
+                            <Check size={17} />
                           )}{" "}
+                          {correcting
+                            ? t("Neue Revision speichern")
+                            : t("Rechnung importieren")}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="empty compact">
+                        <FolderOpen size={38} />
+                        <h3>
+                          {editData
+                            ? t("Entwurf geändert. Vorschau erneut prüfen.")
+                            : t("Zuerst die Quelle auswählen.")}
+                        </h3>
+                        <p>
+                          {t("Hier sehen Sie die Rechnungsdaten,")} <br />
+                          {t("bevor Sie den Import bestätigen.")}{" "}
                         </p>
                       </div>
-                      <button
-                        className="primary full"
-                        disabled={busy}
-                        onClick={importInvoice}
-                      >
-                        {busy ? (
-                          <LoaderCircle className="spin" size={17} />
-                        ) : (
-                          <Check size={17} />
-                        )}{" "}
-                        {correcting
-                          ? t("Neue Revision speichern")
-                          : t("Rechnung importieren")}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="empty compact">
-                      <FolderOpen size={38} />
-                      <h3>
-                        {editData
-                          ? t("Entwurf geändert. Vorschau erneut prüfen.")
-                          : t("Zuerst die Quelle auswählen.")}
-                      </h3>
-                      <p>
-                        {t("Hier sehen Sie die Rechnungsdaten,")} <br />
-                        {t("bevor Sie den Import bestätigen.")}{" "}
-                      </p>
-                    </div>
-                  )}
-                </section>
-              </div>
+                    )}
+                  </section>
+                </div>
+              )}
             </>
           )}
           {view === "detail" && invoice && (

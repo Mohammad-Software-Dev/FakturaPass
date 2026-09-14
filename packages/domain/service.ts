@@ -102,12 +102,13 @@ async function insertRevision(
   n: number,
   canonical: Invoice,
   raw: Buffer,
+  mapping: Record<string, unknown> | null = null,
 ) {
   const sourceId = uid(),
     revisionId = uid(),
     hash = sha256(stable(canonical));
   await db.query(
-    "INSERT INTO source_artifacts(id,tenant_id,environment,source_system,source_record_id,object_key,sha256,media_type,received_at,bytes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+    "INSERT INTO source_artifacts(id,tenant_id,environment,source_system,source_record_id,object_key,sha256,media_type,received_at,bytes,mapping_json) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
     [
       sourceId,
       ctx.tenantId,
@@ -116,9 +117,10 @@ async function insertRevision(
       canonical.source.recordId,
       `source/${sourceId}`,
       sha256(raw),
-      "application/json",
+      mapping ? "text/csv" : "application/json",
       canonical.source.receivedAt,
       raw,
+      mapping,
     ],
   );
   await db.query(
@@ -148,15 +150,21 @@ export async function ingest(
   canonical: Invoice,
   raw: Buffer,
   key: string,
+  mapping: Record<string, unknown> | null = null,
+  existingDb?: DB,
 ) {
   authorize(ctx, ["ADMIN", "OPERATOR"]);
   if (!key || key.length > 200) throw new ApiError("INVALID_REQUEST");
   checkSchema(canonical);
-  return transaction(async (db) => {
+  const work = async (db: DB) => {
     await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [
       `${ctx.tenantId}/invoices/${key}`,
     ]);
-    const hash = sha256(stable(canonical));
+    const hash = sha256(
+      stable(
+        mapping ? { canonical, sourceSha256: sha256(raw), mapping } : canonical,
+      ),
+    );
     const old = (
       await db.query(
         "SELECT * FROM idempotency_records WHERE tenant_id=$1 AND route_key=$2 AND idempotency_key=$3",
@@ -193,14 +201,23 @@ export async function ingest(
         invoiceId: existing.rows[0]?.id,
       });
     }
-    const response = await insertRevision(db, ctx, id, 1, canonical, raw);
+    const response = await insertRevision(
+      db,
+      ctx,
+      id,
+      1,
+      canonical,
+      raw,
+      mapping,
+    );
     await db.query(
       "INSERT INTO idempotency_records(id,tenant_id,route_key,idempotency_key,request_sha256,response_status,response_json) VALUES($1,$2,$3,$4,$5,201,$6)",
       [uid(), ctx.tenantId, "invoices", key, hash, response],
     );
     await audit(db, ctx, "IMPORT", id);
     return response;
-  });
+  };
+  return existingDb ? work(existingDb) : transaction(work);
 }
 export async function correct(
   ctx: Context,
@@ -674,6 +691,19 @@ export async function processJob(): Promise<boolean> {
       officialPass = result.pass;
       fs = [...fs, ...result.findings];
     }
+    const sourceMapping = (
+      await pool.query(
+        "SELECT mapping_json FROM source_artifacts WHERE tenant_id=$1 AND id=$2",
+        [ctx.tenantId, r.source_artifact_id],
+      )
+    ).rows[0]?.mapping_json;
+    if (sourceMapping)
+      fs = fs.map((f) => {
+        const origin = sourceMapping.provenance[f.canonicalPath];
+        return origin
+          ? { ...f, sourcePath: `row ${origin.row}, column ${origin.column}` }
+          : f;
+      });
     const pass = officialPass && !counts(fs).error;
     await transaction(async (db) => {
       const locked = (
@@ -745,7 +775,7 @@ export async function processJob(): Promise<boolean> {
       );
       const source = (
         await db.query(
-          "SELECT sha256 FROM source_artifacts WHERE tenant_id=$1 AND id=$2",
+          "SELECT sha256,mapping_json FROM source_artifacts WHERE tenant_id=$1 AND id=$2",
           [ctx.tenantId, r.source_artifact_id],
         )
       ).rows[0];
@@ -754,7 +784,10 @@ export async function processJob(): Promise<boolean> {
         tenantId: ctx.tenantId,
         invoiceId: p.invoiceId,
         revisionId: p.revisionId,
-        source: { sha256: source.sha256 },
+        source: {
+          sha256: source.sha256,
+          ...(source.mapping_json ? { mapping: source.mapping_json } : {}),
+        },
         canonical: {
           schemaVersion: r.schema_version,
           sha256: r.canonical_sha256,

@@ -53,3 +53,11 @@ On another day, the validation service is temporarily unavailable. The invoice a
 **Settings & information** explains the supported scope first. **Technical information** opens only when version or installation details are needed.
 
 The current build supports ordinary German domestic invoices in EUR with explicitly supplied 19% standard VAT. Other tax cases, reduced rates, credit notes, Peppol delivery and ZUGFeRD are not enabled. Technical validation does not guarantee recipient acceptance or tax correctness. Production identity, hosting and operational readiness remain separate deployment requirements described in the repository documentation.
+
+## Nina brings in a day's invoices together
+
+Nina exports her invoices in the format her team has already mapped. She opens **Import**, chooses **CSV batch**, selects the saved mapping and uploads the file. **Check CSV preview** groups the rows into invoices. She expands each card and checks the recipient, line items and total.
+
+One invoice repeats a different total on its second line. The preview points to that row and column. Nina fixes the export and uploads it again; nothing has been saved yet. When all cards are ready, she chooses **Import all invoices**. The completion list gives her a direct route to each invoice; an already imported source opens its existing record.
+
+Nina opens the first invoice. A changed purchase order reference is easy to handle through **Corrected revision**. She reviews the change, saves, validates, approves and generates the XML. She repeats the handoff for the remaining invoices, confident that each one keeps its original CSV and mapping evidence. The CSV preview was her preparation step; official validation and approval still happen for each saved invoice.
