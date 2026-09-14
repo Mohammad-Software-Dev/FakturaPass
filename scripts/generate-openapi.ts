@@ -145,6 +145,22 @@ const operations: [
 ];
 operations.push(
   [
+    "/review-queue",
+    "get",
+    "listReviewQueue",
+    "Read derived invoice exceptions and ownership within the tenant.",
+    undefined,
+    200,
+  ],
+  [
+    "/review-queue/{invoiceId}/assignment",
+    "post",
+    "assignReview",
+    "Claim for the authenticated actor or release ownership with optimistic concurrency.",
+    "ReviewAssignmentRequest",
+    200,
+  ],
+  [
     "/recipient-profiles",
     "get",
     "listRecipientProfiles",
@@ -194,6 +210,8 @@ operations.push(
   ],
 );
 const responseNames: Record<string, string> = {
+  listReviewQueue: "ReviewQueue",
+  assignReview: "ReviewAssignment",
   createInvoice: "CreatedInvoice",
   listInvoices: "InvoiceList",
   getInvoice: "InvoiceDetail",
@@ -280,6 +298,17 @@ for (const [path, method, id, description, request, status] of operations) {
     op.responses[200].content = {
       "application/xml": { schema: { type: "string" } },
     };
+  if (id === "listReviewQueue")
+    op.parameters.push(
+      ...["owner", "reason", "cursor", "limit"].map((name) => ({
+        name,
+        in: "query",
+        schema:
+          name === "limit"
+            ? { type: "integer", minimum: 1, maximum: 100 }
+            : str,
+      })),
+    );
   paths[path] ??= {};
   paths[path][method] = op;
 }
@@ -461,6 +490,46 @@ schemas.RecipientProfileList = object({
 schemas.PublishRecipientProfile = object({
   profile: ref("RecipientProfileInput"),
   priorVersionId: nullable,
+});
+schemas.ReviewAssignmentRequest = object({
+  action: { enum: ["CLAIM", "RELEASE"] },
+  expectedRevisionId: str,
+  expectedVersion: { type: "integer", minimum: 0 },
+});
+schemas.ReviewAssignment = object({
+  owner: nullable,
+  version: { type: "integer" },
+  updatedAt: nullable,
+  isMine: { type: "boolean" },
+});
+schemas.ReviewQueue = object({
+  items: {
+    type: "array",
+    items: object({
+      invoiceId: str,
+      revisionId: str,
+      revisionNumber: { type: "integer" },
+      documentNumber: str,
+      buyerName: str,
+      sourceRecordId: str,
+      payableAmount: str,
+      currency: str,
+      status: str,
+      recipientCoverage: str,
+      reasons: { type: "array", items: str },
+      priority: { type: "integer" },
+      createdAt: str,
+      assignment: ref("ReviewAssignment"),
+    }),
+  },
+  total: { type: "integer" },
+  counts: object({
+    all: { type: "integer" },
+    mine: { type: "integer" },
+    unassigned: { type: "integer" },
+  }),
+  nextCursor: nullable,
+  canManage: { type: "boolean" },
 });
 schemas.CsvInput = object({
   csv: { type: "string", maxLength: 524288 },

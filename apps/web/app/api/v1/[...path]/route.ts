@@ -1,3 +1,4 @@
+import * as review from "../../../../../../packages/review/service";
 import * as csvImport from "../../../../../../packages/mappings/service";
 import {
   apiErrorKeys,
@@ -114,6 +115,25 @@ async function handler(
       }
     }
     const ctx = identity(req, requestId);
+    if (p.join("/") === "review-queue" && method === "GET")
+      return send(
+        await review.list(ctx, {
+          owner: url.searchParams.get("owner") ?? undefined,
+          reason: url.searchParams.get("reason") ?? undefined,
+          limit: url.searchParams.has("limit")
+            ? Number(url.searchParams.get("limit"))
+            : undefined,
+          cursor: url.searchParams.get("cursor") ?? undefined,
+        }),
+      );
+    if (
+      p[0] === "review-queue" &&
+      p.length === 3 &&
+      p[2] === "assignment" &&
+      method === "POST"
+    )
+      return send(await review.assign(ctx, p[1], (await body(req)).json));
+
     if (p.join("/") === "mapping-recipes" && method === "GET")
       return send({ items: await csvImport.recipes(ctx) });
     if (p.join("/") === "csv/preview" && method === "POST")

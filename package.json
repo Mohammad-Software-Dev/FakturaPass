@@ -19,7 +19,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "tsx --test tests/domain.test.ts tests/i18n.test.ts tests/csv.test.ts tests/recipients.test.ts",
+    "test": "tsx --test tests/domain.test.ts tests/i18n.test.ts tests/csv.test.ts tests/recipients.test.ts tests/review.test.ts",
     "test:integration": "tsx --test --test-concurrency=1 tests/integration.test.ts",
     "test:e2e": "playwright test",
     "contracts:check": "tsx scripts/check-contracts.ts",

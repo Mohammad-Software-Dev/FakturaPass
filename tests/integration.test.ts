@@ -551,3 +551,93 @@ test("tenant recipient versions bind validation, evidence and approvals and reje
     ),
   );
 });
+
+test("review ownership is tenant scoped, concurrent-safe and persists across corrections", async () => {
+  const review = await import("../packages/review/service");
+  const i = input();
+  const c = await create(i);
+  const one = { ...ctx, actor: "review-one", role: "OPERATOR" as const },
+    two = { ...ctx, actor: "review-two", role: "OPERATOR" as const };
+  const request = {
+    action: "CLAIM" as const,
+    expectedRevisionId: c.revisionId,
+    expectedVersion: 0,
+  };
+  await assert.rejects(review.assign(other, c.invoiceId, request), {
+    code: "RESOURCE_NOT_FOUND",
+  });
+  await assert.rejects(
+    review.assign({ ...one, role: "READ_ONLY" }, c.invoiceId, request),
+    { code: "ACCESS_DENIED" },
+  );
+  const outcomes = await Promise.allSettled([
+    review.assign(one, c.invoiceId, request),
+    review.assign(two, c.invoiceId, request),
+  ]);
+  assert.equal(outcomes.filter((o) => o.status === "fulfilled").length, 1);
+  const winner = outcomes[0].status === "fulfilled" ? one : two,
+    loser = winner === one ? two : one;
+  const assigned = (await review.list(winner, { owner: "mine" })).items.find(
+    (x) => x.invoiceId === c.invoiceId,
+  )!;
+  assert(assigned.assignment.isMine);
+  assert.equal(assigned.assignment.version, 1);
+  assert(assigned.reasons.includes("VALIDATION_REQUIRED"));
+  await assert.rejects(
+    review.assign(loser, c.invoiceId, {
+      ...request,
+      action: "RELEASE",
+      expectedVersion: 1,
+    }),
+    { code: "ACCESS_DENIED" },
+  );
+  const fixed = structuredClone(i);
+  fixed.document.number += "-revision";
+  const newer = await s.correct(
+    ctx,
+    c.invoiceId,
+    c.revisionId,
+    fixed,
+    Buffer.from(JSON.stringify(fixed)),
+  );
+  await assert.rejects(
+    review.assign(winner, c.invoiceId, {
+      ...request,
+      action: "RELEASE",
+      expectedVersion: 1,
+    }),
+    { code: "REVISION_CONFLICT" },
+  );
+  const queue = await review.list(winner, { owner: "mine" });
+  assert.equal(
+    queue.items.find((x) => x.invoiceId === c.invoiceId)?.revisionId,
+    newer.revisionId,
+  );
+  const released = await review.assign(winner, c.invoiceId, {
+    action: "RELEASE",
+    expectedRevisionId: newer.revisionId,
+    expectedVersion: 1,
+  });
+  assert.equal(released.owner, null);
+  assert.equal(released.version, 2);
+  assert(
+    !(await review.list(other)).items.some((x) => x.invoiceId === c.invoiceId),
+  );
+  const audit = (
+    await pool.query(
+      "SELECT action FROM audit_events WHERE tenant_id=$1 AND resource_id=$2 AND action LIKE 'REVIEW_%'",
+      [ctx.tenantId, c.invoiceId],
+    )
+  ).rows;
+  assert.deepEqual(audit.map((x) => x.action).sort(), [
+    "REVIEW_CLAIM",
+    "REVIEW_RELEASE",
+  ]);
+  const first = await review.list(ctx, { limit: 1 });
+  assert.equal(first.items.length, 1);
+  assert(first.nextCursor);
+  await assert.rejects(
+    review.list(other, { limit: 1, cursor: first.nextCursor }),
+    { code: "INVALID_REQUEST" },
+  );
+});

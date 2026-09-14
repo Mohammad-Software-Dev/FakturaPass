@@ -1474,6 +1474,214 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /review-queue:
+    get:
+      operationId: listReviewQueue
+      description: Read derived invoice exceptions and ownership within the tenant.
+      security:
+        - localDev: []
+        - oidcBearer: []
+        - apiKey: []
+      parameters:
+        - name: X-Request-Id
+          in: header
+          schema:
+            type: string
+            maxLength: 100
+        - name: owner
+          in: query
+          schema:
+            type: string
+        - name: reason
+          in: query
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: Accept-Language
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Optional language preference for error messages and recipient
+            display labels. Supports de and en (including regional tags and
+            quality weights), default de. Codes, invoice data, XML and saved
+            evidence are language-independent.
+      responses:
+        "200":
+          description: Successful operation
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewQueue"
+        "400":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /review-queue/{invoiceId}/assignment:
+    post:
+      operationId: assignReview
+      description: Claim for the authenticated actor or release ownership with
+        optimistic concurrency.
+      security:
+        - localDev: []
+        - oidcBearer: []
+        - apiKey: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          schema:
+            type: string
+            maxLength: 100
+        - name: Accept-Language
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Optional language preference for error messages and recipient
+            display labels. Supports de and en (including regional tags and
+            quality weights), default de. Codes, invoice data, XML and saved
+            evidence are language-independent.
+      responses:
+        "200":
+          description: Successful operation
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewAssignment"
+        "400":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewAssignmentRequest"
   /recipient-profiles:
     get:
       operationId: listRecipientProfiles
@@ -3393,6 +3601,127 @@ components:
       required:
         - profile
         - priorVersionId
+      additionalProperties: false
+    ReviewAssignmentRequest:
+      type: object
+      properties:
+        action:
+          enum:
+            - CLAIM
+            - RELEASE
+        expectedRevisionId:
+          type: string
+        expectedVersion:
+          type: integer
+          minimum: 0
+      required:
+        - action
+        - expectedRevisionId
+        - expectedVersion
+      additionalProperties: false
+    ReviewAssignment:
+      type: object
+      properties:
+        owner:
+          type:
+            - string
+            - "null"
+        version:
+          type: integer
+        updatedAt:
+          type:
+            - string
+            - "null"
+        isMine:
+          type: boolean
+      required:
+        - owner
+        - version
+        - updatedAt
+        - isMine
+      additionalProperties: false
+    ReviewQueue:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              invoiceId:
+                type: string
+              revisionId:
+                type: string
+              revisionNumber:
+                type: integer
+              documentNumber:
+                type: string
+              buyerName:
+                type: string
+              sourceRecordId:
+                type: string
+              payableAmount:
+                type: string
+              currency:
+                type: string
+              status:
+                type: string
+              recipientCoverage:
+                type: string
+              reasons:
+                type: array
+                items:
+                  type: string
+              priority:
+                type: integer
+              createdAt:
+                type: string
+              assignment:
+                $ref: "#/components/schemas/ReviewAssignment"
+            required:
+              - invoiceId
+              - revisionId
+              - revisionNumber
+              - documentNumber
+              - buyerName
+              - sourceRecordId
+              - payableAmount
+              - currency
+              - status
+              - recipientCoverage
+              - reasons
+              - priority
+              - createdAt
+              - assignment
+            additionalProperties: false
+        total:
+          type: integer
+        counts:
+          type: object
+          properties:
+            all:
+              type: integer
+            mine:
+              type: integer
+            unassigned:
+              type: integer
+          required:
+            - all
+            - mine
+            - unassigned
+          additionalProperties: false
+        nextCursor:
+          type:
+            - string
+            - "null"
+        canManage:
+          type: boolean
+      required:
+        - items
+        - total
+        - counts
+        - nextCursor
+        - canManage
       additionalProperties: false
     CsvInput:
       type: object

@@ -402,3 +402,36 @@ test("recipient API versions enforce roles, optimistic concurrency and tenant is
   assert.equal(history.items.length, 2);
   assert.equal(history.items[1].sha256, v1.sha256);
 });
+
+test("review queue contracts reject forged ownership and preserve scoped assignments", async () => {
+  const i = structuredClone(base);
+  i.source.recordId = randomUUID();
+  const c = await (
+    await call("invoices", i, "test-a", { "Idempotency-Key": randomUUID() })
+  ).json();
+  assert.equal((await call("review-queue?owner=mine&limit=10")).status, 200);
+  assert.equal((await call("review-queue?owner=other")).status, 400);
+  assert.equal((await call("review-queue?limit=101")).status, 400);
+  const path = `review-queue/${c.invoiceId}/assignment`,
+    body = {
+      action: "CLAIM",
+      expectedRevisionId: c.revisionId,
+      expectedVersion: 0,
+    };
+  assert.equal((await call(path, body, "test-b")).status, 404);
+  assert.equal((await call(path, body, "test-reader")).status, 403);
+  assert.equal((await call(path, { ...body, owner: "forged" })).status, 400);
+  assert.equal(
+    (await call(path, body, "", { Origin: "http://evil.invalid" })).status,
+    403,
+  );
+  const assigned = await call(path, body);
+  assert.equal(assigned.status, 200);
+  assert.equal((await assigned.json()).owner, "a");
+  assert.equal((await call(path, body)).status, 409);
+  assert.equal(
+    (await call(path, { ...body, action: "RELEASE", expectedVersion: 1 }))
+      .status,
+    200,
+  );
+});
