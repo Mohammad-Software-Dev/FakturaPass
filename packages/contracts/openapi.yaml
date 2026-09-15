@@ -2,8 +2,8 @@ openapi: 3.1.0
 info:
   title: FakturaPass Release A
   version: 1.0.0
-  description: Local synthetic demonstrator. Production OIDC/API keys are gated
-    and not enabled.
+  description: Invoice workspace with configurable OIDC browser sessions.
+    Production provider acceptance and API keys remain gated.
 servers:
   - url: /api/v1
 paths:
@@ -15,8 +15,7 @@ paths:
         changed body conflicts.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -116,8 +115,7 @@ paths:
       description: List current revisions, tenant-scoped.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -220,8 +218,7 @@ paths:
       description: Get current revision and immutable history.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: invoiceId
           in: path
@@ -314,8 +311,7 @@ paths:
       description: Read an immutable canonical revision.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: invoiceId
           in: path
@@ -414,8 +410,7 @@ paths:
         REVISION_CONFLICT.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: invoiceId
           in: path
@@ -516,8 +511,7 @@ paths:
         Always returns 202.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: invoiceId
           in: path
@@ -621,8 +615,7 @@ paths:
       description: Poll immutable result after asynchronous execution.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: validationRunId
           in: path
@@ -715,8 +708,7 @@ paths:
       description: Approve only matching successful current revision and profile.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: invoiceId
           in: path
@@ -822,8 +814,7 @@ paths:
         202; poll validation run then read revision artifacts.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: invoiceId
           in: path
@@ -927,8 +918,7 @@ paths:
       description: Read authorized artifact metadata.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: artifactId
           in: path
@@ -1021,8 +1011,7 @@ paths:
       description: Download the exact persisted and validated XML bytes.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: artifactId
           in: path
@@ -1115,8 +1104,7 @@ paths:
       description: Download immutable manifest with complete findings and rule versions.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: invoiceId
           in: path
@@ -1214,8 +1202,7 @@ paths:
       description: Read the current recipient profile, its provenance and immutable version.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: recipientKey
           in: path
@@ -1480,8 +1467,7 @@ paths:
       description: Read derived invoice exceptions and ownership within the tenant.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -1588,8 +1574,7 @@ paths:
         optimistic concurrency.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: invoiceId
           in: path
@@ -1688,8 +1673,7 @@ paths:
       description: List tenant profiles and unverified reference presets.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -1776,8 +1760,7 @@ paths:
       description: Publish an immutable tenant-owned profile version as an administrator.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -1871,8 +1854,7 @@ paths:
       description: Read immutable version history within the tenant.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: recipientKey
           in: path
@@ -1965,8 +1947,7 @@ paths:
       description: Read configured immutable tenant mapping recipes.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -2054,8 +2035,7 @@ paths:
       description: Group CSV rows and return source-linked findings without saving.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -2150,8 +2130,7 @@ paths:
         mapping provenance.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -2252,8 +2231,7 @@ paths:
       description: Administrator-only membership listing for the authenticated tenant.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -2343,8 +2321,7 @@ paths:
         protection.
       security:
         - localDev: []
-        - oidcBearer: []
-        - apiKey: []
+        - browserSession: []
       parameters:
         - name: membershipId
           in: path
@@ -2437,8 +2414,106 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/MembershipUpdate"
+  /auth/login:
+    post:
+      operationId: oidcLogin
+      description:
+        Configured OIDC browser flow. Login/logout require same-origin
+        POST. Callback verifies state, nonce and PKCE. Disabled outside OIDC
+        mode.
+      security: []
+      parameters: []
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        "303":
+          description: Continue to provider, workspace or sign-in result.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        "403":
+          description: Origin rejected
+        "404":
+          description: OIDC disabled
+  /auth/callback:
+    get:
+      operationId: oidcCallback
+      description:
+        Configured OIDC browser flow. Login/logout require same-origin
+        POST. Callback verifies state, nonce and PKCE. Disabled outside OIDC
+        mode.
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "303":
+          description: Continue to provider, workspace or sign-in result.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        "403":
+          description: Origin rejected
+        "404":
+          description: OIDC disabled
+  /auth/logout:
+    post:
+      operationId: oidcLogout
+      description:
+        Configured OIDC browser flow. Login/logout require same-origin
+        POST. Callback verifies state, nonce and PKCE. Disabled outside OIDC
+        mode.
+      security:
+        - browserSession: []
+      parameters: []
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        "303":
+          description: Continue to provider, workspace or sign-in result.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        "403":
+          description: Origin rejected
+        "404":
+          description: OIDC disabled
 components:
   securitySchemes:
+    browserSession:
+      type: apiKey
+      in: cookie
+      name: __Host-fakturapass-session
+      description:
+        Opaque OIDC session; LOCAL uses fakturapass-session. Membership
+        checked on every request.
     localDev:
       type: http
       scheme: bearer

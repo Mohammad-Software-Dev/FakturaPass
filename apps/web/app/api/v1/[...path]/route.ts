@@ -1,3 +1,9 @@
+import { authRoute } from "../../../../../../packages/identity/auth-routes";
+import {
+  oidcEnabled,
+  sessionContext,
+  requireOrigin,
+} from "../../../../../../packages/identity/oidc";
 import * as memberships from "../../../../../../packages/identity/memberships";
 import * as review from "../../../../../../packages/review/service";
 import * as csvImport from "../../../../../../packages/mappings/service";
@@ -17,6 +23,10 @@ async function identity(
   req: Request,
   requestId: string,
 ): Promise<service.Context> {
+  if (oidcEnabled()) {
+    if (!["GET", "HEAD"].includes(req.method)) requireOrigin(req);
+    return sessionContext(req.headers.get("cookie"), requestId);
+  }
   if (process.env.FAKTURAPASS_ENV !== "LOCAL")
     throw new service.ApiError("AUTH_REQUIRED", 401);
   const authorization = req.headers.get("authorization");
@@ -127,6 +137,7 @@ async function handler(
         return send({ status: "not_ready" }, 503);
       }
     }
+    if (p[0] === "auth" && p.length === 2) return await authRoute(req, p[1]);
     const ctx = await identity(req, requestId);
     if (p.join("/") === "memberships" && method === "GET")
       return send(await memberships.listMembers(ctx));

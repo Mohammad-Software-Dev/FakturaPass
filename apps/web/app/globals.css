@@ -2364,3 +2364,27 @@ td,
   display: grid;
   gap: 8px;
 }
+.sign-in-shell {
+  min-height: 100vh;
+  padding: 32px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 32px;
+}
+.sign-in-preferences {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  width: min(100%, 520px);
+}
+.sign-in-card {
+  width: min(100%, 520px);
+  overflow-wrap: anywhere;
+}
+.sign-in-card h1 {
+  margin: 20px 0;
+}
+.sign-in-card p {
+  margin: 20px 0;
+}

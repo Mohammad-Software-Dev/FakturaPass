@@ -7,6 +7,9 @@ const spec = YAML.parse(
 );
 assert.equal(spec.openapi, "3.1.0");
 const expected = [
+  "oidcLogin",
+  "oidcCallback",
+  "oidcLogout",
   "listMemberships",
   "updateMembership",
   "listReviewQueue",
@@ -41,7 +44,8 @@ for (const [path, methods] of Object.entries(spec.paths)) {
     assert(Array.isArray(operation.security));
     assert(operation.parameters);
     if (method === "post") assert(operation.requestBody);
-    if (!path.startsWith("/health")) assert(operation.security.length);
+    if (!path.startsWith("/health") && !path.startsWith("/auth"))
+      assert(operation.security.length);
     ids.push(operation.operationId);
   }
 }

@@ -29,7 +29,9 @@
     "start": "next start apps/web -p 3010 --hostname 127.0.0.1",
     "backup:create": "tsx scripts/backup.ts create",
     "backup:verify": "tsx scripts/backup.ts restore",
-    "test:recovery": "tsx --test tests/recovery.test.ts"
+    "test:recovery": "tsx --test tests/recovery.test.ts",
+    "identity:provision": "tsx scripts/provision-oidc-member.ts",
+    "test:oidc": "tsx --test tests/oidc.test.ts"
   },
   "dependencies": {
     "ajv": "8.20.0",
@@ -38,6 +40,7 @@
     "fast-xml-parser": "5.11.1",
     "lucide-react": "0.468.0",
     "next": "16.3.5",
+    "openid-client": "6.8.8",
     "pg": "8.16.3",
     "react": "19.1.6",
     "react-dom": "19.1.6"

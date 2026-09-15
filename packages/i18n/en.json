@@ -495,5 +495,13 @@
   "Eine Sperre gilt ab der nächsten Anfrage. Mindestens eine aktive Administration bleibt erhalten.": "Suspension takes effect on the next request. At least one active administrator must remain.",
   "Der Teamzugriff wurde gespeichert.": "Team access has been saved.",
   "Team wird geladen …": "Loading team …",
-  "Mindestens eine aktive Administration muss erhalten bleiben.": "At least one active administrator must remain."
+  "Mindestens eine aktive Administration muss erhalten bleiben.": "At least one active administrator must remain.",
+  "Von FakturaPass abmelden": "Sign out of FakturaPass",
+  "Willkommen in Ihrem Arbeitsbereich": "Welcome to your workspace",
+  "Melden Sie sich an, um Rechnungen zu prüfen und gemeinsam weiterzubearbeiten.": "Sign in to review invoices and continue working with your team.",
+  "Für dieses Konto ist kein eindeutiger aktiver Arbeitsbereich verfügbar. Bitte wenden Sie sich an Ihre Administration.": "This account does not have a single active workspace available. Please contact your administrator.",
+  "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.": "Sign-in could not be completed. Please try again.",
+  "Sie sind von FakturaPass abgemeldet.": "You are signed out of FakturaPass.",
+  "Sicher anmelden": "Sign in securely",
+  "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet.": "You will be redirected to your organization’s sign-in service."
 }

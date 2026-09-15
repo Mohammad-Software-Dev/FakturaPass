@@ -495,5 +495,13 @@
   "Eine Sperre gilt ab der nächsten Anfrage. Mindestens eine aktive Administration bleibt erhalten.": "Eine Sperre gilt ab der nächsten Anfrage. Mindestens eine aktive Administration bleibt erhalten.",
   "Der Teamzugriff wurde gespeichert.": "Der Teamzugriff wurde gespeichert.",
   "Team wird geladen …": "Team wird geladen …",
-  "Mindestens eine aktive Administration muss erhalten bleiben.": "Mindestens eine aktive Administration muss erhalten bleiben."
+  "Mindestens eine aktive Administration muss erhalten bleiben.": "Mindestens eine aktive Administration muss erhalten bleiben.",
+  "Von FakturaPass abmelden": "Von FakturaPass abmelden",
+  "Willkommen in Ihrem Arbeitsbereich": "Willkommen in Ihrem Arbeitsbereich",
+  "Melden Sie sich an, um Rechnungen zu prüfen und gemeinsam weiterzubearbeiten.": "Melden Sie sich an, um Rechnungen zu prüfen und gemeinsam weiterzubearbeiten.",
+  "Für dieses Konto ist kein eindeutiger aktiver Arbeitsbereich verfügbar. Bitte wenden Sie sich an Ihre Administration.": "Für dieses Konto ist kein eindeutiger aktiver Arbeitsbereich verfügbar. Bitte wenden Sie sich an Ihre Administration.",
+  "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.": "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
+  "Sie sind von FakturaPass abgemeldet.": "Sie sind von FakturaPass abgemeldet.",
+  "Sicher anmelden": "Sicher anmelden",
+  "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet.": "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet."
 }

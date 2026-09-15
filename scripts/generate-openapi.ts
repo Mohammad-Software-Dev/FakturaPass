@@ -259,7 +259,7 @@ for (const [path, method, id, description, request, status] of operations) {
     description,
     security: path.startsWith("/health")
       ? []
-      : [{ localDev: [] }, { oidcBearer: [] }, { apiKey: [] }],
+      : [{ localDev: [] }, { browserSession: [] }],
     parameters: [
       ...Array.from(path.matchAll(/\{([^}]+)\}/g), (m) => ({
         name: m[1],
@@ -643,18 +643,68 @@ for (const operations of Object.values(paths)) {
     });
   }
 }
+for (const [action, method] of [
+  ["login", "post"],
+  ["callback", "get"],
+  ["logout", "post"],
+]) {
+  paths[`/auth/${action}`] = {
+    [method]: {
+      operationId: `oidc${action[0].toUpperCase()}${action.slice(1)}`,
+      description:
+        "Configured OIDC browser flow. Login/logout require same-origin POST. Callback verifies state, nonce and PKCE. Disabled outside OIDC mode.",
+      security: action === "logout" ? [{ browserSession: [] }] : [],
+      parameters:
+        action === "callback"
+          ? ["code", "state", "error"].map((name) => ({
+              name,
+              in: "query",
+              required: false,
+              schema: str,
+            }))
+          : [],
+      ...(method === "post"
+        ? {
+            requestBody: {
+              required: false,
+              content: {
+                "application/x-www-form-urlencoded": {
+                  schema: { type: "object" },
+                },
+              },
+            },
+          }
+        : {}),
+      responses: {
+        "303": {
+          description: "Continue to provider, workspace or sign-in result.",
+          headers: { Location: { schema: { type: "string", format: "uri" } } },
+        },
+        "403": { description: "Origin rejected" },
+        "404": { description: "OIDC disabled" },
+      },
+    },
+  };
+}
 const spec = {
   openapi: "3.1.0",
   info: {
     title: "FakturaPass Release A",
     version: "1.0.0",
     description:
-      "Local synthetic demonstrator. Production OIDC/API keys are gated and not enabled.",
+      "Invoice workspace with configurable OIDC browser sessions. Production provider acceptance and API keys remain gated.",
   },
   servers: [{ url: "/api/v1" }],
   paths,
   components: {
     securitySchemes: {
+      browserSession: {
+        type: "apiKey",
+        in: "cookie",
+        name: "__Host-fakturapass-session",
+        description:
+          "Opaque OIDC session; LOCAL uses fakturapass-session. Membership checked on every request.",
+      },
       localDev: {
         type: "http",
         scheme: "bearer",

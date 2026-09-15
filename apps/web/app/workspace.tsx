@@ -108,7 +108,13 @@ async function api(path: string, body?: unknown, key?: string, raw?: string) {
     );
   return data;
 }
-export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
+export default function Workspace({
+  fixtures,
+  signedIn = false,
+}: {
+  fixtures: Fixture[];
+  signedIn?: boolean;
+}) {
   const { t, locale, intlLocale, money, date, decimal } = useLanguage();
   const [view, setView] = useState("invoices"),
     [csvMode, setCsvMode] = useState(false),
@@ -316,6 +322,11 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                   : (error.message ?? "Ein Fehler ist aufgetreten.")),
           )}
         </strong>
+        {signedIn && error.code === "AUTH_REQUIRED" && (
+          <p>
+            <a href="/sign-in">{t("Sicher anmelden")}</a>
+          </p>
+        )}
         {error.details?.findings?.map((f: Finding, n: number) => (
           <p key={n}>
             <code>{f.canonicalPath}</code> — {findingDescription(locale, f)}
@@ -429,6 +440,13 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                           : t("Rechnungen")}
             </strong>
           </div>
+          {signedIn && (
+            <form action="/api/v1/auth/logout" method="post">
+              <button className="secondary">
+                {t("Von FakturaPass abmelden")}
+              </button>
+            </form>
+          )}
           <AppearanceControls />
         </header>
         <main>
