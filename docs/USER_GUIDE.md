@@ -77,3 +77,9 @@ Amira opens **Review queue** and chooses **Unassigned**. Each invoice tells her 
 Amira opens an invoice that needs a correction. The queue takes her to its findings; she creates the corrected revision and validates it. Ownership follows the invoice through that revision. She reviews the result, approves and generates the XML. Back in the queue, the completed invoice has disappeared from her open work. The history and evidence remain available from **Invoices**.
 
 Jonas takes an invoice with outdated recipient evidence. He reviews the source, updates the profile and follows the invoice's revision/validation flow. If he needs someone else to pick up the task, **Release assignment** makes it unassigned again. Taking responsibility never grants approval or hides a failed check.
+
+## Mara adjusts access as responsibilities change
+
+Mara opens **Team access** to review the existing members of her workspace. A colleague now prepares invoices, so she selects **Operator** and chooses **Save access**. Approval remains a separate role; assigning work does not grant permission to approve it.
+
+When a colleague no longer needs access, Mara selects **Suspended** and saves. Their next request is denied, while invoice history and evidence remain intact. If two administrators change the same membership, a stale update is rejected and the current state is refreshed. The app also protects the last active administrator from accidental removal. Inviting new people and production sign-in are the next identity increment; this screen currently manages existing local memberships.

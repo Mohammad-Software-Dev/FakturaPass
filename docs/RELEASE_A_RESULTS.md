@@ -86,3 +86,11 @@ The complete acceptance run passed all 97 tests: 29 domain/localization tests, 1
 Recovery acceptance uses the populated isolated database after browser workflows, including generated XML and evidence. It verifies full-table fingerprints after restore, retained recovery copies, restored immutability triggers, archive corruption rejection, record mismatch rejection, cleanup and local-target restrictions. A separate backup of the current local workspace was restored and verified successfully: 18 tables and 408 rows. The working database was preserved and the temporary restore removed.
 
 This closes the local backup/recovery engineering step. Off-site encrypted backups, production-volume recovery timings, point-in-time recovery, production identities and an approved RPO/RTO remain open. See RECOVERY.md for the operator commands and limitations.
+
+## Membership authorization foundation — 15 September 2026
+
+The complete acceptance run passed 101 tests: 29 domain/localization tests, 11 integration tests, 7 API suites, 52 Chromium/WebKit browser tests and 2 recovery tests. Formatting, TypeScript, ESLint, the 25-operation API contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+Coverage proves token-configured roles cannot override database memberships, suspended members lose access on their next request, cross-tenant changes fail, stale versions are rejected and concurrent administrator demotions preserve one active administrator. Browser tests exercise role changes, suspension/reactivation, German switching and mobile dark appearance. Recovery acceptance continues to verify the populated database, including membership versions and audit records. Migration 007 was applied to the local workspace.
+
+This implements the first stage-1 increment in COMPLETION_PLAN.md. Team access manages existing local memberships; production sign-in, verified invitations, tenant switching, scoped API credentials and support grants remain open. No production identity provider has been selected or connected.

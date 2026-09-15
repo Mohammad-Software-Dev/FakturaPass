@@ -55,7 +55,7 @@ Source bytes and generated XML are stored privately in PostgreSQL bytea columns 
 
 The local browser identity is explicitly enabled by the development launcher. Tenant, actor and role are server-owned. Browser mutations require an exact loopback Origin/Host match. The app is bound to loopback; do not expose this development identity on a public host.
 
-For local API experiments, copy `.env.example` to `.env` and configure `LOCAL_API_IDENTITIES` with an object mapping a local bearer token to `{ "tenantId": "local-demo", "actor": "local-api", "role": "ADMIN" }`. Restart the launcher. Send `Authorization: Bearer <your-local-token>` and an `Idempotency-Key` for ingestion. Do not use production credentials. Production OIDC and scoped API keys remain disabled.
+For local API experiments, copy `.env.example` to `.env` and configure `LOCAL_API_IDENTITIES` with an object mapping a local bearer token to `{ "tenantId": "local-demo", "actor": "local-operator" }`. The subject must have an active database membership; token configuration cannot set its role. Manage existing memberships in **Team access**. Restart the launcher. Send `Authorization: Bearer <your-local-token>` and an `Idempotency-Key` for ingestion. Do not use production credentials. Production OIDC and scoped API keys remain disabled.
 
 The OpenAPI contract is `packages/contracts/openapi.yaml`. Validation and generation always return 202 and a `validationRunId`. Poll `GET /api/v1/validation-runs/{id}`; completed status is PASS or FAIL, while ERROR is recoverable and retried. Read the revision to retrieve generated artifact references. Evidence is JSON, including all findings, the raw official report and pinned rule manifest. `?revisionId=` retrieves historical evidence.
 
@@ -72,3 +72,5 @@ Recipient profiles now support tenant-scoped versions, evidence and review deadl
 Use **Review queue** to claim open invoice tasks and follow them to completion. See [Review queue](docs/REVIEW_QUEUE.md) for ownership, resolution and API details.
 
 Local database backup and verified recovery: [Recovery guide](docs/RECOVERY.md).
+
+Remaining delivery stages: [Completion plan](docs/COMPLETION_PLAN.md). Team authorization: [Team access](docs/TEAM_ACCESS.md).
