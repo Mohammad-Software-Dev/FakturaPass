@@ -2357,3 +2357,10 @@ td,
     flex-wrap: wrap;
   }
 }
+.team-member {
+  overflow-wrap: anywhere;
+}
+.team-member label {
+  display: grid;
+  gap: 8px;
+}

@@ -1,4 +1,5 @@
 "use client";
+import { Team } from "./team";
 import { ReviewQueue } from "./review-queue";
 import {
   Recipients,
@@ -387,6 +388,13 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
             {t("Empfänger")}
           </button>
           <button
+            className={view === "team" ? "active" : ""}
+            onClick={() => go("team")}
+          >
+            <ShieldCheck size={19} />
+            {t("Teamzugriff")}
+          </button>
+          <button
             className={view === "settings" ? "active" : ""}
             onClick={() => go("settings")}
           >
@@ -414,14 +422,17 @@ export default function Workspace({ fixtures }: { fixtures: Fixture[] }) {
                     ? t("Prüfliste")
                     : view === "recipients"
                       ? t("Empfänger")
-                      : view === "settings"
-                        ? t("Einstellungen & Info")
-                        : t("Rechnungen")}
+                      : view === "team"
+                        ? t("Teamzugriff")
+                        : view === "settings"
+                          ? t("Einstellungen & Info")
+                          : t("Rechnungen")}
             </strong>
           </div>
           <AppearanceControls />
         </header>
         <main>
+          {view === "team" && <Team />}
           {view === "review" && errorView}
           {view === "review" && (
             <ReviewQueue

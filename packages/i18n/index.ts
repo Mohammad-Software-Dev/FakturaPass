@@ -115,6 +115,8 @@ export const apiErrorKeys: Record<string, MessageKey> = {
   REVISION_CONFLICT:
     "Die Revision oder ihr Status hat sich geändert. Bitte neu laden.",
   AUTH_REQUIRED: "Eine lokale Identität ist erforderlich.",
+  LAST_ADMIN_REQUIRED:
+    "Mindestens eine aktive Administration muss erhalten bleiben.",
   ACCESS_DENIED: "Diese Aktion ist für Ihre Rolle nicht erlaubt.",
   ARTIFACT_HASH_MISMATCH: "Die Prüfsumme des Artefakts stimmt nicht überein.",
   RECIPIENT_PROFILE_UNKNOWN: "Empfängeranforderungen unbekannt",
