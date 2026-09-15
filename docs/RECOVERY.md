@@ -41,3 +41,7 @@ Only restore archives created by your trusted local installation. A checksum det
 `npm run verify` now runs recovery acceptance after browser workflows have generated invoices, XML and evidence in its isolated database. The recovery tests check archive/record preservation, corruption rejection, failed-restore cleanup, retained-copy behavior, restored immutability triggers and rejection of remote targets. Production-scale timings, storage failure drills, role/global-object restoration and off-site recovery are not covered by this local test.
 
 The implementation uses PostgreSQL 17's [exported snapshots](https://www.postgresql.org/docs/17/functions-admin.html), [pg_dump snapshot option](https://www.postgresql.org/docs/17/app-pgdump.html) and [single-transaction pg_restore](https://www.postgresql.org/docs/17/app-pgrestore.html). The pinned container supplies matching database tools.
+
+## Restored identity sessions
+
+Before routing users to a restored database, invalidate restored `auth_sessions` and `oidc_login_transactions` using the recovery operator's database access. A snapshot can contain sessions that were revoked after the snapshot was taken. Invalidate them even when restoring to the same origin and issuer; require users to sign in again. Do not promote a restored environment until this step and its environment/secret checks are complete.

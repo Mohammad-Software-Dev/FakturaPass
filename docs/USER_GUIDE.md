@@ -83,3 +83,9 @@ Jonas takes an invoice with outdated recipient evidence. He reviews the source, 
 Mara opens **Team access** to review the existing members of her workspace. A colleague now prepares invoices, so she selects **Operator** and chooses **Save access**. Approval remains a separate role; assigning work does not grant permission to approve it.
 
 When a colleague no longer needs access, Mara selects **Suspended** and saves. Their next request is denied, while invoice history and evidence remain intact. If two administrators change the same membership, a stale update is rejected and the current state is refreshed. The app also protects the last active administrator from accidental removal. Inviting new people and production sign-in are the next identity increment; this screen currently manages existing local memberships.
+
+## Starting and ending your day with configured sign-in
+
+Once your administrator connects the organization's sign-in service and grants your account access, you open FakturaPass and choose English or German and your preferred appearance. Select **Sign in securely** and complete your organization's sign-in. Your existing invoice workspace opens, ready for importing, reviewing and approving according to your role.
+
+At the end of the day, select **Sign out of FakturaPass**. The app confirms that your session has ended. Your organization's sign-in service may still remember you; its own sign-out and account recovery remain with that service. If your account has no single active workspace, the page directs you to your administrator instead of putting you into an arbitrary workspace. Organization invitations and switching between multiple workspaces are still being developed.

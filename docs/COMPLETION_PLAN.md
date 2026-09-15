@@ -23,8 +23,8 @@ This increment does not create production sign-in or email invitations. It suppl
 
 Next increments within stage 1:
 
-1. Recommend the production OIDC provider against MFA, EU processing, organization UX, cost and operational requirements; record the approved choice.
-2. Implement provider-backed sign-in, logout, secure sessions and session expiry with sandbox tests. Keep all application authorization in membership records.
+1. Auth0 EU recommendation is recorded; owner review, plan/MFA/privacy checks and live-provider acceptance remain pending.
+2. Configurable OIDC sign-in, app logout, secure sessions and expiry are implemented and pass isolated-issuer/browser tests. Application authorization remains in membership records. Accept the configured live provider before production use.
 3. Implement verified invitations, organization setup and tenant selection. Bind subjects to the verified issuer/subject pair; never link accounts solely by an unverified email address.
 4. Implement scoped API credentials with one-time secret display, hash-only persistence, expiry/rotation/revocation and environment separation.
 5. Add explicitly authorized, time-bound support access and finish onboarding/offboarding acceptance.
@@ -41,8 +41,14 @@ Provider-independent engineering should continue while decisions are pending. As
 
 ## Progress accounting
 
-Current evidence: 101 automated tests and local recovery acceptance. Stage 1 membership enforcement and existing-team administration are implemented; production identity remains open. Completed: the local JSON/CSV → correction → validation → approval → XRechnung/evidence workflow, versioned recipient requirements, self-assigned review queue, bilingual appearance and local snapshot/restore tooling. Partial: original FP-003/004/008–011/018–020. Not yet delivered: email, webhooks, credit notes, ZUGFeRD, visual mapping editor, billing and production launch.
+Current evidence: 108 passing automated tests, the 28-operation contract, production build and local recovery acceptance. Stage 1 now includes the configurable OIDC adapter and seven isolated identity checks, including Chromium and WebKit sign-in/logout. Live-provider identity acceptance remains open. Completed: the local JSON/CSV → correction → validation → approval → XRechnung/evidence workflow, versioned recipient requirements, self-assigned review queue, bilingual appearance and local snapshot/restore tooling. Partial: original FP-003/004/008–011/018–020. Not yet delivered: email, webhooks, credit notes, ZUGFeRD, visual mapping editor, billing and production launch.
 
 SFTP, Peppol, multi-entity/partner console, assisted PDF conversion, manual authoring and additional countries remain conditional extensions. They are not silently added to the core v1 completion gate.
 
 Sources: original Development Plan §§3, 9–12; Product Requirements and Release Acceptance; Authoritative Technical Contracts; Operations Security and Delivery Runbook; SUPPORT_MATRIX.md; TBD.md; RELEASE_A_RESULTS.md.
+
+## OIDC continuation — 15 September 2026
+
+The next identity increment adds configurable OIDC sign-in, issuer/subject-bound memberships, secure opaque sessions, app logout, immediate membership enforcement and bilingual sign-in UI. See [identity operations](IDENTITY.md) and [the Auth0 recommendation](reviews/2026-09-15-identity-provider.md). Isolated issuer and browser verification are recorded separately from live provider acceptance.
+
+Next implementation: verified invitations, organization setup and explicit tenant selection. Scoped API credentials and support grants follow. Provider selection/configuration, MFA and recovery acceptance remain open; no live provider account or production deployment was created.

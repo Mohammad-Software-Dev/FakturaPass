@@ -94,3 +94,13 @@ The complete acceptance run passed 101 tests: 29 domain/localization tests, 11 i
 Coverage proves token-configured roles cannot override database memberships, suspended members lose access on their next request, cross-tenant changes fail, stale versions are rejected and concurrent administrator demotions preserve one active administrator. Browser tests exercise role changes, suspension/reactivation, German switching and mobile dark appearance. Recovery acceptance continues to verify the populated database, including membership versions and audit records. Migration 007 was applied to the local workspace.
 
 This implements the first stage-1 increment in COMPLETION_PLAN.md. Team access manages existing local memberships; production sign-in, verified invitations, tenant switching, scoped API credentials and support grants remain open. No production identity provider has been selected or connected.
+
+## Configurable OIDC sign-in — 15 September 2026
+
+The final complete acceptance run passed 108 tests: 29 domain/localization tests, 11 database/validator integration tests, 7 API suites, 52 invoice browser tests, 7 OIDC tests (including Chromium and WebKit journeys) and 2 recovery tests. Formatting, TypeScript, ESLint, the 28-operation contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+The OIDC checks verify signed-token validation, state/nonce/audience/expiry rejection, one-use callbacks, browser binding, hash-only sessions, logout, membership suspension, expired sessions, authority separation and rejection of ambiguous active tenants. Native sign-in forms exposed an Origin/referrer-policy conflict during browser acceptance; the final same-origin policy fixes it while authentication redirects retain no-referrer. Both browsers pass the corrected production build. The mobile dark sign-in screen was visually inspected.
+
+Migration 008 adds identity tables to the local workspace; its 21 invoices were preserved. Backup recovery includes the new tables. See IDENTITY.md for session invalidation before a restored database is promoted.
+
+This is provider-independent integration acceptance using an isolated synthetic issuer, not live Auth0 acceptance. Auth0 EU is recommended for review; no provider account, production MFA policy, deployment or paid service was configured. Verified invitations, organization setup, tenant selection, scoped API credentials and support access remain next in stage 1.
