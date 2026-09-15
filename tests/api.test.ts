@@ -1,4 +1,4 @@
-import { test, after } from "node:test";
+import { test, after, before } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -28,6 +28,17 @@ process.env.LOCAL_API_IDENTITIES = JSON.stringify({
   "test-a": { tenantId: "local-demo", actor: "a", role: "ADMIN" },
   "test-b": { tenantId: "local-test-b", actor: "b", role: "ADMIN" },
   "test-reader": { tenantId: "local-demo", actor: "r", role: "READ_ONLY" },
+});
+before(async () => {
+  for (const [tenant, actor, role] of [
+    ["local-demo", "a", "ADMIN"],
+    ["local-test-b", "b", "ADMIN"],
+    ["local-demo", "r", "READ_ONLY"],
+  ])
+    await pool.query(
+      "INSERT INTO memberships(id,tenant_id,user_subject,role,status) VALUES($1,$2,$3,$4,'ACTIVE') ON CONFLICT(tenant_id,user_subject) DO NOTHING",
+      [randomUUID(), tenant, actor, role],
+    );
 });
 async function call(
   path: string,
@@ -434,4 +445,101 @@ test("review queue contracts reject forged ownership and preserve scoped assignm
       .status,
     200,
   );
+});
+
+test("database memberships override token roles and suspension takes effect on the next request", async () => {
+  const configured = process.env.LOCAL_API_IDENTITIES!;
+  const identities = JSON.parse(configured);
+  identities["test-reader"].role = "ADMIN";
+  process.env.LOCAL_API_IDENTITIES = JSON.stringify(identities);
+  let member = (await (await call("memberships")).json()).items.find(
+    (m: any) => m.subject === "r",
+  );
+  try {
+    assert.equal(
+      (await call("memberships", undefined, "test-reader")).status,
+      403,
+    );
+    assert.equal(
+      (
+        await call(
+          `memberships/${member.id}`,
+          { role: "ADMIN", status: "ACTIVE", expectedVersion: member.version },
+          "test-reader",
+        )
+      ).status,
+      403,
+    );
+    assert.equal(
+      (
+        await call(
+          `memberships/${member.id}`,
+          {
+            role: "OPERATOR",
+            status: "ACTIVE",
+            expectedVersion: member.version,
+          },
+          "test-b",
+        )
+      ).status,
+      404,
+    );
+    assert.equal(
+      (
+        await call(`memberships/${member.id}`, {
+          role: "OPERATOR",
+          status: "ACTIVE",
+          expectedVersion: member.version,
+          tenantId: "local-test-b",
+        })
+      ).status,
+      400,
+    );
+    member = await (
+      await call(`memberships/${member.id}`, {
+        role: "OPERATOR",
+        status: "ACTIVE",
+        expectedVersion: member.version,
+      })
+    ).json();
+    const invoice = structuredClone(base);
+    invoice.source.recordId = randomUUID();
+    assert.equal(
+      (
+        await call("invoices", invoice, "test-reader", {
+          "Idempotency-Key": randomUUID(),
+        })
+      ).status,
+      201,
+    );
+    member = await (
+      await call(`memberships/${member.id}`, {
+        role: "OPERATOR",
+        status: "SUSPENDED",
+        expectedVersion: member.version,
+      })
+    ).json();
+    assert.equal(
+      (await call("invoices", undefined, "test-reader")).status,
+      403,
+    );
+    assert.equal(
+      (
+        await call(`memberships/${member.id}`, {
+          role: "READ_ONLY",
+          status: "ACTIVE",
+          expectedVersion: 1,
+        })
+      ).status,
+      409,
+    );
+  } finally {
+    await call(`memberships/${member.id}`, {
+      role: "READ_ONLY",
+      status: "ACTIVE",
+      expectedVersion: member.version,
+    });
+    process.env.LOCAL_API_IDENTITIES = configured;
+  }
+  assert.equal((await call("invoices", undefined, "test-reader")).status, 200);
 });

@@ -1,3 +1,4 @@
+import * as memberships from "../../../../../../packages/identity/memberships";
 import * as review from "../../../../../../packages/review/service";
 import * as csvImport from "../../../../../../packages/mappings/service";
 import {
@@ -12,7 +13,10 @@ import * as recipients from "../../../../../../packages/recipients/service";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const MAX = 1024 * 1024;
-function identity(req: Request, requestId: string): service.Context {
+async function identity(
+  req: Request,
+  requestId: string,
+): Promise<service.Context> {
   if (process.env.FAKTURAPASS_ENV !== "LOCAL")
     throw new service.ApiError("AUTH_REQUIRED", 401);
   const authorization = req.headers.get("authorization");
@@ -26,7 +30,16 @@ function identity(req: Request, requestId: string): service.Context {
       const a = Buffer.from(key),
         b = Buffer.from(token);
       if (a.length === b.length && timingSafeEqual(a, b))
-        return { ...value, environment: "LOCAL", requestId };
+        return {
+          tenantId: value.tenantId,
+          actor: value.actor,
+          role: await memberships.resolveMembership(
+            value.tenantId,
+            value.actor,
+          ),
+          environment: "LOCAL",
+          requestId,
+        };
     }
     throw new service.ApiError("AUTH_REQUIRED", 401);
   }
@@ -44,7 +57,7 @@ function identity(req: Request, requestId: string): service.Context {
   return {
     tenantId: "local-demo",
     actor: "local-operator",
-    role: "ADMIN",
+    role: await memberships.resolveMembership("local-demo", "local-operator"),
     environment: "LOCAL",
     requestId,
   };
@@ -114,7 +127,13 @@ async function handler(
         return send({ status: "not_ready" }, 503);
       }
     }
-    const ctx = identity(req, requestId);
+    const ctx = await identity(req, requestId);
+    if (p.join("/") === "memberships" && method === "GET")
+      return send(await memberships.listMembers(ctx));
+    if (p[0] === "memberships" && p.length === 2 && method === "POST")
+      return send(
+        await memberships.updateMember(ctx, p[1], (await body(req)).json),
+      );
     if (p.join("/") === "review-queue" && method === "GET")
       return send(
         await review.list(ctx, {

@@ -2246,6 +2246,197 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CsvCommit"
+  /memberships:
+    get:
+      operationId: listMemberships
+      description: Administrator-only membership listing for the authenticated tenant.
+      security:
+        - localDev: []
+        - oidcBearer: []
+        - apiKey: []
+      parameters:
+        - name: X-Request-Id
+          in: header
+          schema:
+            type: string
+            maxLength: 100
+        - name: Accept-Language
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Optional language preference for error messages and recipient
+            display labels. Supports de and en (including regional tags and
+            quality weights), default de. Codes, invoice data, XML and saved
+            evidence are language-independent.
+      responses:
+        "200":
+          description: Successful operation
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipList"
+        "400":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /memberships/{membershipId}:
+    post:
+      operationId: updateMembership
+      description:
+        Update role/status with version checks, audit and last-active-admin
+        protection.
+      security:
+        - localDev: []
+        - oidcBearer: []
+        - apiKey: []
+      parameters:
+        - name: membershipId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Request-Id
+          in: header
+          schema:
+            type: string
+            maxLength: 100
+        - name: Accept-Language
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Optional language preference for error messages and recipient
+            display labels. Supports de and en (including regional tags and
+            quality weights), default de. Codes, invoice data, XML and saved
+            evidence are language-independent.
+      responses:
+        "200":
+          description: Successful operation
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Membership"
+        "400":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Safe stable error envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MembershipUpdate"
 components:
   securitySchemes:
     localDev:
@@ -2265,6 +2456,71 @@ components:
       name: X-API-Key
       description: Production contract only; unavailable in Release A.
   schemas:
+    Membership:
+      type: object
+      properties:
+        id:
+          type: string
+        subject:
+          type: string
+        role:
+          enum:
+            - ADMIN
+            - OPERATOR
+            - APPROVER
+            - READ_ONLY
+        status:
+          enum:
+            - ACTIVE
+            - SUSPENDED
+        version:
+          type: integer
+          minimum: 1
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - subject
+        - role
+        - status
+        - version
+        - updatedAt
+      additionalProperties: false
+    MembershipList:
+      type: object
+      properties:
+        actor:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Membership"
+      required:
+        - actor
+        - items
+      additionalProperties: false
+    MembershipUpdate:
+      type: object
+      properties:
+        role:
+          enum:
+            - ADMIN
+            - OPERATOR
+            - APPROVER
+            - READ_ONLY
+        status:
+          enum:
+            - ACTIVE
+            - SUSPENDED
+        expectedVersion:
+          type: integer
+          minimum: 1
+      required:
+        - role
+        - status
+        - expectedVersion
+      additionalProperties: false
     Invoice:
       type: object
       properties:

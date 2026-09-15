@@ -641,3 +641,86 @@ test("review ownership is tenant scoped, concurrent-safe and persists across cor
     { code: "INVALID_REQUEST" },
   );
 });
+
+test("membership changes serialize last-admin protection and reject stale or cross-tenant changes", async () => {
+  const { updateMember, resolveMembership } =
+    await import("../packages/identity/memberships");
+  const tenant = `team-${randomUUID()}`;
+  await pool.query("INSERT INTO tenants(id,name) VALUES($1,'Team test')", [
+    tenant,
+  ]);
+  const ids = [randomUUID(), randomUUID()];
+  for (let n = 0; n < 2; n++)
+    await pool.query(
+      "INSERT INTO memberships(id,tenant_id,user_subject,role,status) VALUES($1,$2,$3,'ADMIN','ACTIVE')",
+      [ids[n], tenant, `member-${n}`],
+    );
+  const contexts = [0, 1].map((n) => ({
+    tenantId: tenant,
+    actor: `member-${n}`,
+    role: "ADMIN" as const,
+    environment: "LOCAL",
+    requestId: randomUUID(),
+  }));
+  const results = await Promise.allSettled(
+    contexts.map((ctx, n) =>
+      updateMember(ctx, ids[n], {
+        role: "OPERATOR",
+        status: "ACTIVE",
+        expectedVersion: 1,
+      }),
+    ),
+  );
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+  const rejected = results.find(
+    (r) => r.status === "rejected",
+  ) as PromiseRejectedResult;
+  assert.equal(rejected.reason.code, "LAST_ADMIN_REQUIRED");
+  const admin = results.findIndex((r) => r.status === "rejected");
+  const operator = 1 - admin;
+  assert.equal(
+    await resolveMembership(tenant, contexts[operator].actor),
+    "OPERATOR",
+  );
+  await assert.rejects(
+    updateMember(contexts[operator], ids[admin], {
+      role: "READ_ONLY",
+      status: "ACTIVE",
+      expectedVersion: 1,
+    }),
+    { code: "ACCESS_DENIED" },
+  );
+  await assert.rejects(
+    updateMember(contexts[admin], ids[operator], {
+      role: "READ_ONLY",
+      status: "ACTIVE",
+      expectedVersion: 1,
+    }),
+    { code: "REVISION_CONFLICT" },
+  );
+  await assert.rejects(
+    updateMember(contexts[admin], "local-owner", {
+      role: "READ_ONLY",
+      status: "ACTIVE",
+      expectedVersion: 1,
+    }),
+    { code: "RESOURCE_NOT_FOUND" },
+  );
+  await updateMember(contexts[admin], ids[operator], {
+    role: "OPERATOR",
+    status: "SUSPENDED",
+    expectedVersion: 2,
+  });
+  await assert.rejects(resolveMembership(tenant, contexts[operator].actor), {
+    code: "ACCESS_DENIED",
+  });
+  assert.equal(
+    (
+      await pool.query(
+        "SELECT count(*)::int AS n FROM audit_events WHERE tenant_id=$1 AND action='MEMBERSHIP_UPDATE'",
+        [tenant],
+      )
+    ).rows[0].n,
+    2,
+  );
+});

@@ -209,7 +209,27 @@ operations.push(
     200,
   ],
 );
+operations.push(
+  [
+    "/memberships",
+    "get",
+    "listMemberships",
+    "Administrator-only membership listing for the authenticated tenant.",
+    undefined,
+    200,
+  ],
+  [
+    "/memberships/{membershipId}",
+    "post",
+    "updateMembership",
+    "Update role/status with version checks, audit and last-active-admin protection.",
+    "MembershipUpdate",
+    200,
+  ],
+);
 const responseNames: Record<string, string> = {
+  listMemberships: "MembershipList",
+  updateMembership: "Membership",
   listReviewQueue: "ReviewQueue",
   assignReview: "ReviewAssignment",
   createInvoice: "CreatedInvoice",
@@ -313,6 +333,23 @@ for (const [path, method, id, description, request, status] of operations) {
   paths[path][method] = op;
 }
 const schemas: any = {
+  Membership: object({
+    id: str,
+    subject: str,
+    role: { enum: ["ADMIN", "OPERATOR", "APPROVER", "READ_ONLY"] },
+    status: { enum: ["ACTIVE", "SUSPENDED"] },
+    version: { type: "integer", minimum: 1 },
+    updatedAt: { type: "string", format: "date-time" },
+  }),
+  MembershipList: object({
+    actor: str,
+    items: { type: "array", items: ref("Membership") },
+  }),
+  MembershipUpdate: object({
+    role: { enum: ["ADMIN", "OPERATOR", "APPROVER", "READ_ONLY"] },
+    status: { enum: ["ACTIVE", "SUSPENDED"] },
+    expectedVersion: { type: "integer", minimum: 1 },
+  }),
   Invoice: invoice,
   Empty: object({}),
   Correction: object({ priorRevisionId: str, canonical: ref("Invoice") }),
