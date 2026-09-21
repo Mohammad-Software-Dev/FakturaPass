@@ -88,4 +88,10 @@ When a colleague no longer needs access, Mara selects **Suspended** and saves. T
 
 Once your administrator connects the organization's sign-in service and grants your account access, you open FakturaPass and choose English or German and your preferred appearance. Select **Sign in securely** and complete your organization's sign-in. Your existing invoice workspace opens, ready for importing, reviewing and approving according to your role.
 
-At the end of the day, select **Sign out of FakturaPass**. The app confirms that your session has ended. Your organization's sign-in service may still remember you; its own sign-out and account recovery remain with that service. If your account has no single active workspace, the page directs you to your administrator instead of putting you into an arbitrary workspace. Organization invitations and switching between multiple workspaces are still being developed.
+At the end of the day, select **Sign out of FakturaPass**. The app confirms that your session has ended. Your organization's sign-in service may still remember you; its own sign-out and account recovery remain with that service. If your account has no active workspace, the page directs you to your administrator. Organization invitations are still being developed.
+
+## Moving between two organizations
+
+Mara reviews invoices for her studio and also helps a partner business. After signing in, she sees both workspaces with her role in each. She chooses her studio and sees its name above the invoices. Later, she opens **Switch workspace** and selects the partner business.
+
+Mara can keep the studio open in another tab. Each tab keeps its own workspace: reviewing the partner’s invoices does not change where a studio edit is saved. Downloads also belong to the workspace where she opened them. Her permissions can differ between organizations; read-only access in one does not inherit administrator rights from the other. If access is suspended, that workspace disappears from the chooser and further requests to it are denied.

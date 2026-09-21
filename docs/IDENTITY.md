@@ -18,7 +18,11 @@ npm run identity:provision -- TENANT_ID https://verified-issuer.example/ VERIFIE
 
 The command adds an audited active membership, derives its opaque actor from the exact issuer/subject pair and refuses to overwrite an existing membership. Roles are ADMIN, OPERATOR, APPROVER or READ_ONLY. It does not create a tenant or provider account. Verified invitations and organization onboarding are subsequent increments.
 
-Sign-in currently requires exactly one active workspace membership. Zero or multiple active memberships produce a clear contact-administrator message; no workspace is silently selected. Tenant selection remains outstanding.
+Sign-in requires at least one active workspace membership. A single membership opens that workspace; multiple memberships open the workspace chooser. **Switch workspace** returns to the chooser, which lists only the signed-in identity’s active memberships and current roles. An existing session with no active memberships sees a contact-administrator message and can sign out.
+
+The selected workspace belongs to the tab URL, not a shared selection cookie. Every workspace API request in OIDC mode requires `X-Workspace-Id`; GET navigation and download links may use the `workspace` query parameter instead. Missing, conflicting and repeated selectors fail closed, and every selected workspace still requires an active database membership. UI requests and downloads carry the server-rendered tab context, so choosing another workspace in a second tab does not redirect edits from the first tab.
+
+`GET /api/v1/auth/workspaces` lists available workspaces using the verified identity session. Selecting a workspace does not extend the session, modify memberships or grant additional access. Local development identities remain scoped to their server-configured tenant. Invitations and organization creation remain separate work.
 
 ## Security and lifetime
 
@@ -32,4 +36,4 @@ After database restoration, invalidate all restored sessions and login transacti
 
 ## Verification
 
-`npm run verify` runs the OIDC suite only against its disposable verification database. A synthetic local issuer exercises signature, nonce, state, audience and expiry rejection, session logout/expiry, membership suspension and authority isolation. Chromium and WebKit exercise the sign-in page, language/theme controls, workspace entry and sign-out. These are integration tests, not evidence of acceptance against Auth0 or another live provider.
+`npm run verify` runs the OIDC suite only against its disposable verification database. A synthetic local issuer exercises signature, nonce, state, audience and expiry rejection, session logout/expiry, membership suspension and authority isolation. Chromium and WebKit exercise the sign-in page, language/theme controls, workspace entry, two simultaneous workspace tabs, suspended-workspace removal and sign-out. These are integration tests, not evidence of acceptance against Auth0 or another live provider.

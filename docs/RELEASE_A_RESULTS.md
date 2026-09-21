@@ -104,3 +104,13 @@ The OIDC checks verify signed-token validation, state/nonce/audience/expiry reje
 Migration 008 adds identity tables to the local workspace; its 21 invoices were preserved. Backup recovery includes the new tables. See IDENTITY.md for session invalidation before a restored database is promoted.
 
 This is provider-independent integration acceptance using an isolated synthetic issuer, not live Auth0 acceptance. Auth0 EU is recommended for review; no provider account, production MFA policy, deployment or paid service was configured. Verified invitations, organization setup, tenant selection, scoped API credentials and support access remain next in stage 1.
+
+## Explicit workspace selection — 21 September 2026
+
+Acceptance covers 109 tests: 29 domain/localization tests, 11 database/validator integration tests, 7 API suites, 52 invoice browser tests, 8 OIDC/workspace tests and 2 recovery tests. Formatting, TypeScript, ESLint, the 29-operation contract, production build and dependency audit pass; zero vulnerabilities were reported.
+
+The first browser regression pass completed all 52 workflows. A later full run encountered long stalls and timeouts in two WebKit cases (dark-mode invoice workflow and review queue); 50 other cases passed. A targeted rerun on a fresh database passed both affected workflows plus the other dark-mode cases (4 tests), all 8 identity/workspace checks and both recovery checks. No application change was needed for those two timeouts. The new multi-tab harness was corrected to use an explicit shared browser context before acceptance.
+
+Workspace coverage includes a chooser for multiple active memberships, explicit request/download selectors, missing/conflicting/repeated selector rejection, organization-specific roles, zero-active-membership state and suspension while another workspace stays available. Chromium and WebKit open two workspaces in related tabs, make a real membership edit in the original tab after switching the second tab, and verify that only the original workspace changes. They also verify suspended-workspace removal and logout. The mobile dark chooser was visually inspected.
+
+Migration 009 was applied to the local workspace, which retains all 21 invoices. This closes workspace selection within stage 1. Organization creation, verified invitations, scoped API credentials, support grants and live-provider acceptance remain open.

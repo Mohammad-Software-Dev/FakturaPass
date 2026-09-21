@@ -7,3 +7,5 @@ Use standard OIDC authorization code flow with PKCE, state, nonce and signed ID-
 Persist opaque session hashes and resolve active memberships on every request. Bind sessions to application origin, issuer, client and environment. Use same-origin POST for login/logout and writes. Sessions expire after eight hours; login transactions after ten minutes. These are explicit technical defaults to review during production acceptance.
 
 The initial adapter requires a single active tenant membership. Invitations, tenant selection, scoped API credentials and support grants remain separate increments. Local development authentication is mutually exclusive with OIDC mode. Provider tokens are not persisted. App logout revokes the app session; provider SSO logout is outside this increment.
+
+Update, 21 September 2026: ADR 0014 replaces the single-active-membership restriction with an explicit workspace chooser and per-tab request context. Session expiry, identity verification and membership authority remain unchanged.
