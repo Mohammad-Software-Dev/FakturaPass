@@ -7,6 +7,12 @@ const spec = YAML.parse(
 );
 assert.equal(spec.openapi, "3.1.0");
 const expected = [
+  "listSupportAgents",
+  "listSupportGrants",
+  "createSupportGrant",
+  "revokeSupportGrant",
+  "listSupportCases",
+  "getSupportDiagnosis",
   "listApiCredentials",
   "createApiCredential",
   "rotateApiCredential",

@@ -1,3 +1,4 @@
+import { activeSupportGrants } from "./support";
 import { invitationPreview, acceptInvitation } from "./invitations";
 import * as oidc from "openid-client";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -168,8 +169,12 @@ export async function finishLogin(request: Request) {
         [actor],
       )
     ).rows;
-    if (members.length === 0) throw new ApiError("ACCESS_DENIED", 403);
-    await resolveMembership(members[0].tenant_id, actor, db);
+    const grants =
+      members.length === 0 ? await activeSupportGrants(actor, db) : [];
+    if (members.length === 0 && grants.length === 0)
+      throw new ApiError("ACCESS_DENIED", 403);
+    if (members.length)
+      await resolveMembership(members[0].tenant_id, actor, db);
     const old = readCookie(
       request.headers.get("cookie"),
       cookieName("session"),
@@ -190,8 +195,16 @@ export async function finishLogin(request: Request) {
       ],
     );
     await db.query(
-      "INSERT INTO audit_events(id,tenant_id,actor_subject,action,resource_type,resource_id,request_id,metadata_json) VALUES($1,$2,$3,'SIGN_IN','membership',$3,$4,'{}')",
-      [randomUUID(), members[0].tenant_id, actor, randomUUID()],
+      "INSERT INTO audit_events(id,tenant_id,actor_subject,action,resource_type,resource_id,request_id,metadata_json) VALUES($1,$2,$3,$5,$6,$7,$4,'{}')",
+      [
+        randomUUID(),
+        members[0]?.tenant_id ?? grants[0].tenant_id,
+        actor,
+        randomUUID(),
+        members.length ? "SIGN_IN" : "SUPPORT_SIGN_IN",
+        members.length ? "membership" : "support_grant",
+        members.length ? actor : grants[0].id,
+      ],
     );
   });
   return authCookie("session", sessionToken, 28800);

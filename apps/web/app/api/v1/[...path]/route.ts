@@ -1,3 +1,5 @@
+import * as support from "../../../../../../packages/identity/support";
+import { sessionIdentity } from "../../../../../../packages/identity/oidc";
 import * as credentials from "../../../../../../packages/identity/credentials";
 import * as invitations from "../../../../../../packages/identity/invitations";
 import { settings as oidcSettings } from "../../../../../../packages/identity/oidc";
@@ -155,7 +157,36 @@ async function handler(
         throw new service.ApiError("ACCESS_DENIED", 403);
       return await authRoute(req, p[1]);
     }
+    if (p[0] === "support" && p[1] === "cases") {
+      if (!oidcEnabled()) throw new service.ApiError("RESOURCE_NOT_FOUND", 404);
+      if (req.headers.has("X-API-Key") || req.headers.has("authorization"))
+        throw new service.ApiError("ACCESS_DENIED", 403);
+      const caller = await sessionIdentity(req.headers.get("cookie"));
+      if (method === "GET" && p.length === 2)
+        return send(await support.supportCases(caller.actor, requestId));
+      if (method === "GET" && p.length === 3)
+        return send(
+          await support.supportDiagnosis(caller.actor, p[2], requestId),
+        );
+      throw new service.ApiError("ACCESS_DENIED", 403);
+    }
     const ctx = await identity(req, requestId, p.join("/"));
+    if (p[0] === "support-agents" || p[0] === "support-grants") {
+      if (!oidcEnabled()) throw new service.ApiError("RESOURCE_NOT_FOUND", 404);
+      if (p[0] === "support-agents" && p.length === 1 && method === "GET")
+        return send(await support.listSupportAgents(ctx));
+      if (p[0] === "support-grants") {
+        if (p.length === 1 && method === "GET")
+          return send(await support.listSupportGrants(ctx));
+        if (p.length === 1 && method === "POST")
+          return send(
+            await support.createSupportGrant(ctx, (await body(req)).json),
+            201,
+          );
+        if (p.length === 3 && p[2] === "revoke" && method === "POST")
+          return send(await support.revokeSupportGrant(ctx, p[1]));
+      }
+    }
     if (p[0] === "api-credentials") {
       if (!oidcEnabled()) throw new service.ApiError("RESOURCE_NOT_FOUND", 404);
       if (p.length === 1 && method === "GET")

@@ -165,6 +165,8 @@ test("invoice review and editor labels are translated in both catalogs", () => {
     "workspaces/workspace-choices.tsx",
     "invitations.tsx",
     "api-credentials.tsx",
+    "support-grants.tsx",
+    "support/support-desk.tsx",
     "join/join.tsx",
   ]) {
     const source = ts.createSourceFile(

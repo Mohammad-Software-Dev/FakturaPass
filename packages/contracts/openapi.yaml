@@ -3641,6 +3641,575 @@ paths:
           description: Not found
         "409":
           description: Version conflict
+  /support-agents:
+    get:
+      operationId: listSupportAgents
+      summary:
+        OIDC workspace administrator only. Explicit consent, selected revision
+        and finite expiry.
+      security:
+        - browserSession: []
+      parameters:
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                        - id
+                        - name
+                      additionalProperties: false
+                required:
+                  - items
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+  /support-grants:
+    get:
+      operationId: listSupportGrants
+      summary:
+        OIDC workspace administrator only. Explicit consent, selected revision
+        and finite expiry.
+      security:
+        - browserSession: []
+      parameters:
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        agentName:
+                          type: string
+                        workspaceName:
+                          type: string
+                        invoiceNumber:
+                          type: string
+                        revisionNumber:
+                          type: integer
+                        scope:
+                          type: string
+                          enum:
+                            - INVOICE_DIAGNOSIS
+                        reason:
+                          type: string
+                        status:
+                          type: string
+                          enum:
+                            - ACTIVE
+                            - REVOKED
+                            - EXPIRED
+                            - UNAVAILABLE
+                        expiresAt:
+                          type: string
+                          format: date-time
+                        createdAt:
+                          type: string
+                          format: date-time
+                        lastViewedAt:
+                          type:
+                            - string
+                            - "null"
+                          format: date-time
+                      required:
+                        - id
+                        - agentName
+                        - workspaceName
+                        - invoiceNumber
+                        - revisionNumber
+                        - scope
+                        - reason
+                        - status
+                        - expiresAt
+                        - createdAt
+                        - lastViewedAt
+                      additionalProperties: false
+                required:
+                  - items
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+    post:
+      operationId: createSupportGrant
+      summary:
+        OIDC workspace administrator only. Explicit consent, selected revision
+        and finite expiry.
+      security:
+        - browserSession: []
+      parameters:
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agentId:
+                  type: string
+                invoiceId:
+                  type: string
+                revisionId:
+                  type: string
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                hours:
+                  type: integer
+                  minimum: 1
+                  maximum: 24
+                consent:
+                  type: boolean
+                  const: true
+              required:
+                - agentId
+                - invoiceId
+                - revisionId
+                - reason
+                - hours
+                - consent
+              additionalProperties: false
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  agentName:
+                    type: string
+                  workspaceName:
+                    type: string
+                  invoiceNumber:
+                    type: string
+                  revisionNumber:
+                    type: integer
+                  scope:
+                    type: string
+                    enum:
+                      - INVOICE_DIAGNOSIS
+                  reason:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - REVOKED
+                      - EXPIRED
+                      - UNAVAILABLE
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  createdAt:
+                    type: string
+                    format: date-time
+                  lastViewedAt:
+                    type:
+                      - string
+                      - "null"
+                    format: date-time
+                required:
+                  - id
+                  - agentName
+                  - workspaceName
+                  - invoiceNumber
+                  - revisionNumber
+                  - scope
+                  - reason
+                  - status
+                  - expiresAt
+                  - createdAt
+                  - lastViewedAt
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+  /support-grants/{grantId}/revoke:
+    post:
+      operationId: revokeSupportGrant
+      summary:
+        OIDC workspace administrator only. Explicit consent, selected revision
+        and finite expiry.
+      security:
+        - browserSession: []
+      parameters:
+        - name: grantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  agentName:
+                    type: string
+                  workspaceName:
+                    type: string
+                  invoiceNumber:
+                    type: string
+                  revisionNumber:
+                    type: integer
+                  scope:
+                    type: string
+                    enum:
+                      - INVOICE_DIAGNOSIS
+                  reason:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - REVOKED
+                      - EXPIRED
+                      - UNAVAILABLE
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  createdAt:
+                    type: string
+                    format: date-time
+                  lastViewedAt:
+                    type:
+                      - string
+                      - "null"
+                    format: date-time
+                required:
+                  - id
+                  - agentName
+                  - workspaceName
+                  - invoiceNumber
+                  - revisionNumber
+                  - scope
+                  - reason
+                  - status
+                  - expiresAt
+                  - createdAt
+                  - lastViewedAt
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+  /support/cases:
+    get:
+      operationId: listSupportCases
+      summary: Verified OIDC specialist; explicit active grant only. Read-only
+        selected revision; no customer membership or file download.
+      security:
+        - browserSession: []
+      parameters: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        agentName:
+                          type: string
+                        workspaceName:
+                          type: string
+                        invoiceNumber:
+                          type: string
+                        revisionNumber:
+                          type: integer
+                        scope:
+                          type: string
+                          enum:
+                            - INVOICE_DIAGNOSIS
+                        reason:
+                          type: string
+                        status:
+                          type: string
+                          enum:
+                            - ACTIVE
+                            - REVOKED
+                            - EXPIRED
+                            - UNAVAILABLE
+                        expiresAt:
+                          type: string
+                          format: date-time
+                        createdAt:
+                          type: string
+                          format: date-time
+                        lastViewedAt:
+                          type:
+                            - string
+                            - "null"
+                          format: date-time
+                      required:
+                        - id
+                        - agentName
+                        - workspaceName
+                        - invoiceNumber
+                        - revisionNumber
+                        - scope
+                        - reason
+                        - status
+                        - expiresAt
+                        - createdAt
+                        - lastViewedAt
+                      additionalProperties: false
+                required:
+                  - items
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+  /support/cases/{grantId}:
+    get:
+      operationId: getSupportDiagnosis
+      summary: Verified OIDC specialist; explicit active grant only. Read-only
+        selected revision; no customer membership or file download.
+      security:
+        - browserSession: []
+      parameters:
+        - name: grantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  grant:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      agentName:
+                        type: string
+                      workspaceName:
+                        type: string
+                      invoiceNumber:
+                        type: string
+                      revisionNumber:
+                        type: integer
+                      scope:
+                        type: string
+                        enum:
+                          - INVOICE_DIAGNOSIS
+                      reason:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - ACTIVE
+                          - REVOKED
+                          - EXPIRED
+                          - UNAVAILABLE
+                      expiresAt:
+                        type: string
+                        format: date-time
+                      createdAt:
+                        type: string
+                        format: date-time
+                      lastViewedAt:
+                        type:
+                          - string
+                          - "null"
+                        format: date-time
+                    required:
+                      - id
+                      - agentName
+                      - workspaceName
+                      - invoiceNumber
+                      - revisionNumber
+                      - scope
+                      - reason
+                      - status
+                      - expiresAt
+                      - createdAt
+                      - lastViewedAt
+                    additionalProperties: false
+                  revision:
+                    type: object
+                    properties:
+                      canonical:
+                        $ref: "#/components/schemas/Invoice"
+                      sha256:
+                        type: string
+                      status:
+                        type: string
+                    required:
+                      - canonical
+                      - sha256
+                      - status
+                    additionalProperties: false
+                  validationRuns:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        status:
+                          type: string
+                        kind:
+                          type: string
+                        findings:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Finding"
+                        engineVersion:
+                          type:
+                            - string
+                            - "null"
+                        createdAt:
+                          type: string
+                          format: date-time
+                      required:
+                        - id
+                        - status
+                        - kind
+                        - findings
+                        - engineVersion
+                        - createdAt
+                      additionalProperties: false
+                required:
+                  - grant
+                  - revision
+                  - validationRuns
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
 components:
   securitySchemes:
     browserSession:

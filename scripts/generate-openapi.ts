@@ -907,8 +907,127 @@ for (const [path, method, id, request, response, status] of [
     },
   };
 }
+const supportGrantSchema = object({
+  id: str,
+  agentName: str,
+  workspaceName: str,
+  invoiceNumber: str,
+  revisionNumber: { type: "integer" },
+  scope: { type: "string", enum: ["INVOICE_DIAGNOSIS"] },
+  reason: str,
+  status: {
+    type: "string",
+    enum: ["ACTIVE", "REVOKED", "EXPIRED", "UNAVAILABLE"],
+  },
+  expiresAt: { type: "string", format: "date-time" },
+  createdAt: { type: "string", format: "date-time" },
+  lastViewedAt: { type: ["string", "null"], format: "date-time" },
+});
+for (const [path, method, id, request, response, status] of [
+  [
+    "/support-agents",
+    "get",
+    "listSupportAgents",
+    null,
+    object({ items: { type: "array", items: object({ id: str, name: str }) } }),
+    200,
+  ],
+  [
+    "/support-grants",
+    "get",
+    "listSupportGrants",
+    null,
+    object({ items: { type: "array", items: supportGrantSchema } }),
+    200,
+  ],
+  [
+    "/support-grants",
+    "post",
+    "createSupportGrant",
+    object({
+      agentId: str,
+      invoiceId: str,
+      revisionId: str,
+      reason: { type: "string", minLength: 1, maxLength: 500 },
+      hours: { type: "integer", minimum: 1, maximum: 24 },
+      consent: { type: "boolean", const: true },
+    }),
+    supportGrantSchema,
+    201,
+  ],
+  [
+    "/support-grants/{grantId}/revoke",
+    "post",
+    "revokeSupportGrant",
+    object({}),
+    supportGrantSchema,
+    200,
+  ],
+  [
+    "/support/cases",
+    "get",
+    "listSupportCases",
+    null,
+    object({ items: { type: "array", items: supportGrantSchema } }),
+    200,
+  ],
+  [
+    "/support/cases/{grantId}",
+    "get",
+    "getSupportDiagnosis",
+    null,
+    object({
+      grant: supportGrantSchema,
+      revision: object({ canonical: ref("Invoice"), sha256: str, status: str }),
+      validationRuns: {
+        type: "array",
+        items: object({
+          id: str,
+          status: str,
+          kind: str,
+          findings: { type: "array", items: ref("Finding") },
+          engineVersion: nullable,
+          createdAt: { type: "string", format: "date-time" },
+        }),
+      },
+    }),
+    200,
+  ],
+] as const) {
+  paths[path] ??= {};
+  paths[path][method] = {
+    operationId: id,
+    summary: path.startsWith("/support/")
+      ? "Verified OIDC specialist; explicit active grant only. Read-only selected revision; no customer membership or file download."
+      : "OIDC workspace administrator only. Explicit consent, selected revision and finite expiry.",
+    security: [{ browserSession: [] }],
+    parameters: path.includes("{grantId}")
+      ? [{ name: "grantId", in: "path", required: true, schema: str }]
+      : [],
+    ...(request
+      ? {
+          requestBody: {
+            required: method !== "post" || id !== "revokeSupportGrant",
+            content: content(request),
+          },
+        }
+      : {}),
+    responses: {
+      [status]: { description: "Success", content: content(response) },
+      "400": { description: "Invalid request" },
+      "401": { description: "Sign-in required" },
+      "403": { description: "Access denied" },
+      "404": { description: "Not found" },
+    },
+  };
+}
 for (const [path, methods] of Object.entries(paths)) {
-  if (path.startsWith("/auth") || path.startsWith("/health")) continue;
+  if (
+    path.startsWith("/auth") ||
+    path.startsWith("/health") ||
+    path.startsWith("/support/")
+  )
+    continue;
   for (const [method, operation] of Object.entries(methods) as [
     string,
     any,

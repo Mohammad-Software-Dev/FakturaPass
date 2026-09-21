@@ -1,3 +1,7 @@
+import {
+  registerSupportAgent,
+  suspendSupportAgent,
+} from "../packages/identity/support";
 import { readFileSync } from "node:fs";
 import { bootstrapOrganization } from "../packages/identity/organizations";
 import { spawn, type ChildProcess } from "node:child_process";
@@ -1002,6 +1006,327 @@ test("Machine credentials import idempotently without browser origin and preserv
     );
   }
 });
+async function supportFixture(suffix: string) {
+  const ownerCookie = cookieOf(await login(), "session");
+  const specialist = `support-${suffix}`;
+  const agent = await registerSupportAgent(
+    issuer,
+    specialist,
+    `Support ${suffix}`,
+  );
+  const invoice = JSON.parse(
+    readFileSync("fixtures/valid/FP-A-001.json", "utf8"),
+  );
+  invoice.source.recordId = randomUUID();
+  invoice.document.number = `SUP-${suffix}`;
+  const response = await POST(
+    new Request(origin + "/api/v1/invoices", {
+      method: "POST",
+      headers: {
+        origin,
+        cookie: ownerCookie,
+        "X-Workspace-Id": "local-demo",
+        "content-type": "application/json",
+        "idempotency-key": randomUUID(),
+      },
+      body: JSON.stringify(invoice),
+    }),
+    { params: Promise.resolve({ path: ["invoices"] }) },
+  );
+  assert.equal(response.status, 201);
+  const created = await response.json();
+  const finding = {
+    code: "VALIDATION_FAILED",
+    severity: "ERROR",
+    layer: "STANDARD",
+    canonicalPath: "seller.contact.telephone",
+    sourcePath: null,
+    ruleId: "BR-DE-6",
+    messageKey: "VALIDATION_FAILED",
+    parameters: { message: "Synthetic support diagnostic" },
+    evidenceSource: "synthetic-support-fixture",
+  };
+  await pool.query(
+    "INSERT INTO validation_runs(id,tenant_id,revision_id,rule_manifest_json,engine_version,status,kind,canonical_sha256,dedupe_key,findings,completed_at) VALUES($1,'local-demo',$2,'{}','synthetic-support-validator','INVALID','PRECHECK',$3,$1,$4,now())",
+    [
+      randomUUID(),
+      created.revisionId,
+      created.canonicalSha256,
+      JSON.stringify([finding]),
+    ],
+  );
+
+  const input = {
+    agentId: agent.id,
+    invoiceId: created.invoiceId,
+    revisionId: created.revisionId,
+    reason: `Case ${suffix}`,
+    hours: 1,
+    consent: true,
+  };
+  return { ownerCookie, specialist, agent, invoice, created, input };
+}
+async function specialistLogin(specialist: string) {
+  subject = specialist;
+  try {
+    return await login();
+  } finally {
+    subject = "approved-user";
+  }
+}
+test("Support registration grants no access; administrators must consent to a tenant-scoped revision", async () => {
+  const f = await supportFixture("consent");
+  assert.match(
+    (await specialistLogin(f.specialist)).headers.get("location")!,
+    /error=access/,
+  );
+  await assert.rejects(() =>
+    registerSupportAgent(issuer, f.specialist, "Duplicate"),
+  );
+  for (const patch of [
+    { consent: false },
+    { hours: 0 },
+    { hours: 25 },
+    { scope: "ADMIN" },
+    { revisionId: randomUUID() },
+    { invoiceId: randomUUID() },
+  ]) {
+    const response = await invitationCall(
+      "support-grants",
+      { ...f.input, ...patch },
+      f.ownerCookie,
+    );
+    assert.equal(
+      response.status,
+      "invoiceId" in patch || "revisionId" in patch ? 404 : 400,
+    );
+  }
+  assert.equal(
+    (
+      await invitationCall(
+        "support-grants",
+        f.input,
+        f.ownerCookie,
+        "local-test-b",
+      )
+    ).status,
+    403,
+  );
+  const granted = await invitationCall(
+    "support-grants",
+    f.input,
+    f.ownerCookie,
+  );
+  assert.equal(granted.status, 201);
+  const key = await (
+    await invitationCall(
+      "api-credentials",
+      {
+        name: "Cannot grant support",
+        scopes: ["invoices:read"],
+        expiresInDays: 1,
+      },
+      f.ownerCookie,
+    )
+  ).json();
+  for (const path of ["support-agents", "support-grants", "support/cases"])
+    assert.equal((await keyCall(key.secret, path)).status, 403);
+  const agentEvent = (
+    await pool.query("SELECT id FROM support_agent_events WHERE agent_id=$1", [
+      f.agent.id,
+    ])
+  ).rows[0];
+  await assert.rejects(() =>
+    pool.query("DELETE FROM support_agent_events WHERE id=$1", [agentEvent.id]),
+  );
+});
+test("Support sessions read only the shared immutable revision and record specialist attribution", async () => {
+  const f = await supportFixture("diagnosis");
+  const grant = await (
+    await invitationCall("support-grants", f.input, f.ownerCookie)
+  ).json();
+  const signed = await specialistLogin(f.specialist);
+  assert.equal(signed.headers.get("location"), origin + "/support");
+  const cookie = cookieOf(signed, "session");
+  assert(cookie);
+  assert.equal(
+    (
+      await pool.query(
+        "SELECT count(*)::int n FROM memberships WHERE user_subject=$1",
+        [principalActor(issuer, f.specialist)],
+      )
+    ).rows[0].n,
+    0,
+  );
+  const list = await (await call("support/cases", "GET", cookie)).json();
+  assert.deepEqual(
+    list.items.map((g: any) => g.id),
+    [grant.id],
+  );
+  const read = await call(`support/cases/${grant.id}`, "GET", cookie);
+  assert.equal(read.status, 200);
+  const diagnosis = await read.json();
+  assert.deepEqual(diagnosis.revision.canonical, f.invoice);
+  assert.equal(diagnosis.validationRuns[0].findings[0].ruleId, "BR-DE-6");
+  assert(!("sourceArtifact" in diagnosis.revision));
+  for (const path of [
+    "invoices",
+    `invoices/${f.created.invoiceId}`,
+    "memberships",
+    "api-credentials",
+    "invitations",
+    "artifacts/unknown/download",
+  ]) {
+    assert.equal((await call(path, "GET", cookie)).status, 403);
+  }
+  assert.equal(
+    (await call(`support/cases/${grant.id}`, "POST", cookie)).status,
+    403,
+  );
+  assert.equal(
+    (await call(`support/cases/${grant.id}`, "GET", f.ownerCookie)).status,
+    403,
+  );
+  assert.equal(
+    (await call("support/cases/" + randomUUID(), "GET", cookie)).status,
+    403,
+  );
+  const corrected = structuredClone(f.invoice);
+  corrected.document.buyerReference = "CHANGED-AFTER-GRANT";
+  const correction = await invitationCall(
+    `invoices/${f.created.invoiceId}/revisions`,
+    { priorRevisionId: f.created.revisionId, canonical: corrected },
+    f.ownerCookie,
+  );
+  assert.equal(correction.status, 201);
+  const again = await (
+    await call(`support/cases/${grant.id}`, "GET", cookie)
+  ).json();
+  assert.equal(
+    again.revision.canonical.document.buyerReference,
+    f.invoice.document.buyerReference,
+  );
+  const events = (
+    await pool.query(
+      "SELECT actor_subject,metadata_json FROM audit_events WHERE resource_id=$1 AND action='SUPPORT_DIAGNOSIS_VIEW'",
+      [grant.id],
+    )
+  ).rows;
+  assert(events.length >= 2);
+  assert(
+    events.every(
+      (e) =>
+        e.actor_subject === principalActor(issuer, f.specialist) &&
+        e.metadata_json.revisionId === f.created.revisionId,
+    ),
+  );
+  assert(
+    (
+      await (await call("support-grants", "GET", f.ownerCookie)).json()
+    ).items.find((g: any) => g.id === grant.id).lastViewedAt,
+  );
+});
+test("Support expiry, revocation, authorizer demotion and environment binding stop subsequent reads", async () => {
+  const f = await supportFixture("expiry");
+  const grant = await (
+    await invitationCall("support-grants", f.input, f.ownerCookie)
+  ).json();
+  const cookie = cookieOf(await specialistLogin(f.specialist), "session");
+  const path = `support/cases/${grant.id}`;
+  assert.deepEqual(
+    (
+      await Promise.all([call(path, "GET", cookie), call(path, "GET", cookie)])
+    ).map((r) => r.status),
+    [200, 200],
+  );
+  await pool.query(
+    "UPDATE memberships SET role='OPERATOR' WHERE tenant_id='local-demo' AND user_subject=$1",
+    [actor],
+  );
+  try {
+    assert.equal((await call(path, "GET", cookie)).status, 403);
+    assert.deepEqual(
+      (await (await call("support/cases", "GET", cookie)).json()).items,
+      [],
+    );
+  } finally {
+    await pool.query(
+      "UPDATE memberships SET role='ADMIN' WHERE tenant_id='local-demo' AND user_subject=$1",
+      [actor],
+    );
+  }
+  await pool.query(
+    "UPDATE support_grants SET environment='SANDBOX' WHERE id=$1",
+    [grant.id],
+  );
+  assert.equal((await call(path, "GET", cookie)).status, 403);
+  await pool.query(
+    "UPDATE support_grants SET environment='LOCAL',expires_at=now()-interval '1 second' WHERE id=$1",
+    [grant.id],
+  );
+  assert.equal((await call(path, "GET", cookie)).status, 403);
+  const next = await (
+    await invitationCall("support-grants", f.input, f.ownerCookie)
+  ).json();
+  assert.equal(
+    (
+      await invitationCall(
+        `support-grants/${next.id}/revoke`,
+        {},
+        f.ownerCookie,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await call(`support/cases/${next.id}`, "GET", cookie)).status,
+    403,
+  );
+  assert.match(
+    (await specialistLogin(f.specialist)).headers.get("location")!,
+    /error=access/,
+  );
+});
+test("Specialist offboarding revokes all grants and a suspended customer identity cannot use support", async () => {
+  const f = await supportFixture("offboarding");
+  const grant = await (
+    await invitationCall("support-grants", f.input, f.ownerCookie)
+  ).json();
+  const cookie = cookieOf(await specialistLogin(f.specialist), "session");
+  await pool.query(
+    "INSERT INTO memberships(id,tenant_id,user_subject,role,status) VALUES($1,'local-demo',$2,'READ_ONLY','SUSPENDED')",
+    [randomUUID(), principalActor(issuer, f.specialist)],
+  );
+  assert.equal(
+    (await call(`support/cases/${grant.id}`, "GET", cookie)).status,
+    403,
+  );
+  assert.equal(
+    (await invitationCall("support-grants", f.input, f.ownerCookie)).status,
+    403,
+  );
+  await suspendSupportAgent(f.agent.id);
+  assert(
+    (
+      await pool.query("SELECT revoked_at FROM support_grants WHERE id=$1", [
+        grant.id,
+      ])
+    ).rows[0].revoked_at,
+  );
+  assert.equal(
+    (await call(`support/cases/${grant.id}`, "GET", cookie)).status,
+    403,
+  );
+  assert.match(
+    (await specialistLogin(f.specialist)).headers.get("location")!,
+    /error=access/,
+  );
+  assert(
+    !(
+      await (await call("support-agents", "GET", f.ownerCookie)).json()
+    ).items.some((a: any) => a.id === f.agent.id),
+  );
+});
 test("Production requires HTTPS and uses host-only secure cookies", () => {
   process.env.FAKTURAPASS_ENV = "PRODUCTION";
   assert.throws(settings);
@@ -1055,6 +1380,10 @@ for (const [name, browserType] of [
       }
       assert(ready, "OIDC web server ready");
     }
+    await pool.query(
+      "UPDATE memberships SET status='SUSPENDED' WHERE tenant_id='local-test-b' AND user_subject=$1",
+      [actor],
+    );
     const browser = await browserType.launch();
     try {
       const context = await browser.newContext({
@@ -1257,6 +1586,125 @@ for (const [name, browserType] of [
       await expect(keyCard.getByText(/Revoked/)).toBeVisible();
       assert.equal((await keyCall(secondSecret)).status, 401);
       await expect(secretInput).toHaveCount(0);
+      const support = await supportFixture(`browser-${name}`);
+      await tabA.reload();
+      await tabA
+        .getByRole("button", { name: "Team access", exact: true })
+        .click();
+      const supportPanel = tabA.locator("section").filter({
+        has: tabA.getByRole("heading", {
+          name: "Support access",
+          exact: true,
+        }),
+      });
+      await expect(supportPanel)
+        .toBeVisible({ timeout: 5000 })
+        .catch(async (error) => {
+          throw Error(
+            `${error.message} URL=${tabA.url()} BODY=${await tabA.locator("body").innerText()}`,
+          );
+        });
+      await expect(
+        supportPanel.getByLabel("Support specialist", { exact: true }),
+      )
+        .toBeVisible({ timeout: 5000 })
+        .catch(async (error) => {
+          throw Error(
+            `${error.message} BODY=${await supportPanel.innerText()}`,
+          );
+        });
+      await supportPanel
+        .getByLabel("Support specialist", { exact: true })
+        .selectOption(support.agent.id);
+      await supportPanel
+        .getByLabel("Shared invoice revision", { exact: true })
+        .selectOption(support.created.revisionId);
+      await supportPanel
+        .getByLabel("Issue or ticket reference", { exact: true })
+        .fill(`Browser assistance ${name}`);
+      const allow = supportPanel.getByRole("button", {
+        name: "Allow support access",
+        exact: true,
+      });
+      await expect(allow).toBeDisabled();
+      await supportPanel.getByRole("checkbox").check();
+      await allow.click();
+      await expect(supportPanel.getByRole("status")).toContainText(
+        "Support access is granted",
+      );
+      const specialistContext = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+      });
+      await specialistContext.addCookies([
+        { name: "fakturapass-language", value: "en", url: origin },
+        { name: "fakturapass-theme", value: "dark", url: origin },
+      ]);
+      subject = support.specialist;
+      try {
+        const specialist = await specialistContext.newPage();
+        await specialist.goto(origin + "/support");
+        await specialist
+          .getByRole("button", { name: "Sign in securely", exact: true })
+          .click();
+        await expect(specialist).toHaveURL(origin + "/support");
+        await specialist
+          .locator(".support-case")
+          .filter({ hasText: support.invoice.document.number })
+          .click();
+        await expect(specialist.locator(".invoice-review")).toBeVisible();
+        await expect(
+          specialist.getByRole("heading", {
+            name: "Saved validation results",
+            exact: true,
+          }),
+        ).toBeVisible();
+        await expect(
+          specialist.getByText("seller.contact.telephone", { exact: false }),
+        ).toBeVisible();
+        await specialist
+          .getByText("Technical details", { exact: true })
+          .click();
+        await expect(
+          specialist.getByText(/Synthetic support diagnostic/),
+        ).toBeVisible();
+        await specialist
+          .getByLabel("Language", { exact: true })
+          .selectOption("de");
+        await expect(
+          specialist.getByRole("heading", {
+            name: "Supportfälle",
+            exact: true,
+          }),
+        ).toBeVisible();
+        await specialist
+          .getByLabel("Sprache", { exact: true })
+          .selectOption("en");
+        await specialist.screenshot({
+          path: `test-results/support-${name.toLowerCase()}.png`,
+          fullPage: true,
+        });
+        await supportPanel
+          .getByRole("button", { name: "Refresh", exact: true })
+          .click();
+        const shared = supportPanel
+          .locator("article")
+          .filter({ hasText: support.invoice.document.number });
+        await expect(shared).not.toContainText("Not used yet");
+        await shared
+          .getByRole("button", { name: "Revoke support access", exact: true })
+          .click();
+        await expect(shared).toContainText("Revoked");
+        await specialist
+          .getByRole("button", { name: "Refresh", exact: true })
+          .click();
+        await expect(specialist.locator(".invoice-review")).toHaveCount(0);
+        await expect(specialist.getByRole("status")).toContainText(
+          "There are no shared support cases",
+        );
+      } finally {
+        subject = "approved-user";
+        await specialistContext.close();
+      }
       await pool.query(
         "UPDATE memberships SET status='SUSPENDED' WHERE tenant_id='local-test-b' AND user_subject=$1",
         [actor],

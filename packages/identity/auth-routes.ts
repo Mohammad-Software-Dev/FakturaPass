@@ -90,10 +90,9 @@ export async function authRoute(request: Request, action: string) {
     let response: Response;
     try {
       const cookie = await finishLogin(request);
+      const count = (await sessionWorkspaces(cookie)).items.length;
       response = redirect(
-        (await sessionWorkspaces(cookie)).items.length > 1
-          ? "/workspaces"
-          : "/",
+        count === 0 ? "/support" : count > 1 ? "/workspaces" : "/",
       );
       response.headers.append("Set-Cookie", cookie);
     } catch (error) {

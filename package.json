@@ -32,7 +32,8 @@
     "test:recovery": "tsx --test tests/recovery.test.ts",
     "identity:provision": "tsx scripts/provision-oidc-member.ts",
     "test:oidc": "tsx --test tests/oidc.test.ts",
-    "organization:bootstrap": "tsx scripts/bootstrap-organization.ts"
+    "organization:bootstrap": "tsx scripts/bootstrap-organization.ts",
+    "support:agent": "tsx scripts/support-agent.ts"
   },
   "dependencies": {
     "ajv": "8.20.0",

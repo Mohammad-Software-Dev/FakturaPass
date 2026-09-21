@@ -1,4 +1,5 @@
 "use client";
+import { SupportGrants } from "./support-grants";
 import { ApiCredentials } from "./api-credentials";
 import { Invitations } from "./invitations";
 import { workspaceFetch } from "./workspace-request";
@@ -202,6 +203,7 @@ export function Team({
         <>
           <Invitations />
           <ApiCredentials actor={data.actor} />
+          <SupportGrants />
         </>
       )}
     </>
