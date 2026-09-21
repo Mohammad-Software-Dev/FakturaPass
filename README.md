@@ -78,3 +78,5 @@ Remaining delivery stages: [Completion plan](docs/COMPLETION_PLAN.md). Team auth
 Configurable browser sign-in and initial-member provisioning are documented in [Identity operations](docs/IDENTITY.md). The [provider recommendation](docs/reviews/2026-09-15-identity-provider.md) remains pending owner review and live-provider acceptance.
 
 Organization bootstrap and manually shared, verified invitation links are covered in [Organization onboarding](docs/ORGANIZATION_ONBOARDING.md).
+
+Registered specialists can receive customer-authorized, time-limited read access to one invoice revision under **Team → Support access**. See [support operations](docs/SUPPORT_ACCESS.md). This requires configured OIDC sign-in and does not create a customer role.

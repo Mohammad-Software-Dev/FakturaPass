@@ -37,3 +37,7 @@ After database restoration, invalidate all restored sessions and login transacti
 ## Verification
 
 `npm run verify` runs the OIDC suite only against its disposable verification database. A synthetic local issuer exercises signature, nonce, state, audience and expiry rejection, session logout/expiry, membership suspension and authority isolation. Chromium and WebKit exercise the sign-in page, language/theme controls, workspace entry, two simultaneous workspace tabs, suspended-workspace removal and sign-out. These are integration tests, not evidence of acceptance against Auth0 or another live provider.
+
+## Explicit support diagnosis
+
+Registered specialists can sign in without a customer membership only when a current, customer-authorized support grant exists. These sessions access the dedicated `/support` diagnosis screen and do not gain general workspace access. See [support access](SUPPORT_ACCESS.md) for operator registration, customer consent, revocation and offboarding. Live-provider/MFA acceptance remains required.

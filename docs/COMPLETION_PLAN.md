@@ -27,7 +27,7 @@ Next increments within stage 1:
 2. Configurable OIDC sign-in, app logout, secure sessions and expiry are implemented and pass isolated-issuer/browser tests. Application authorization remains in membership records. Accept the configured live provider before production use.
 3. Operator-assisted organization bootstrap, verified invitation links and explicit tenant selection are implemented. Self-service/commercial onboarding and live-provider acceptance remain open. Bind subjects to the verified issuer/subject pair; never link accounts solely by an unverified email address.
 4. Scoped API credentials are implemented with one-time secret display, hash-only persistence, expiry/rotation/revocation, current owner role enforcement and environment separation. Acceptance evidence is recorded in RELEASE_A_RESULTS.md.
-5. Add explicitly authorized, time-bound support access and finish onboarding/offboarding acceptance.
+5. Explicitly authorized, revision-bound, time-limited support diagnosis is implemented. The local onboarding/offboarding checklist is in IDENTITY_ACCEPTANCE.md; live-provider/MFA/personnel acceptance remains open.
 
 ## Decisions and external inputs
 
@@ -41,7 +41,7 @@ Provider-independent engineering should continue while decisions are pending. As
 
 ## Progress accounting
 
-Current evidence: 117 tests passed in the complete verification run, alongside the 38-operation contract, production build and local recovery acceptance. Stage 1 now includes the configurable OIDC adapter, explicit workspace selection, operator organization bootstrap, verified invitation links and scoped API credentials. Sixteen identity/onboarding checks include Chromium and WebKit multi-tab editing, invitation acceptance and sign-out. Live-provider identity acceptance remains open. Completed: the local JSON/CSV → correction → validation → approval → XRechnung/evidence workflow, versioned recipient requirements, self-assigned review queue, bilingual appearance and local snapshot/restore tooling. Partial: original FP-003/004/008–011/018–020. Not yet delivered: email, webhooks, credit notes, ZUGFeRD, visual mapping editor, billing and production launch.
+Current evidence: 121 tests passed in the complete verification run, alongside the 44-operation contract, production build and local recovery acceptance. Stage 1 now includes the configurable OIDC adapter, explicit workspace selection, operator organization bootstrap, verified invitation links, scoped API credentials and explicit support grants. Twenty identity/onboarding/support checks include Chromium and WebKit multi-tab editing, invitation acceptance, credential management, read-only support diagnosis and sign-out. Live-provider identity acceptance remains open. Completed: the local JSON/CSV → correction → validation → approval → XRechnung/evidence workflow, versioned recipient requirements, self-assigned review queue, bilingual appearance and local snapshot/restore tooling. Partial: original FP-003/004/008–011/018–020. Not yet delivered: email, webhooks, credit notes, ZUGFeRD, visual mapping editor, billing and production launch.
 
 SFTP, Peppol, multi-entity/partner console, assisted PDF conversion, manual authoring and additional countries remain conditional extensions. They are not silently added to the core v1 completion gate.
 
@@ -70,3 +70,9 @@ Scoped API credentials are delivered in the following continuation; explicitly a
 Implemented OIDC administrator credential management with explicit operation scopes, hash-only storage, bounded expiry, owner-only atomic rotation, workspace-wide administrator revocation and admitted-use audit history. Keys remain limited by current active owner membership and cannot administer access. Bilingual Team controls include one-time secret display and confirmation of replacement/revocation. See API_CREDENTIALS.md and ADR 0016.
 
 Next: explicitly authorized, time-bound support grants, then remaining onboarding/offboarding acceptance. Live-provider acceptance and the external production decisions remain open.
+
+## Explicit support access continuation — 21 September 2026
+
+Implemented an operator-controlled specialist registry, administrator consent for a single invoice revision, expiry/revocation, a separate read-only specialist screen and attributed access auditing. Specialist registration creates no customer membership. Offboarding disables the specialist and revokes all their grants. Support cannot use its grants to access other invoices, later corrections, files, normal workspace APIs or mutations. See SUPPORT_ACCESS.md, IDENTITY_ACCEPTANCE.md and ADR 0017.
+
+Next engineering increment: stage 2 observability and deployment readiness—request/job metrics, operational health and release evidence—without purchasing providers or claiming production acceptance. Stage 1 live-provider claims/MFA/recovery and customer support-process approval remain explicit external acceptance items. Hosting decisions, production backups, privacy/retention decisions and the later data, transport and commercial stages remain open.

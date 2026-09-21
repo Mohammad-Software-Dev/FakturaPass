@@ -111,3 +111,11 @@ Clara wants her accounting software to retrieve approved invoice files. Signed i
 Later, Clara adds an import integration with the separate import permission. It sends an idempotency key with each invoice, and the invoice appears in the usual review workflow. Validation, approval and generation remain distinct steps; Clara grants their permissions only if the integration should perform them and its owner's team role allows them.
 
 Before a key expires, Clara prepares a replacement connection. For an immediate secret change, she selects Replace key, confirms that the old secret will stop working and updates her software with the newly displayed secret. The original expiry and permissions remain unchanged. For a gradual changeover or a new expiry, she creates a separate key, switches the software and then revokes the original. When an integration is retired, Revoke access ends its future requests. The list shows its status and last use, so she can see what happened without ever recovering an old secret.
+
+## Getting help without opening the whole workspace
+
+A validation result puzzles Clara. In Team → Support access, she chooses the registered specialist helping with her ticket, selects the exact invoice revision and allows one hour. The consent text tells her that the specialist will see invoice data, including personal details, and saved validation results. She confirms only after checking the person and revision.
+
+The specialist signs in with their own account at `/support`. Only Clara's shared case appears. They open the invoice and its saved findings to explain what needs attention; they cannot edit it, approve it or download its generated files. Clara makes any correction herself through the ordinary invoice workflow. That new revision stays private unless she explicitly shares it too.
+
+After receiving the explanation, Clara refreshes the support history, sees when the shared version was viewed and revokes access. The specialist's next request is denied and the open view closes on refresh or the next access check. If Clara forgets to revoke it, the grant expires automatically. No invitation to the whole team, permanent customer role or shared administrator password was needed.
