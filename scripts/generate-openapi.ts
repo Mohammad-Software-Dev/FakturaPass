@@ -1,3 +1,7 @@
+import {
+  credentialScopes,
+  requiredCredentialScope,
+} from "../packages/identity/credential-scopes";
 import { readFileSync, writeFileSync } from "node:fs";
 import YAML from "yaml";
 const invoice = JSON.parse(
@@ -815,19 +819,112 @@ paths["/auth/join"] = {
     },
   },
 };
+const credentialSchema = object({
+  id: str,
+  name: str,
+  owner: str,
+  environment: str,
+  scopes: {
+    type: "array",
+    items: { type: "string", enum: Object.keys(credentialScopes) },
+  },
+  version: { type: "integer" },
+  createdAt: { type: "string", format: "date-time" },
+  expiresAt: { type: "string", format: "date-time" },
+  lastUsedAt: { type: ["string", "null"], format: "date-time" },
+  status: {
+    type: "string",
+    enum: ["ACTIVE", "REVOKED", "EXPIRED", "UNAVAILABLE"],
+  },
+});
+const credentialSecretSchema = {
+  ...credentialSchema,
+  properties: { ...credentialSchema.properties, secret: str },
+  required: [...credentialSchema.required, "secret"],
+};
+for (const [path, method, id, request, response, status] of [
+  [
+    "/api-credentials",
+    "get",
+    "listApiCredentials",
+    null,
+    object({ items: { type: "array", items: credentialSchema } }),
+    200,
+  ],
+  [
+    "/api-credentials",
+    "post",
+    "createApiCredential",
+    object({
+      name: { type: "string", minLength: 1, maxLength: 80 },
+      scopes: {
+        type: "array",
+        minItems: 1,
+        uniqueItems: true,
+        items: { type: "string", enum: Object.keys(credentialScopes) },
+      },
+      expiresInDays: { type: "integer", minimum: 1, maximum: 90 },
+    }),
+    credentialSecretSchema,
+    201,
+  ],
+  [
+    "/api-credentials/{credentialId}/rotate",
+    "post",
+    "rotateApiCredential",
+    object({ expectedVersion: { type: "integer", minimum: 1 } }),
+    credentialSecretSchema,
+    200,
+  ],
+  [
+    "/api-credentials/{credentialId}/revoke",
+    "post",
+    "revokeApiCredential",
+    object({ expectedVersion: { type: "integer", minimum: 1 } }),
+    credentialSchema,
+    200,
+  ],
+] as const) {
+  paths[path] ??= {};
+  paths[path][method] = {
+    operationId: id,
+    summary:
+      "OIDC administrators only. Rotation is owner-only and preserves expiry and scopes. Secrets are returned once.",
+    security: [{ browserSession: [] }],
+    parameters: path.includes("{credentialId}")
+      ? [{ name: "credentialId", in: "path", required: true, schema: str }]
+      : [],
+    ...(request
+      ? { requestBody: { required: true, content: content(request) } }
+      : {}),
+    responses: {
+      [status]: { description: "Success", content: content(response) },
+      "400": { description: "Invalid request" },
+      "401": { description: "Sign-in required" },
+      "403": { description: "Access denied" },
+      "404": { description: "Not found" },
+      "409": { description: "Version conflict" },
+    },
+  };
+}
 for (const [path, methods] of Object.entries(paths)) {
   if (path.startsWith("/auth") || path.startsWith("/health")) continue;
   for (const [method, operation] of Object.entries(methods) as [
     string,
     any,
   ][]) {
+    const scope = requiredCredentialScope(method.toUpperCase(), path.slice(1));
+    if (scope) {
+      operation.security.push({ apiKey: [] });
+      operation["x-api-key-scope"] = scope;
+    }
     operation.parameters.push({
       name: "X-Workspace-Id",
       in: "header",
       required: false,
       schema: str,
       description:
-        "Required in OIDC mode. Explicit tab workspace; active membership is checked on every request. LOCAL identities remain server-scoped.",
+        "Required for OIDC browser sessions; optional for API keys, but must match their workspace. Explicit tab workspace; active membership is checked on every request. LOCAL identities remain server-scoped.",
     });
     if (method === "get")
       operation.parameters.push({
@@ -846,7 +943,7 @@ const spec = {
     title: "FakturaPass Release A",
     version: "1.0.0",
     description:
-      "Invoice workspace with configurable OIDC browser sessions. Production provider acceptance and API keys remain gated.",
+      "Invoice workspace with configurable OIDC browser sessions. Scoped API credentials are supported; production provider acceptance remains gated.",
   },
   servers: [{ url: "/api/v1" }],
   paths,
@@ -875,7 +972,8 @@ const spec = {
         type: "apiKey",
         in: "header",
         name: "X-API-Key",
-        description: "Production contract only; unavailable in Release A.",
+        description:
+          "Hash-only, expiring workspace credential. Explicit operation scope and active owner membership are required. No team or credential administration. OIDC configuration required.",
       },
     },
     schemas,

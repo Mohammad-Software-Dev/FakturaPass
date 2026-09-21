@@ -1,3 +1,4 @@
+import { credentialScopes } from "../packages/identity/credential-scopes";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -17,6 +18,8 @@ import {
 import { semanticFindings, schemaFindings } from "../packages/domain";
 import type { Finding } from "../packages/contracts/types";
 test("every supported locale has complete nonempty messages and matching placeholders", () => {
+  for (const label of Object.values(credentialScopes))
+    assert(Object.hasOwn(dictionaries.en, label), label);
   const keys = Object.keys(dictionaries.de).sort();
   for (const locale of Object.keys(locales) as Array<keyof typeof locales>) {
     assert.deepEqual(Object.keys(dictionaries[locale]).sort(), keys);
@@ -161,6 +164,7 @@ test("invoice review and editor labels are translated in both catalogs", () => {
     "sign-in/sign-in.tsx",
     "workspaces/workspace-choices.tsx",
     "invitations.tsx",
+    "api-credentials.tsx",
     "join/join.tsx",
   ]) {
     const source = ts.createSourceFile(

@@ -1,3 +1,4 @@
+import * as credentials from "../../../../../../packages/identity/credentials";
 import * as invitations from "../../../../../../packages/identity/invitations";
 import { settings as oidcSettings } from "../../../../../../packages/identity/oidc";
 import { authRoute } from "../../../../../../packages/identity/auth-routes";
@@ -24,7 +25,10 @@ const MAX = 1024 * 1024;
 async function identity(
   req: Request,
   requestId: string,
+  path: string,
 ): Promise<service.Context> {
+  if (req.headers.has("X-API-Key"))
+    return credentials.credentialContext(req, requestId, path);
   if (oidcEnabled()) {
     if (!["GET", "HEAD"].includes(req.method)) requireOrigin(req);
     const url = new URL(req.url);
@@ -146,8 +150,35 @@ async function handler(
         return send({ status: "not_ready" }, 503);
       }
     }
-    if (p[0] === "auth" && p.length === 2) return await authRoute(req, p[1]);
-    const ctx = await identity(req, requestId);
+    if (p[0] === "auth" && p.length === 2) {
+      if (req.headers.has("X-API-Key"))
+        throw new service.ApiError("ACCESS_DENIED", 403);
+      return await authRoute(req, p[1]);
+    }
+    const ctx = await identity(req, requestId, p.join("/"));
+    if (p[0] === "api-credentials") {
+      if (!oidcEnabled()) throw new service.ApiError("RESOURCE_NOT_FOUND", 404);
+      if (p.length === 1 && method === "GET")
+        return send(await credentials.listCredentials(ctx));
+      if (p.length === 1 && method === "POST")
+        return send(
+          await credentials.createCredential(ctx, (await body(req)).json),
+          201,
+        );
+      if (
+        p.length === 3 &&
+        method === "POST" &&
+        (p[2] === "rotate" || p[2] === "revoke")
+      )
+        return send(
+          await credentials.changeCredential(
+            ctx,
+            p[1],
+            p[2],
+            (await body(req)).json,
+          ),
+        );
+    }
     if (p[0] === "invitations") {
       if (!oidcEnabled()) throw new service.ApiError("RESOURCE_NOT_FOUND", 404);
       if (p.length === 1 && method === "GET")

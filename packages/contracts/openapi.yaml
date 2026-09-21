@@ -2,8 +2,8 @@ openapi: 3.1.0
 info:
   title: FakturaPass Release A
   version: 1.0.0
-  description: Invoice workspace with configurable OIDC browser sessions.
-    Production provider acceptance and API keys remain gated.
+  description: Invoice workspace with configurable OIDC browser sessions. Scoped
+    API credentials are supported; production provider acceptance remains gated.
 servers:
   - url: /api/v1
 paths:
@@ -16,6 +16,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -45,7 +46,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
@@ -118,12 +120,14 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Invoice"
+      x-api-key-scope: invoices:import
     get:
       operationId: listInvoices
       description: List current revisions, tenant-scoped.
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -161,7 +165,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -236,6 +241,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /invoices/{invoiceId}:
     get:
       operationId: getInvoice
@@ -243,6 +249,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: invoiceId
           in: path
@@ -270,7 +277,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -345,6 +353,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /invoices/{invoiceId}/revisions/{revisionId}:
     get:
       operationId: getInvoiceRevision
@@ -352,6 +361,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: invoiceId
           in: path
@@ -384,7 +394,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -459,6 +470,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /invoices/{invoiceId}/revisions:
     post:
       operationId: createInvoiceRevision
@@ -467,6 +479,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: invoiceId
           in: path
@@ -494,7 +507,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
@@ -567,6 +581,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Correction"
+      x-api-key-scope: invoices:edit
   /invoices/{invoiceId}/revisions/{revisionId}/validate:
     post:
       operationId: validateInvoiceRevision
@@ -576,6 +591,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: invoiceId
           in: path
@@ -608,7 +624,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "202":
@@ -681,6 +698,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ValidationRequest"
+      x-api-key-scope: invoices:validate
   /validation-runs/{validationRunId}:
     get:
       operationId: getValidationRun
@@ -688,6 +706,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: validationRunId
           in: path
@@ -715,7 +734,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -790,6 +810,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /invoices/{invoiceId}/revisions/{revisionId}/approve:
     post:
       operationId: approveInvoiceRevision
@@ -797,6 +818,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: invoiceId
           in: path
@@ -829,7 +851,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
@@ -902,6 +925,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ApprovalRequest"
+      x-api-key-scope: invoices:approve
   /invoices/{invoiceId}/revisions/{revisionId}/generate:
     post:
       operationId: generateInvoiceArtifact
@@ -911,6 +935,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: invoiceId
           in: path
@@ -943,7 +968,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "202":
@@ -1016,6 +1042,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Empty"
+      x-api-key-scope: invoices:generate
   /artifacts/{artifactId}:
     get:
       operationId: getArtifact
@@ -1023,6 +1050,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: artifactId
           in: path
@@ -1050,7 +1078,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -1125,6 +1154,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /artifacts/{artifactId}/download:
     get:
       operationId: downloadArtifact
@@ -1132,6 +1162,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: artifactId
           in: path
@@ -1159,7 +1190,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -1234,6 +1266,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /invoices/{invoiceId}/evidence:
     get:
       operationId: getInvoiceEvidence
@@ -1241,6 +1274,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: invoiceId
           in: path
@@ -1273,7 +1307,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -1348,6 +1383,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /recipient-profiles/{recipientKey}:
     get:
       operationId: getRecipientProfile
@@ -1355,6 +1391,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: recipientKey
           in: path
@@ -1382,7 +1419,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -1457,6 +1495,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /health/live:
     get:
       operationId: healthLive
@@ -1636,6 +1675,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -1676,7 +1716,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -1751,6 +1792,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /review-queue/{invoiceId}/assignment:
     post:
       operationId: assignReview
@@ -1759,6 +1801,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: invoiceId
           in: path
@@ -1786,7 +1829,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
@@ -1859,6 +1903,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ReviewAssignmentRequest"
+      x-api-key-scope: review:write
   /recipient-profiles:
     get:
       operationId: listRecipientProfiles
@@ -1866,6 +1911,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -1888,7 +1934,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -1963,12 +2010,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
     post:
       operationId: publishRecipientProfile
       description: Publish an immutable tenant-owned profile version as an administrator.
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -1991,7 +2040,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
@@ -2064,6 +2114,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/PublishRecipientProfile"
+      x-api-key-scope: recipients:write
   /recipient-profiles/{recipientKey}/versions:
     get:
       operationId: listRecipientProfileVersions
@@ -2071,6 +2122,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: recipientKey
           in: path
@@ -2098,7 +2150,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -2173,6 +2226,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /mapping-recipes:
     get:
       operationId: listMappingRecipes
@@ -2180,6 +2234,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -2202,7 +2257,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -2277,6 +2333,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      x-api-key-scope: invoices:read
   /csv/preview:
     post:
       operationId: previewCsv
@@ -2284,6 +2341,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -2306,7 +2364,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
@@ -2379,6 +2438,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CsvInput"
+      x-api-key-scope: invoices:import
   /csv/import:
     post:
       operationId: importCsv
@@ -2387,6 +2447,7 @@ paths:
       security:
         - localDev: []
         - browserSession: []
+        - apiKey: []
       parameters:
         - name: X-Request-Id
           in: header
@@ -2416,7 +2477,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
@@ -2489,6 +2551,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CsvCommit"
+      x-api-key-scope: invoices:import
   /memberships:
     get:
       operationId: listMemberships
@@ -2518,7 +2581,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -2629,7 +2693,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
@@ -2851,7 +2916,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
         - name: workspace
           in: query
@@ -2927,7 +2993,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
@@ -2996,7 +3063,8 @@ paths:
           schema:
             type: string
           description:
-            Required in OIDC mode. Explicit tab workspace; active membership is
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
             checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
@@ -3125,6 +3193,454 @@ paths:
           description: OIDC disabled
         "413":
           description: Body too large
+  /api-credentials:
+    get:
+      operationId: listApiCredentials
+      summary:
+        OIDC administrators only. Rotation is owner-only and preserves expiry
+        and scopes. Secrets are returned once.
+      security:
+        - browserSession: []
+      parameters:
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        owner:
+                          type: string
+                        environment:
+                          type: string
+                        scopes:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - invoices:read
+                              - invoices:import
+                              - invoices:edit
+                              - invoices:validate
+                              - invoices:approve
+                              - invoices:generate
+                              - recipients:write
+                              - review:write
+                        version:
+                          type: integer
+                        createdAt:
+                          type: string
+                          format: date-time
+                        expiresAt:
+                          type: string
+                          format: date-time
+                        lastUsedAt:
+                          type:
+                            - string
+                            - "null"
+                          format: date-time
+                        status:
+                          type: string
+                          enum:
+                            - ACTIVE
+                            - REVOKED
+                            - EXPIRED
+                            - UNAVAILABLE
+                      required:
+                        - id
+                        - name
+                        - owner
+                        - environment
+                        - scopes
+                        - version
+                        - createdAt
+                        - expiresAt
+                        - lastUsedAt
+                        - status
+                      additionalProperties: false
+                required:
+                  - items
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+        "409":
+          description: Version conflict
+    post:
+      operationId: createApiCredential
+      summary:
+        OIDC administrators only. Rotation is owner-only and preserves expiry
+        and scopes. Secrets are returned once.
+      security:
+        - browserSession: []
+      parameters:
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                scopes:
+                  type: array
+                  minItems: 1
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - invoices:read
+                      - invoices:import
+                      - invoices:edit
+                      - invoices:validate
+                      - invoices:approve
+                      - invoices:generate
+                      - recipients:write
+                      - review:write
+                expiresInDays:
+                  type: integer
+                  minimum: 1
+                  maximum: 90
+              required:
+                - name
+                - scopes
+                - expiresInDays
+              additionalProperties: false
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  owner:
+                    type: string
+                  environment:
+                    type: string
+                  scopes:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - invoices:read
+                        - invoices:import
+                        - invoices:edit
+                        - invoices:validate
+                        - invoices:approve
+                        - invoices:generate
+                        - recipients:write
+                        - review:write
+                  version:
+                    type: integer
+                  createdAt:
+                    type: string
+                    format: date-time
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  lastUsedAt:
+                    type:
+                      - string
+                      - "null"
+                    format: date-time
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - REVOKED
+                      - EXPIRED
+                      - UNAVAILABLE
+                  secret:
+                    type: string
+                required:
+                  - id
+                  - name
+                  - owner
+                  - environment
+                  - scopes
+                  - version
+                  - createdAt
+                  - expiresAt
+                  - lastUsedAt
+                  - status
+                  - secret
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+        "409":
+          description: Version conflict
+  /api-credentials/{credentialId}/rotate:
+    post:
+      operationId: rotateApiCredential
+      summary:
+        OIDC administrators only. Rotation is owner-only and preserves expiry
+        and scopes. Secrets are returned once.
+      security:
+        - browserSession: []
+      parameters:
+        - name: credentialId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expectedVersion:
+                  type: integer
+                  minimum: 1
+              required:
+                - expectedVersion
+              additionalProperties: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  owner:
+                    type: string
+                  environment:
+                    type: string
+                  scopes:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - invoices:read
+                        - invoices:import
+                        - invoices:edit
+                        - invoices:validate
+                        - invoices:approve
+                        - invoices:generate
+                        - recipients:write
+                        - review:write
+                  version:
+                    type: integer
+                  createdAt:
+                    type: string
+                    format: date-time
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  lastUsedAt:
+                    type:
+                      - string
+                      - "null"
+                    format: date-time
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - REVOKED
+                      - EXPIRED
+                      - UNAVAILABLE
+                  secret:
+                    type: string
+                required:
+                  - id
+                  - name
+                  - owner
+                  - environment
+                  - scopes
+                  - version
+                  - createdAt
+                  - expiresAt
+                  - lastUsedAt
+                  - status
+                  - secret
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+        "409":
+          description: Version conflict
+  /api-credentials/{credentialId}/revoke:
+    post:
+      operationId: revokeApiCredential
+      summary:
+        OIDC administrators only. Rotation is owner-only and preserves expiry
+        and scopes. Secrets are returned once.
+      security:
+        - browserSession: []
+      parameters:
+        - name: credentialId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required for OIDC browser sessions; optional for API keys, but must
+            match their workspace. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expectedVersion:
+                  type: integer
+                  minimum: 1
+              required:
+                - expectedVersion
+              additionalProperties: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  owner:
+                    type: string
+                  environment:
+                    type: string
+                  scopes:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - invoices:read
+                        - invoices:import
+                        - invoices:edit
+                        - invoices:validate
+                        - invoices:approve
+                        - invoices:generate
+                        - recipients:write
+                        - review:write
+                  version:
+                    type: integer
+                  createdAt:
+                    type: string
+                    format: date-time
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  lastUsedAt:
+                    type:
+                      - string
+                      - "null"
+                    format: date-time
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - REVOKED
+                      - EXPIRED
+                      - UNAVAILABLE
+                required:
+                  - id
+                  - name
+                  - owner
+                  - environment
+                  - scopes
+                  - version
+                  - createdAt
+                  - expiresAt
+                  - lastUsedAt
+                  - status
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found
+        "409":
+          description: Version conflict
 components:
   securitySchemes:
     browserSession:
@@ -3149,7 +3665,10 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
-      description: Production contract only; unavailable in Release A.
+      description:
+        Hash-only, expiring workspace credential. Explicit operation scope
+        and active owner membership are required. No team or credential
+        administration. OIDC configuration required.
   schemas:
     Membership:
       type: object

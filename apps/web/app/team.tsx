@@ -1,4 +1,5 @@
 "use client";
+import { ApiCredentials } from "./api-credentials";
 import { Invitations } from "./invitations";
 import { workspaceFetch } from "./workspace-request";
 import { useEffect, useState } from "react";
@@ -197,7 +198,12 @@ export function Team({
           ))}
         </div>
       </section>
-      {invitationsEnabled && data && !error && <Invitations />}
+      {invitationsEnabled && data && !error && (
+        <>
+          <Invitations />
+          <ApiCredentials actor={data.actor} />
+        </>
+      )}
     </>
   );
 }

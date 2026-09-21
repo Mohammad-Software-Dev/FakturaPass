@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { bootstrapOrganization } from "../packages/identity/organizations";
 import { spawn, type ChildProcess } from "node:child_process";
 import { chromium, webkit, expect } from "@playwright/test";
@@ -684,6 +685,323 @@ test("Concurrent invitation callbacks grant membership once; demoted issuers can
     claimEmail = "new.member@example.test";
   }
 });
+async function keyCall(
+  secret: string,
+  path = "invoices",
+  method = "GET",
+  headers: Record<string, string> = {},
+  payload: unknown = {},
+) {
+  const req = new Request(origin + "/api/v1/" + path, {
+    method,
+    headers: { "X-API-Key": secret, ...headers },
+    ...(method === "POST" ? { body: JSON.stringify(payload) } : {}),
+  });
+  return (method === "GET" ? GET : POST)(req, {
+    params: Promise.resolve({ path: path.split("?")[0].split("/") }),
+  });
+}
+test("API credentials are scoped, hash-only, workspace-bound and cannot administer access", async () => {
+  const cookie = cookieOf(await login(), "session");
+  const created = await invitationCall(
+    "api-credentials",
+    { name: "Accounting export", scopes: ["invoices:read"], expiresInDays: 30 },
+    cookie,
+  );
+  assert.equal(created.status, 201);
+  const key = await created.json();
+  assert.match(key.secret, /^fp_[A-Za-z0-9_-]{43}$/);
+  const stored = (
+    await pool.query("SELECT * FROM api_credentials WHERE id=$1", [key.id])
+  ).rows[0];
+  assert.equal(
+    stored.token_sha256,
+    createHash("sha256").update(key.secret).digest("hex"),
+  );
+  assert(!JSON.stringify(stored).includes(key.secret));
+  assert.equal((await keyCall(key.secret)).status, 200);
+  for (const path of [
+    "api-credentials",
+    "auth/workspaces",
+    "memberships",
+    "invitations",
+    "unknown",
+  ])
+    assert.equal((await keyCall(key.secret, path)).status, 403);
+  for (const path of [
+    "invoices",
+    "csv/preview",
+    "csv/import",
+    "invoices/x/revisions",
+    "invoices/x/revisions/y/validate",
+    "invoices/x/revisions/y/approve",
+    "invoices/x/revisions/y/generate",
+    "recipient-profiles",
+    "review-queue/x/assignment",
+  ])
+    assert.equal((await keyCall(key.secret, path, "POST")).status, 403);
+  assert.equal(
+    (
+      await keyCall(key.secret, "invoices", "GET", {
+        "X-Workspace-Id": "local-test-b",
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (await keyCall(key.secret, "invoices?workspace=local-test-b")).status,
+    403,
+  );
+  assert.equal(
+    (await keyCall("invalid", "invoices", "GET", { cookie })).status,
+    401,
+  );
+  const listed = await (await call("api-credentials", "GET", cookie)).json();
+  assert(!JSON.stringify(listed).includes(key.secret));
+  assert(listed.items.find((item: any) => item.id === key.id).lastUsedAt);
+  const audit = (
+    await pool.query(
+      "SELECT metadata_json FROM audit_events WHERE resource_id=$1 AND action='API_CREDENTIAL_USE'",
+      [key.id],
+    )
+  ).rows;
+  assert(audit.length > 0);
+  assert(!JSON.stringify(audit).includes(key.secret));
+  for (const bad of [
+    { scopes: ["admin"] },
+    { scopes: [] },
+    { expiresInDays: 91 },
+    { scopes: ["invoices:read", "invoices:read"] },
+  ])
+    assert.equal(
+      (
+        await invitationCall(
+          "api-credentials",
+          {
+            name: "Invalid",
+            scopes: ["invoices:read"],
+            expiresInDays: 30,
+            ...bad,
+          },
+          cookie,
+        )
+      ).status,
+      400,
+    );
+  assert.equal(
+    (
+      await invitationCall(
+        "api-credentials",
+        { name: "Denied", scopes: ["invoices:read"], expiresInDays: 30 },
+        cookie,
+        "local-test-b",
+      )
+    ).status,
+    403,
+  );
+});
+test("API credential rotation is atomic, preserves grants, and rejects stale versions and revoked keys", async () => {
+  const cookie = cookieOf(await login(), "session");
+  const key = await (
+    await invitationCall(
+      "api-credentials",
+      { name: "Rotation", scopes: ["invoices:read"], expiresInDays: 1 },
+      cookie,
+    )
+  ).json();
+  const results = await Promise.all(
+    [1, 2].map(() =>
+      invitationCall(
+        `api-credentials/${key.id}/rotate`,
+        { expectedVersion: 1 },
+        cookie,
+      ),
+    ),
+  );
+  assert.deepEqual(results.map((r) => r.status).sort(), [200, 409]);
+  const rotated = await results.find((r) => r.status === 200)!.json();
+  assert.equal(rotated.expiresAt, key.expiresAt);
+  assert.deepEqual(rotated.scopes, key.scopes);
+  assert.equal((await keyCall(key.secret)).status, 401);
+  assert.equal((await keyCall(rotated.secret)).status, 200);
+  assert.equal(
+    (
+      await invitationCall(
+        `api-credentials/${key.id}/revoke`,
+        { expectedVersion: 1 },
+        cookie,
+      )
+    ).status,
+    409,
+  );
+  assert.equal(
+    (
+      await invitationCall(
+        `api-credentials/${key.id}/revoke`,
+        { expectedVersion: 2 },
+        cookie,
+      )
+    ).status,
+    200,
+  );
+  assert.equal((await keyCall(rotated.secret)).status, 401);
+  assert.equal(
+    (
+      await invitationCall(
+        `api-credentials/${key.id}/rotate`,
+        { expectedVersion: 3 },
+        cookie,
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await invitationCall(
+        `api-credentials/${key.id}/revoke`,
+        { expectedVersion: 3 },
+        cookie,
+        "local-test-b",
+      )
+    ).status,
+    403,
+  );
+});
+test("API credentials enforce expiry, configuration binding and current membership role", async () => {
+  const cookie = cookieOf(await login(), "session");
+  const key = await (
+    await invitationCall(
+      "api-credentials",
+      {
+        name: "Authority",
+        scopes: ["invoices:read", "invoices:import"],
+        expiresInDays: 1,
+      },
+      cookie,
+    )
+  ).json();
+  const client = process.env.OIDC_CLIENT_ID;
+  process.env.OIDC_CLIENT_ID = "changed";
+  assert.equal((await keyCall(key.secret)).status, 401);
+  process.env.OIDC_CLIENT_ID = client;
+  await pool.query(
+    "UPDATE memberships SET role='READ_ONLY' WHERE tenant_id='local-demo' AND user_subject=$1",
+    [actor],
+  );
+  try {
+    assert.equal((await keyCall(key.secret)).status, 200);
+    assert.equal(
+      (
+        await keyCall(key.secret, "invoices", "POST", {
+          "content-type": "application/json",
+          "idempotency-key": "role-ceiling",
+        })
+      ).status,
+      403,
+    );
+    await pool.query(
+      "UPDATE memberships SET status='SUSPENDED' WHERE tenant_id='local-demo' AND user_subject=$1",
+      [actor],
+    );
+    assert.equal((await keyCall(key.secret)).status, 403);
+  } finally {
+    await pool.query(
+      "UPDATE memberships SET role='ADMIN',status='ACTIVE' WHERE tenant_id='local-demo' AND user_subject=$1",
+      [actor],
+    );
+  }
+  await pool.query(
+    "UPDATE api_credentials SET expires_at=now()-interval '1 second' WHERE id=$1",
+    [key.id],
+  );
+  assert.equal((await keyCall(key.secret)).status, 401);
+  assert.equal(
+    (
+      await invitationCall(
+        `api-credentials/${key.id}/rotate`,
+        { expectedVersion: 1 },
+        cookie,
+      )
+    ).status,
+    403,
+  );
+});
+test("Machine credentials import idempotently without browser origin and preserve tenant isolation", async () => {
+  const cookie = cookieOf(await login(), "session");
+  const input = {
+    name: "Machine import",
+    scopes: ["invoices:read", "invoices:import"],
+    expiresInDays: 7,
+  };
+  const key = await (
+    await invitationCall("api-credentials", input, cookie)
+  ).json();
+  const invoice = JSON.parse(
+    readFileSync("fixtures/valid/FP-A-001.json", "utf8"),
+  );
+  invoice.source.recordId = randomUUID();
+  const headers = {
+    "content-type": "application/json",
+    "idempotency-key": randomUUID(),
+  };
+  const response = await keyCall(
+    key.secret,
+    "invoices",
+    "POST",
+    headers,
+    invoice,
+  );
+  assert.equal(response.status, 201);
+  const created = await response.json();
+  const replay = await keyCall(
+    key.secret,
+    "invoices",
+    "POST",
+    headers,
+    invoice,
+  );
+  assert.equal(replay.status, 201);
+  assert.deepEqual(await replay.json(), created);
+  await pool.query(
+    "UPDATE memberships SET role='ADMIN',status='ACTIVE' WHERE tenant_id='local-test-b' AND user_subject=$1",
+    [actor],
+  );
+  try {
+    const otherResponse = await invitationCall(
+      "api-credentials",
+      input,
+      cookie,
+      "local-test-b",
+    );
+    assert.equal(otherResponse.status, 201);
+    const other = await otherResponse.json();
+    assert.equal(
+      (await keyCall(other.secret, `invoices/${created.invoiceId}`)).status,
+      404,
+    );
+    assert.equal(
+      (
+        await invitationCall(
+          `api-credentials/${key.id}/revoke`,
+          { expectedVersion: 1 },
+          cookie,
+          "local-test-b",
+        )
+      ).status,
+      404,
+    );
+    await pool.query(
+      "UPDATE api_credentials SET environment='SANDBOX' WHERE id=$1",
+      [key.id],
+    );
+    assert.equal((await keyCall(key.secret)).status, 401);
+  } finally {
+    await pool.query(
+      "UPDATE memberships SET role='READ_ONLY',status='SUSPENDED' WHERE tenant_id='local-test-b' AND user_subject=$1",
+      [actor],
+    );
+  }
+});
 test("Production requires HTTPS and uses host-only secure cookies", () => {
   process.env.FAKTURAPASS_ENV = "PRODUCTION";
   assert.throws(settings);
@@ -898,6 +1216,47 @@ for (const [name, browserType] of [
           .filter({ hasText: recipient })
           .getByText(/Invitation accepted/),
       ).toBeVisible();
+      const keysPanel = tabA.locator("section").filter({
+        has: tabA.getByRole("heading", { name: "API access", exact: true }),
+      });
+      await keysPanel
+        .getByLabel("Name", { exact: true })
+        .fill(`Browser ${name}`);
+      await keysPanel
+        .getByRole("button", { name: "Create API key", exact: true })
+        .click();
+      const secretInput = keysPanel.getByLabel("New API key", { exact: true });
+      await expect(secretInput).toBeVisible();
+      const firstSecret = await secretInput.inputValue();
+      assert.equal((await keyCall(firstSecret)).status, 200);
+      await secretInput.evaluate((element) => {
+        (element as HTMLInputElement).value = "[hidden for screenshot]";
+      });
+      await keysPanel.screenshot({
+        path: `test-results/api-credentials-${name.toLowerCase()}.png`,
+      });
+      const keyCard = keysPanel
+        .locator("article")
+        .filter({ hasText: `Browser ${name}` });
+      await keyCard
+        .getByRole("button", { name: "Replace key", exact: true })
+        .click();
+      await keysPanel
+        .getByRole("button", { name: "Confirm change", exact: true })
+        .click();
+      await expect(secretInput).not.toHaveValue(firstSecret);
+      const secondSecret = await secretInput.inputValue();
+      assert.equal((await keyCall(firstSecret)).status, 401);
+      assert.equal((await keyCall(secondSecret)).status, 200);
+      await keyCard
+        .getByRole("button", { name: "Revoke access", exact: true })
+        .click();
+      await keysPanel
+        .getByRole("button", { name: "Confirm change", exact: true })
+        .click();
+      await expect(keyCard.getByText(/Revoked/)).toBeVisible();
+      assert.equal((await keyCall(secondSecret)).status, 401);
+      await expect(secretInput).toHaveCount(0);
       await pool.query(
         "UPDATE memberships SET status='SUSPENDED' WHERE tenant_id='local-test-b' AND user_subject=$1",
         [actor],
