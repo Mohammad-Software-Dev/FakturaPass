@@ -6,7 +6,7 @@ FakturaPass supports configurable OpenID Connect authorization-code sign-in. App
 
 Set `AUTH_MODE=oidc`, `FAKTURAPASS_ENV`, `APP_ORIGIN`, `OIDC_ISSUER`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` in the server secret environment. Register the exact callback `${APP_ORIGIN}/api/v1/auth/callback` with the provider. Use a confidential web application with code flow and client-secret POST authentication. The issuer must exactly match the discovery issuer, including its trailing slash. Ordinary sign-in requests `openid`. Invitation sign-in requests `openid email` and requires the provider to include the invited email and boolean `email_verified: true` in the signed ID token.
 
-HTTPS is required. HTTP loopback URLs are accepted only in LOCAL for isolated testing. LOCAL browser identities and bearer tokens cannot bypass OIDC when that mode is enabled. API keys are not yet implemented. Keep the ordinary local developer setup without AUTH_MODE for the existing local workspace.
+HTTPS is required. HTTP loopback URLs are accepted only in LOCAL for isolated testing. LOCAL browser identities and bearer tokens cannot bypass OIDC when that mode is enabled. Scoped API credentials are implemented for OIDC workspaces; see [API credentials](API_CREDENTIALS.md) for permissions, expiry, rotation and recovery. Keep the ordinary local developer setup without AUTH_MODE for the existing local workspace.
 
 ## Provisioning an initial member
 

@@ -103,3 +103,11 @@ Mara’s studio is ready for Jonas to help review invoices. In **Team access**, 
 Jonas opens the link and sees the studio name, his invited email, the role and the expiry time. He chooses **Sign in and join** and uses the account whose email is verified by the studio’s sign-in service. His workspace opens. He can review invoices and download evidence; his invitation does not give him editing or approval rights.
 
 Mara refreshes the invitation list and sees **Invitation accepted**. Later, she can change Jonas’s role through the existing team controls. If she invited the wrong address, she can revoke the pending invitation. If the link expires, creating another one gives Jonas a fresh link and disables the old pending link. An invitation cannot restore a suspended colleague or silently change an existing colleague’s permissions.
+
+## A quiet connection to the accounting system
+
+Clara wants her accounting software to retrieve approved invoice files. Signed in as an administrator, she opens Team, then API access. She names the connection “Accounting export”, keeps only “Read invoices and evidence” selected and chooses its expiry. She copies the new key once into her integration's secure settings, then hides it. The software sends the key in its X-API-Key header and follows the invoice's existing status to download available artifacts. It cannot approve invoices, import data or change the team with this read-only key.
+
+Later, Clara adds an import integration with the separate import permission. It sends an idempotency key with each invoice, and the invoice appears in the usual review workflow. Validation, approval and generation remain distinct steps; Clara grants their permissions only if the integration should perform them and its owner's team role allows them.
+
+Before a key expires, Clara prepares a replacement connection. For an immediate secret change, she selects Replace key, confirms that the old secret will stop working and updates her software with the newly displayed secret. The original expiry and permissions remain unchanged. For a gradual changeover or a new expiry, she creates a separate key, switches the software and then revokes the original. When an integration is retired, Revoke access ends its future requests. The list shows its status and last use, so she can see what happened without ever recovering an old secret.

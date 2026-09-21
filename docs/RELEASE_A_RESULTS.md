@@ -124,3 +124,15 @@ New coverage verifies atomic organization bootstrap and duplicate-ID rejection; 
 Migration 010 was applied locally and all 21 existing invoices were preserved. Recovery verification includes organization invitations and login-transaction bindings. Pending invitation links must be revoked before a restored database is promoted; see RECOVERY.md.
 
 Organization setup is operator-assisted and invitation links are shared manually. No emails were sent and no provider account or production deployment was created. Live provider claim/MFA/recovery acceptance, automated email delivery, self-service/commercial onboarding, scoped API credentials and support grants remain open.
+
+## Scoped API credentials — 21 September 2026
+
+The complete final verification run passed 117 tests: 29 domain/localization tests, 11 database/validator integration tests, 7 API suites, 52 invoice browser tests, 16 identity/onboarding/credential tests and 2 recovery tests. Formatting, TypeScript, ESLint, the 38-operation contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+Credential coverage verifies hash-only storage and one-time secret responses, explicit operation scope checks, rejection of access administration and unknown endpoints, no invalid-key fallback to browser sessions, workspace isolation, current owner role and suspension enforcement, expiry and authority/environment binding, admitted-use auditing and last-use timestamps, atomic rotation under concurrent requests, stale-version rejection and revocation. Machine credentials import invoices without a browser Origin, preserve idempotent replay and cannot read another workspace's invoice. Chromium and WebKit exercise creation, replacement and revocation through the mobile dark Team interface; its layout was visually inspected with the secret hidden.
+
+An initial full run passed all 52 invoice browser cases but exposed a setup error in the new cross-workspace test: its second membership remained suspended from an earlier case. The fixture now explicitly activates and later restores that membership, and checks credential creation before use. The final complete run passed with this correction.
+
+Migration 011 was applied locally; all 21 existing invoices remain and the app reports ready. Recovery acceptance includes the credential table. Operators must revoke restored credentials before cutover to prevent a backup from reviving a subsequently rotated or revoked secret. The usage guide includes the integration lifecycle story.
+
+Credential management requires configured OIDC administrator sign-in; the ordinary local development identity does not expose these controls. No live identity provider, production MFA policy, deployment or paid service was configured. Next stage-1 work is explicitly authorized, time-bound support grants and remaining onboarding/offboarding acceptance.

@@ -26,7 +26,7 @@ Next increments within stage 1:
 1. Auth0 EU recommendation is recorded; owner review, plan/MFA/privacy checks and live-provider acceptance remain pending.
 2. Configurable OIDC sign-in, app logout, secure sessions and expiry are implemented and pass isolated-issuer/browser tests. Application authorization remains in membership records. Accept the configured live provider before production use.
 3. Operator-assisted organization bootstrap, verified invitation links and explicit tenant selection are implemented. Self-service/commercial onboarding and live-provider acceptance remain open. Bind subjects to the verified issuer/subject pair; never link accounts solely by an unverified email address.
-4. Implement scoped API credentials with one-time secret display, hash-only persistence, expiry/rotation/revocation and environment separation.
+4. Scoped API credentials are implemented with one-time secret display, hash-only persistence, expiry/rotation/revocation, current owner role enforcement and environment separation. Acceptance evidence is recorded in RELEASE_A_RESULTS.md.
 5. Add explicitly authorized, time-bound support access and finish onboarding/offboarding acceptance.
 
 ## Decisions and external inputs
@@ -41,7 +41,7 @@ Provider-independent engineering should continue while decisions are pending. As
 
 ## Progress accounting
 
-Current evidence: 113 tests passed in the complete verification run, alongside the 34-operation contract, production build and local recovery acceptance. Stage 1 now includes the configurable OIDC adapter, explicit workspace selection, operator organization bootstrap and verified invitation links. Twelve identity/onboarding checks include Chromium and WebKit multi-tab editing, invitation acceptance and sign-out. Live-provider identity acceptance remains open. Completed: the local JSON/CSV → correction → validation → approval → XRechnung/evidence workflow, versioned recipient requirements, self-assigned review queue, bilingual appearance and local snapshot/restore tooling. Partial: original FP-003/004/008–011/018–020. Not yet delivered: email, webhooks, credit notes, ZUGFeRD, visual mapping editor, billing and production launch.
+Current evidence: 117 tests passed in the complete verification run, alongside the 38-operation contract, production build and local recovery acceptance. Stage 1 now includes the configurable OIDC adapter, explicit workspace selection, operator organization bootstrap, verified invitation links and scoped API credentials. Sixteen identity/onboarding checks include Chromium and WebKit multi-tab editing, invitation acceptance and sign-out. Live-provider identity acceptance remains open. Completed: the local JSON/CSV → correction → validation → approval → XRechnung/evidence workflow, versioned recipient requirements, self-assigned review queue, bilingual appearance and local snapshot/restore tooling. Partial: original FP-003/004/008–011/018–020. Not yet delivered: email, webhooks, credit notes, ZUGFeRD, visual mapping editor, billing and production launch.
 
 SFTP, Peppol, multi-entity/partner console, assisted PDF conversion, manual authoring and additional countries remain conditional extensions. They are not silently added to the core v1 completion gate.
 
@@ -63,4 +63,10 @@ Organization creation and verified invitations are delivered in the following co
 
 Added atomic operator-created organizations with their first verified administrator, plus administrator-created invitation links with expiry, replacement, revocation and acceptance history. Recipients accept through provider-verified email and issuer/subject identity. Existing permissions and suspensions are preserved. Links are shared manually; no email service is configured or used.
 
-Next stage-1 work: scoped API credentials with one-time secret display, expiry, rotation and revocation; then explicitly authorized support grants. Self-service/commercial onboarding, live-provider claims/MFA acceptance, email delivery and production operations remain open. See ORGANIZATION_ONBOARDING.md for setup and security behavior.
+Scoped API credentials are delivered in the following continuation; explicitly authorized support grants remain next. Self-service/commercial onboarding, live-provider claims/MFA acceptance, email delivery and production operations remain open. See ORGANIZATION_ONBOARDING.md for setup and security behavior.
+
+## Scoped API credentials continuation — 21 September 2026
+
+Implemented OIDC administrator credential management with explicit operation scopes, hash-only storage, bounded expiry, owner-only atomic rotation, workspace-wide administrator revocation and admitted-use audit history. Keys remain limited by current active owner membership and cannot administer access. Bilingual Team controls include one-time secret display and confirmation of replacement/revocation. See API_CREDENTIALS.md and ADR 0016.
+
+Next: explicitly authorized, time-bound support grants, then remaining onboarding/offboarding acceptance. Live-provider acceptance and the external production decisions remain open.
