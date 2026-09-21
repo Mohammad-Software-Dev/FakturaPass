@@ -25,7 +25,14 @@ async function identity(
 ): Promise<service.Context> {
   if (oidcEnabled()) {
     if (!["GET", "HEAD"].includes(req.method)) requireOrigin(req);
-    return sessionContext(req.headers.get("cookie"), requestId);
+    const url = new URL(req.url);
+    const header = req.headers.get("X-Workspace-Id");
+    const query = url.searchParams.getAll("workspace");
+    if (query.length > 1 || (header && query.length && header !== query[0]))
+      throw new service.ApiError("ACCESS_DENIED", 403);
+    const workspace = header ?? (req.method === "GET" ? query[0] : undefined);
+    if (!workspace) throw new service.ApiError("ACCESS_DENIED", 403);
+    return sessionContext(req.headers.get("cookie"), requestId, workspace);
   }
   if (process.env.FAKTURAPASS_ENV !== "LOCAL")
     throw new service.ApiError("AUTH_REQUIRED", 401);

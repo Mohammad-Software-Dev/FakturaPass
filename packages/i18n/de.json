@@ -503,5 +503,10 @@
   "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.": "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
   "Sie sind von FakturaPass abgemeldet.": "Sie sind von FakturaPass abgemeldet.",
   "Sicher anmelden": "Sicher anmelden",
-  "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet.": "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet."
+  "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet.": "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet.",
+  "Arbeitsbereich wechseln": "Arbeitsbereich wechseln",
+  "Wählen Sie Ihren Arbeitsbereich": "Wählen Sie Ihren Arbeitsbereich",
+  "Jeder Arbeitsbereich hat eigene Rechnungen und Zugriffsrechte.": "Jeder Arbeitsbereich hat eigene Rechnungen und Zugriffsrechte.",
+  "Arbeitsbereiche": "Arbeitsbereiche",
+  "Sie haben derzeit keinen aktiven Arbeitsbereich. Bitte wenden Sie sich an Ihre Administration.": "Sie haben derzeit keinen aktiven Arbeitsbereich. Bitte wenden Sie sich an Ihre Administration."
 }

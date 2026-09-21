@@ -123,6 +123,10 @@ before(async () => {
   });
   actor = principalActor(issuer, subject);
   await pool.query(
+    "INSERT INTO memberships(id,tenant_id,user_subject,role,status) VALUES($1,'local-demo','workspace-tab-target','READ_ONLY','ACTIVE')",
+    [randomUUID()],
+  );
+  await pool.query(
     "INSERT INTO memberships(id,tenant_id,user_subject,role,status) VALUES($1,'local-demo',$2,'ADMIN','ACTIVE')",
     [randomUUID(), actor],
   );
@@ -137,10 +141,15 @@ function call(
   method = "GET",
   cookie = "",
   requestOrigin = origin,
+  workspace = "local-demo",
 ) {
   const req = new Request(origin + "/api/v1/" + path, {
     method,
-    headers: { cookie, origin: requestOrigin },
+    headers: {
+      cookie,
+      origin: requestOrigin,
+      ...(workspace ? { "X-Workspace-Id": workspace } : {}),
+    },
   });
   return (method === "GET" ? GET : POST)(req, {
     params: Promise.resolve({ path: path.split("?")[0].split("/") }),
@@ -231,7 +240,7 @@ test("Membership suspension, session expiry and authority changes revoke access"
   assert.match((await login()).headers.get("location")!, /error=access/);
   subject = "approved-user";
 });
-test("Expired login, missing browser binding and ambiguous tenant access fail closed", async () => {
+test("Expired login and missing browser binding fail closed; multiple memberships require a choice", async () => {
   const a = await attempt();
   assert.match((await call(a.path)).headers.get("location")!, /error=failed/);
   await pool.query(
@@ -254,9 +263,95 @@ test("Expired login, missing browser binding and ambiguous tenant access fail cl
     "INSERT INTO memberships(id,tenant_id,user_subject,role,status) VALUES($1,'local-test-b',$2,'READ_ONLY','ACTIVE')",
     [randomUUID(), actor],
   );
-  assert.match((await login()).headers.get("location")!, /error=access/);
+  assert.equal((await login()).headers.get("location"), origin + "/workspaces");
   await pool.query(
     "UPDATE memberships SET status='SUSPENDED' WHERE tenant_id='local-test-b' AND user_subject=$1",
+    [actor],
+  );
+});
+test("Explicit workspace requests isolate tabs, permissions and suspended memberships", async () => {
+  await pool.query(
+    "UPDATE memberships SET status='ACTIVE' WHERE tenant_id='local-test-b' AND user_subject=$1",
+    [actor],
+  );
+  const result = await login(),
+    cookie = cookieOf(result, "session");
+  assert.equal(result.headers.get("location"), origin + "/workspaces");
+  const available = await (await call("auth/workspaces", "GET", cookie)).json();
+  assert.deepEqual(
+    available.items.map((item: { id: string }) => item.id).sort(),
+    ["local-demo", "local-test-b"],
+  );
+  assert.equal(
+    (await call("memberships", "GET", cookie, origin, "local-demo")).status,
+    200,
+  );
+  assert.equal(
+    (await call("memberships", "GET", cookie, origin, "local-test-b")).status,
+    403,
+  );
+  assert.equal(
+    (await call("invoices", "GET", cookie, origin, "unknown")).status,
+    403,
+  );
+  assert.equal((await call("invoices", "GET", cookie, origin, "")).status, 403);
+  assert.equal(
+    (
+      await call(
+        "invoices?workspace=local-test-b",
+        "GET",
+        cookie,
+        origin,
+        "local-demo",
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await call(
+        "invoices?workspace=local-test-b&workspace=local-demo",
+        "GET",
+        cookie,
+        origin,
+        "",
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (await call("invoices?workspace=local-test-b", "GET", cookie, origin, ""))
+      .status,
+    200,
+  );
+  await pool.query(
+    "UPDATE memberships SET status='SUSPENDED' WHERE tenant_id='local-demo' AND user_subject=$1",
+    [actor],
+  );
+  assert.equal((await call("invoices", "GET", cookie)).status, 403);
+  assert.equal(
+    (await call("invoices", "GET", cookie, origin, "local-test-b")).status,
+    200,
+  );
+  assert.equal(
+    (await (await call("auth/workspaces", "GET", cookie)).json()).items.length,
+    1,
+  );
+  await pool.query(
+    "UPDATE memberships SET status='SUSPENDED' WHERE user_subject=$1",
+    [actor],
+  );
+  assert.equal(
+    (await (await call("auth/workspaces", "GET", cookie)).json()).items.length,
+    0,
+  );
+  assert.equal(
+    (await call("invoices?workspace=local-test-b", "POST", cookie, origin, ""))
+      .status,
+    403,
+  );
+  await pool.query(
+    "UPDATE memberships SET status=CASE WHEN tenant_id='local-demo' THEN 'ACTIVE' ELSE 'SUSPENDED' END WHERE user_subject=$1",
     [actor],
   );
 });
@@ -315,9 +410,10 @@ for (const [name, browserType] of [
     }
     const browser = await browserType.launch();
     try {
-      const page = await browser.newPage({
+      const context = await browser.newContext({
         viewport: { width: 390, height: 844 },
       });
+      const page = await context.newPage();
       await page.goto(origin);
       await expect(page).toHaveURL(/sign-in/);
       await page.getByRole("combobox").selectOption("en");
@@ -340,6 +436,81 @@ for (const [name, browserType] of [
             `${error.message} URL=${page.url()} BODY=${await page.locator("body").innerText()}`,
           );
         });
+      await pool.query(
+        "UPDATE memberships SET status='ACTIVE' WHERE tenant_id='local-test-b' AND user_subject=$1",
+        [actor],
+      );
+      const tabA = await page.context().newPage();
+      const requestA = tabA.waitForRequest((r) =>
+        r.url().includes("/api/v1/invoices"),
+      );
+      await tabA.goto(origin + "/?workspace=local-demo");
+      assert.equal((await requestA).headers()["x-workspace-id"], "local-demo");
+      await page.getByRole("link", { name: "Switch workspace" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Choose your workspace" }),
+      ).toBeVisible();
+      await page.screenshot({
+        path: `test-results/workspaces-${name.toLowerCase()}.png`,
+        fullPage: true,
+      });
+      const requestB = page.waitForRequest((r) =>
+        r.url().includes("/api/v1/invoices"),
+      );
+      await page.locator('a[href="/?workspace=local-test-b"]').click();
+      assert.equal(
+        (await requestB).headers()["x-workspace-id"],
+        "local-test-b",
+      );
+      await expect(tabA).toHaveURL(/workspace=local-demo/);
+      const tabARequest = tabA.waitForRequest((r) =>
+        r.url().includes("/api/v1/memberships"),
+      );
+      await tabA
+        .getByRole("button", { name: "Team access", exact: true })
+        .click();
+      assert.equal(
+        (await tabARequest).headers()["x-workspace-id"],
+        "local-demo",
+      );
+      const target = tabA.locator(".team-member").filter({
+        has: tabA.getByRole("heading", {
+          name: "workspace-tab-target",
+          exact: true,
+        }),
+      });
+      await target.getByLabel("Role", { exact: true }).selectOption("OPERATOR");
+      const writeA = tabA.waitForRequest(
+        (r) =>
+          r.method() === "POST" && r.url().includes("/api/v1/memberships/"),
+      );
+      await target
+        .getByRole("button", { name: "Save access", exact: true })
+        .click();
+      assert.equal((await writeA).headers()["x-workspace-id"], "local-demo");
+      await expect(
+        target.getByText("Operator · Active", { exact: true }),
+      ).toBeVisible();
+      const changed = (
+        await pool.query(
+          "SELECT tenant_id,role FROM memberships WHERE user_subject='workspace-tab-target'",
+        )
+      ).rows;
+      assert.deepEqual(changed, [
+        { tenant_id: "local-demo", role: "OPERATOR" },
+      ]);
+      await pool.query(
+        "UPDATE memberships SET role='READ_ONLY' WHERE user_subject='workspace-tab-target'",
+      );
+      await pool.query(
+        "UPDATE memberships SET status='SUSPENDED' WHERE tenant_id='local-test-b' AND user_subject=$1",
+        [actor],
+      );
+      await page.goto(origin + "/?workspace=local-test-b");
+      await expect(page).toHaveURL(/workspaces/);
+      await expect(
+        page.locator('a[href="/?workspace=local-test-b"]'),
+      ).toHaveCount(0);
       await page
         .getByRole("button", { name: "Sign out of FakturaPass" })
         .click();

@@ -1,4 +1,5 @@
 "use client";
+import { workspaceFetch } from "./workspace-request";
 import { useEffect, useState } from "react";
 import { useLanguage } from "./language";
 import { apiErrorKeys } from "../../../packages/i18n";
@@ -90,7 +91,7 @@ export function Team() {
   useEffect(() => {
     const controller = new AbortController();
     setBusy(true);
-    fetch("/api/v1/memberships", { signal: controller.signal })
+    workspaceFetch("/api/v1/memberships", { signal: controller.signal })
       .then(async (r) => {
         const body = await r.json();
         if (!r.ok) throw Error(body.error?.code || "INTERNAL_ERROR");
@@ -112,11 +113,18 @@ export function Team() {
     setError("");
     setNotice(false);
     try {
-      const response = await fetch(`/api/v1/memberships/${member.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, status, expectedVersion: member.version }),
-      });
+      const response = await workspaceFetch(
+        `/api/v1/memberships/${member.id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            role,
+            status,
+            expectedVersion: member.version,
+          }),
+        },
+      );
       const body = await response.json();
       if (!response.ok) throw Error(body.error?.code || "INTERNAL_ERROR");
       setNotice(true);

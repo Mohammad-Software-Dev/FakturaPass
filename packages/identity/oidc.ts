@@ -148,7 +148,7 @@ export async function finishLogin(request: Request) {
         [actor],
       )
     ).rows;
-    if (members.length !== 1) throw new ApiError("ACCESS_DENIED", 403);
+    if (members.length === 0) throw new ApiError("ACCESS_DENIED", 403);
     await resolveMembership(members[0].tenant_id, actor, db);
     const old = readCookie(
       request.headers.get("cookie"),
@@ -164,7 +164,7 @@ export async function finishLogin(request: Request) {
       [
         sha256(sessionToken),
         s.authority,
-        members[0].tenant_id,
+        members.length === 1 ? members[0].tenant_id : null,
         actor,
         s.environment,
       ],
@@ -176,10 +176,7 @@ export async function finishLogin(request: Request) {
   });
   return authCookie("session", sessionToken, 28800);
 }
-export async function sessionContext(
-  rawCookie: string | null,
-  requestId: string,
-): Promise<Context> {
+export async function sessionIdentity(rawCookie: string | null) {
   const s = settings(),
     value = readCookie(rawCookie, cookieName("session"));
   if (!value) throw new ApiError("AUTH_REQUIRED", 401);
@@ -191,10 +188,34 @@ export async function sessionContext(
   ).rows[0];
   if (!row) throw new ApiError("AUTH_REQUIRED", 401);
   return {
-    tenantId: row.tenant_id,
-    actor: row.actor_subject,
-    role: await resolveMembership(row.tenant_id, row.actor_subject),
+    actor: row.actor_subject as string,
     environment: s.environment,
+    tenantId: row.tenant_id as string | null,
+  };
+}
+export async function sessionWorkspaces(rawCookie: string | null) {
+  const identity = await sessionIdentity(rawCookie);
+  const items = (
+    await pool.query(
+      "SELECT t.id,t.name,m.role FROM memberships m JOIN tenants t ON t.id=m.tenant_id WHERE m.user_subject=$1 AND m.status='ACTIVE' ORDER BY t.name,t.id",
+      [identity.actor],
+    )
+  ).rows as { id: string; name: string; role: Context["role"] }[];
+  return { items };
+}
+export async function sessionContext(
+  rawCookie: string | null,
+  requestId: string,
+  workspace: string,
+): Promise<Context> {
+  const identity = await sessionIdentity(rawCookie);
+  const tenantId = workspace;
+  if (!tenantId) throw new ApiError("ACCESS_DENIED", 403);
+  return {
+    tenantId,
+    actor: identity.actor,
+    role: await resolveMembership(tenantId, identity.actor),
+    environment: identity.environment,
     requestId,
   };
 }

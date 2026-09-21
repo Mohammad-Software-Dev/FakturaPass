@@ -1,4 +1,5 @@
 "use client";
+import { workspaceFetch } from "./workspace-request";
 import { useCallback, useEffect, useState } from "react";
 import { useLanguage } from "./language";
 import { apiErrorKeys } from "../../../packages/i18n";
@@ -53,7 +54,9 @@ export function ReviewQueue({
   useEffect(() => {
     const controller = new AbortController();
     setBusy(true);
-    fetch(`/api/v1/review-queue?${query()}`, { signal: controller.signal })
+    workspaceFetch(`/api/v1/review-queue?${query()}`, {
+      signal: controller.signal,
+    })
       .then(async (r) => {
         const body = await r.json();
         if (!r.ok) throw Error(body.error?.code || "INTERNAL_ERROR");
@@ -71,7 +74,7 @@ export function ReviewQueue({
     setBusy(true);
     setError("");
     try {
-      const response = await fetch(
+      const response = await workspaceFetch(
         `/api/v1/review-queue/${item.invoiceId}/assignment`,
         {
           method: "POST",

@@ -2388,3 +2388,34 @@ td,
 .sign-in-card p {
   margin: 20px 0;
 }
+.workspace-choices {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+}
+.workspace-choices a {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--surface);
+}
+.workspace-choices a:hover {
+  border-color: var(--detail-accent);
+}
+.workspace-choices span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.workspace-switch {
+  color: var(--ink);
+  font-size: 12px;
+}
+.topbar {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 68px;
+}

@@ -7,6 +7,7 @@ const spec = YAML.parse(
 );
 assert.equal(spec.openapi, "3.1.0");
 const expected = [
+  "oidcWorkspaces",
   "oidcLogin",
   "oidcCallback",
   "oidcLogout",

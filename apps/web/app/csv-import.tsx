@@ -1,4 +1,5 @@
 "use client";
+import { workspaceFetch } from "./workspace-request";
 import { useEffect, useState } from "react";
 import { useLanguage } from "./language";
 import { InvoiceReview } from "./invoice-review";
@@ -16,7 +17,7 @@ export function CsvImport({ onOpen }: { onOpen: (id: string) => void }) {
     [busy, setBusy] = useState(false),
     [key, setKey] = useState("");
   async function call(path: string, data?: unknown) {
-    const response = await fetch(
+    const response = await workspaceFetch(
       `/api/v1/${path}`,
       data
         ? {
@@ -39,7 +40,7 @@ export function CsvImport({ onOpen }: { onOpen: (id: string) => void }) {
     return body;
   }
   useEffect(() => {
-    fetch("/api/v1/mapping-recipes")
+    workspaceFetch("/api/v1/mapping-recipes")
       .then((r) => {
         if (!r.ok) throw Error();
         return r.json();

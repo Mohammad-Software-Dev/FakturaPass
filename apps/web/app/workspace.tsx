@@ -1,4 +1,5 @@
 "use client";
+import { workspaceFetch, workspaceHref } from "./workspace-request";
 import { Team } from "./team";
 import { ReviewQueue } from "./review-queue";
 import {
@@ -82,7 +83,7 @@ function Badge({ status }: { status: string }) {
   );
 }
 async function api(path: string, body?: unknown, key?: string, raw?: string) {
-  const response = await fetch(
+  const response = await workspaceFetch(
     `/api/v1/${path}`,
     body === undefined
       ? { headers: { "Accept-Language": document.documentElement.lang } }
@@ -111,9 +112,13 @@ async function api(path: string, body?: unknown, key?: string, raw?: string) {
 export default function Workspace({
   fixtures,
   signedIn = false,
+  workspaceId,
+  workspaceName,
 }: {
   fixtures: Fixture[];
   signedIn?: boolean;
+  workspaceId?: string;
+  workspaceName?: string;
 }) {
   const { t, locale, intlLocale, money, date, decimal } = useLanguage();
   const [view, setView] = useState("invoices"),
@@ -159,7 +164,7 @@ export default function Workspace({
     load()
       .catch(setError)
       .finally(() => setLoading(false));
-    fetch("/api/v1/health/ready")
+    workspaceFetch("/api/v1/health/ready")
       .then((r) => setHealth(r.ok))
       .catch(() => setHealth(false));
   }, [load]);
@@ -420,10 +425,10 @@ export default function Workspace({
           </p>
         </div>
       </aside>
-      <div className="main-shell">
+      <div className="main-shell" data-workspace-id={workspaceId}>
         <header className="topbar">
           <div className="breadcrumb">
-            {t("Arbeitsbereich")} <ChevronRight size={14} />{" "}
+            {workspaceName ?? t("Arbeitsbereich")} <ChevronRight size={14} />{" "}
             <strong>
               {view === "detail"
                 ? t("Rechnungsdetails")
@@ -440,6 +445,11 @@ export default function Workspace({
                           : t("Rechnungen")}
             </strong>
           </div>
+          {signedIn && (
+            <a className="workspace-switch" href="/workspaces">
+              {t("Arbeitsbereich wechseln")}
+            </a>
+          )}
           {signedIn && (
             <form action="/api/v1/auth/logout" method="post">
               <button className="secondary">
@@ -1104,7 +1114,10 @@ export default function Workspace({
                       {r.status === "ARTIFACT_VALIDATED" && r.artifacts[0] && (
                         <a
                           className="primary"
-                          href={`/api/v1/artifacts/${r.artifacts[0].artifactId}/download`}
+                          href={workspaceHref(
+                            `/api/v1/artifacts/${r.artifacts[0].artifactId}/download`,
+                            workspaceId,
+                          )}
                         >
                           <Download size={17} />
                           {t("XML herunterladen")}{" "}
@@ -1532,7 +1545,10 @@ export default function Workspace({
                           </div>
                           <a
                             className="secondary"
-                            href={`/api/v1/artifacts/${a.artifactId}/download`}
+                            href={workspaceHref(
+                              `/api/v1/artifacts/${a.artifactId}/download`,
+                              workspaceId,
+                            )}
                           >
                             <Download size={16} />
                             XML
@@ -1566,7 +1582,10 @@ export default function Workspace({
                         </div>
                         <a
                           className="secondary"
-                          href={`/api/v1/invoices/${selected.invoiceId}/evidence?revisionId=${r.revisionId}`}
+                          href={workspaceHref(
+                            `/api/v1/invoices/${selected.invoiceId}/evidence?revisionId=${r.revisionId}`,
+                            workspaceId,
+                          )}
                         >
                           <Download size={16} />
                           {t("Nachweis")}{" "}

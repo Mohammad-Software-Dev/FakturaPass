@@ -503,5 +503,10 @@
   "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.": "Sign-in could not be completed. Please try again.",
   "Sie sind von FakturaPass abgemeldet.": "You are signed out of FakturaPass.",
   "Sicher anmelden": "Sign in securely",
-  "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet.": "You will be redirected to your organization’s sign-in service."
+  "Sie werden zur Anmeldung Ihres Unternehmens weitergeleitet.": "You will be redirected to your organization’s sign-in service.",
+  "Arbeitsbereich wechseln": "Switch workspace",
+  "Wählen Sie Ihren Arbeitsbereich": "Choose your workspace",
+  "Jeder Arbeitsbereich hat eigene Rechnungen und Zugriffsrechte.": "Each workspace has its own invoices and access permissions.",
+  "Arbeitsbereiche": "Workspaces",
+  "Sie haben derzeit keinen aktiven Arbeitsbereich. Bitte wenden Sie sich an Ihre Administration.": "You currently have no active workspace. Please contact your administrator."
 }

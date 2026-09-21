@@ -686,6 +686,59 @@ for (const [action, method] of [
     },
   };
 }
+paths["/auth/workspaces"] = {
+  get: {
+    operationId: "oidcWorkspaces",
+    description:
+      "List only active memberships for the verified session identity. Does not change the workspace of other tabs.",
+    security: [{ browserSession: [] }],
+    parameters: [],
+    responses: {
+      "200": {
+        description: "Available workspaces",
+        content: content(
+          object({
+            items: {
+              type: "array",
+              items: object({
+                id: str,
+                name: str,
+                role: { enum: ["ADMIN", "OPERATOR", "APPROVER", "READ_ONLY"] },
+              }),
+            },
+          }),
+        ),
+      },
+      "401": { description: "Session missing or expired" },
+      "404": { description: "OIDC disabled" },
+    },
+  },
+};
+for (const [path, methods] of Object.entries(paths)) {
+  if (path.startsWith("/auth") || path.startsWith("/health")) continue;
+  for (const [method, operation] of Object.entries(methods) as [
+    string,
+    any,
+  ][]) {
+    operation.parameters.push({
+      name: "X-Workspace-Id",
+      in: "header",
+      required: false,
+      schema: str,
+      description:
+        "Required in OIDC mode. Explicit tab workspace; active membership is checked on every request. LOCAL identities remain server-scoped.",
+    });
+    if (method === "get")
+      operation.parameters.push({
+        name: "workspace",
+        in: "query",
+        required: false,
+        schema: str,
+        description:
+          "OIDC navigation/download alternative to X-Workspace-Id. Conflicting or repeated selectors are rejected.",
+      });
+  }
+}
 const spec = {
   openapi: "3.1.0",
   info: {

@@ -39,6 +39,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
           description: Successful operation
@@ -147,6 +155,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -240,6 +264,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -338,6 +378,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -432,6 +488,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
           description: Successful operation
@@ -538,6 +602,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "202":
           description: Successful operation
@@ -637,6 +709,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -735,6 +823,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
           description: Successful operation
@@ -841,6 +937,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "202":
           description: Successful operation
@@ -940,6 +1044,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -1033,6 +1153,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -1131,6 +1267,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -1224,6 +1376,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -1502,6 +1670,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -1596,6 +1780,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
           description: Successful operation
@@ -1690,6 +1882,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -1777,6 +1985,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "201":
           description: Successful operation
@@ -1876,6 +2092,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -1964,6 +2196,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -2052,6 +2300,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
           description: Successful operation
@@ -2154,6 +2410,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
           description: Successful operation
@@ -2248,6 +2512,22 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
       responses:
         "200":
           description: Successful operation
@@ -2343,6 +2623,14 @@ paths:
             display labels. Supports de and en (including regional tags and
             quality weights), default de. Codes, invoice data, XML and saved
             evidence are language-independent.
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
       responses:
         "200":
           description: Successful operation
@@ -2503,6 +2791,50 @@ paths:
                 format: uri
         "403":
           description: Origin rejected
+        "404":
+          description: OIDC disabled
+  /auth/workspaces:
+    get:
+      operationId: oidcWorkspaces
+      description:
+        List only active memberships for the verified session identity.
+        Does not change the workspace of other tabs.
+      security:
+        - browserSession: []
+      parameters: []
+      responses:
+        "200":
+          description: Available workspaces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        role:
+                          enum:
+                            - ADMIN
+                            - OPERATOR
+                            - APPROVER
+                            - READ_ONLY
+                      required:
+                        - id
+                        - name
+                        - role
+                      additionalProperties: false
+                required:
+                  - items
+                additionalProperties: false
+        "401":
+          description: Session missing or expired
         "404":
           description: OIDC disabled
 components:

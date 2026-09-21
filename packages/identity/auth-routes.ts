@@ -7,6 +7,7 @@ import {
   oidcEnabled,
   requireOrigin,
   settings,
+  sessionWorkspaces,
 } from "./oidc";
 export async function authRoute(request: Request, action: string) {
   if (!oidcEnabled()) throw new ApiError("RESOURCE_NOT_FOUND", 404);
@@ -20,6 +21,11 @@ export async function authRoute(request: Request, action: string) {
         "Referrer-Policy": "no-referrer",
       },
     });
+  if (action === "workspaces" && request.method === "GET")
+    return Response.json(
+      await sessionWorkspaces(request.headers.get("cookie")),
+      { headers: { "Cache-Control": "no-store" } },
+    );
   if (action === "login" && request.method === "POST") {
     requireOrigin(request);
     try {
@@ -35,7 +41,11 @@ export async function authRoute(request: Request, action: string) {
     let response: Response;
     try {
       const cookie = await finishLogin(request);
-      response = redirect("/");
+      response = redirect(
+        (await sessionWorkspaces(cookie)).items.length > 1
+          ? "/workspaces"
+          : "/",
+      );
       response.headers.append("Set-Cookie", cookie);
     } catch (error) {
       response = redirect(

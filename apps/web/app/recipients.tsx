@@ -1,4 +1,5 @@
 "use client";
+import { workspaceFetch } from "./workspace-request";
 import { useEffect, useState } from "react";
 import { useLanguage } from "./language";
 import { apiErrorKeys } from "../../../packages/i18n";
@@ -111,7 +112,7 @@ export function Recipients({ onChanged }: { onChanged: () => void }) {
     [attest, setAttest] = useState(false),
     [saved, setSaved] = useState(false);
   async function call(path: string, body?: any) {
-    const r = await fetch(
+    const r = await workspaceFetch(
       `/api/v1/recipient-profiles${path}`,
       body
         ? {
