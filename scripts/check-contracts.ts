@@ -7,6 +7,11 @@ const spec = YAML.parse(
 );
 assert.equal(spec.openapi, "3.1.0");
 const expected = [
+  "listInvitations",
+  "createInvitation",
+  "revokeInvitation",
+  "previewInvitation",
+  "joinInvitation",
   "oidcWorkspaces",
   "oidcLogin",
   "oidcCallback",

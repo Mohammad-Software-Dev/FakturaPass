@@ -114,7 +114,9 @@ export const apiErrorKeys: Record<string, MessageKey> = {
     "Die Freigabe bezieht sich nicht auf den aktuellen Prüfstand.",
   REVISION_CONFLICT:
     "Die Revision oder ihr Status hat sich geändert. Bitte neu laden.",
-  AUTH_REQUIRED: "Eine lokale Identität ist erforderlich.",
+  AUTH_REQUIRED: "Bitte melden Sie sich an.",
+  INVITATION_INVALID:
+    "Diese Einladung ist nicht verfügbar. Bitte bitten Sie Ihre Administration um einen neuen Link.",
   LAST_ADMIN_REQUIRED:
     "Mindestens eine aktive Administration muss erhalten bleiben.",
   ACCESS_DENIED: "Diese Aktion ist für Ihre Rolle nicht erlaubt.",

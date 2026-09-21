@@ -1,3 +1,4 @@
+import { bootstrapOrganization } from "../packages/identity/organizations";
 import { spawn, type ChildProcess } from "node:child_process";
 import { chromium, webkit, expect } from "@playwright/test";
 import { before, after, test } from "node:test";
@@ -24,7 +25,8 @@ const codes = new Map<string, URLSearchParams>();
 let issuer = "",
   subject = "approved-user",
   fault = "",
-  actor = "";
+  actor = "",
+  claimEmail = "new.member@example.test";
 const server = createServer(async (req, res) => {
   const url = new URL(req.url!, issuer);
   res.setHeader("Content-Type", "application/json");
@@ -77,6 +79,18 @@ const server = createServer(async (req, res) => {
       encode({
         iss: issuer,
         sub: subject,
+        email:
+          fault === "email-missing"
+            ? undefined
+            : fault === "email-wrong"
+              ? "someone.else@example.test"
+              : claimEmail,
+        email_verified:
+          fault === "email-unverified"
+            ? false
+            : fault === "email-string"
+              ? "true"
+              : true,
         aud: fault === "audience" ? "wrong" : "test-client",
         nonce: fault === "nonce" ? "wrong" : attempt.get("nonce"),
         iat: now,
@@ -355,6 +369,321 @@ test("Explicit workspace requests isolate tabs, permissions and suspended member
     [actor],
   );
 });
+async function invitationCall(
+  path: string,
+  data: unknown,
+  cookie = "",
+  workspace = "local-demo",
+) {
+  const req = new Request(origin + "/api/v1/" + path, {
+    method: "POST",
+    headers: {
+      origin,
+      cookie,
+      "X-Workspace-Id": workspace,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return POST(req, { params: Promise.resolve({ path: path.split("/") }) });
+}
+async function invitation(
+  cookie: string,
+  email = claimEmail,
+  role = "READ_ONLY",
+) {
+  const response = await invitationCall("invitations", { email, role }, cookie);
+  assert.equal(response.status, 201);
+  const result = await response.json();
+  return { ...result, token: new URL(result.url).hash.slice(1) };
+}
+async function joinAttempt(token: string) {
+  const request = new Request(origin + "/api/v1/auth/join", {
+    method: "POST",
+    headers: { origin, "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ token }),
+  });
+  const response = await POST(request, {
+    params: Promise.resolve({ path: ["auth", "join"] }),
+  });
+  assert.equal(response.status, 303);
+  assert(!response.headers.get("location")!.includes("error="));
+  const auth = await fetch(response.headers.get("location")!, {
+    redirect: "manual",
+  });
+  const callback = new URL(auth.headers.get("location")!);
+  return {
+    path: "auth/callback" + callback.search,
+    cookie: cookieOf(response, "login"),
+  };
+}
+async function redeem(token: string) {
+  const attempt = await joinAttempt(token);
+  return call(attempt.path, "GET", attempt.cookie);
+}
+test("Organization bootstrap creates an audited administrator atomically and refuses overwrite", async () => {
+  const result = await bootstrapOrganization(
+    "invitation-bootstrap",
+    "  Studio North  ",
+    "https://issuer.example.test/",
+    "verified-founder",
+  );
+  assert.equal(
+    (
+      await pool.query("SELECT name FROM tenants WHERE id=$1", [
+        result.tenantId,
+      ])
+    ).rows[0].name,
+    "Studio North",
+  );
+  assert.equal(
+    (
+      await pool.query(
+        "SELECT role FROM memberships WHERE tenant_id=$1 AND user_subject=$2",
+        [result.tenantId, result.actor],
+      )
+    ).rows[0].role,
+    "ADMIN",
+  );
+  assert.equal(
+    (
+      await pool.query(
+        "SELECT count(*)::int AS n FROM audit_events WHERE tenant_id=$1 AND action='ORGANIZATION_CREATE'",
+        [result.tenantId],
+      )
+    ).rows[0].n,
+    1,
+  );
+  await assert.rejects(
+    bootstrapOrganization(
+      "invitation-bootstrap",
+      "Changed",
+      "https://issuer.example.test/",
+      "other-founder",
+    ),
+  );
+  await assert.rejects(
+    bootstrapOrganization(
+      "invalid-bootstrap",
+      "Studio",
+      "http://issuer.example.test/",
+      "subject",
+    ),
+  );
+  assert.equal(
+    (
+      await pool.query(
+        "SELECT count(*)::int AS n FROM memberships WHERE tenant_id=$1",
+        [result.tenantId],
+      )
+    ).rows[0].n,
+    1,
+  );
+});
+test("Invitations are admin-only, hash-only, replaceable, expiring, revocable and authority-bound", async () => {
+  const cookie = cookieOf(await login(), "session");
+  assert.equal(
+    (
+      await invitationCall(
+        "invitations",
+        { email: "bad", role: "ADMIN" },
+        cookie,
+      )
+    ).status,
+    400,
+  );
+  await pool.query(
+    "UPDATE memberships SET role='READ_ONLY' WHERE user_subject=$1 AND tenant_id='local-demo'",
+    [actor],
+  );
+  assert.equal(
+    (
+      await invitationCall(
+        "invitations",
+        { email: claimEmail, role: "ADMIN" },
+        cookie,
+      )
+    ).status,
+    403,
+  );
+  await pool.query(
+    "UPDATE memberships SET role='ADMIN' WHERE user_subject=$1 AND tenant_id='local-demo'",
+    [actor],
+  );
+  const first = await invitation(cookie),
+    second = await invitation(cookie);
+  assert.equal(
+    (await invitationCall("auth/invitation", { token: first.token })).status,
+    403,
+  );
+  assert.equal(
+    (await invitationCall("auth/invitation", { token: second.token })).status,
+    200,
+  );
+  const listed = await (await call("invitations", "GET", cookie)).json();
+  assert(!JSON.stringify(listed).includes(second.token));
+  const stored = (
+    await pool.query(
+      "SELECT token_sha256 FROM organization_invitations WHERE id=$1",
+      [second.id],
+    )
+  ).rows[0];
+  assert.equal(
+    stored.token_sha256,
+    createHash("sha256").update(second.token).digest("hex"),
+  );
+  assert.equal(
+    (
+      await invitationCall(
+        "invitations/" + second.id,
+        {},
+        cookie,
+        "local-test-b",
+      )
+    ).status,
+    403,
+  );
+  process.env.OIDC_CLIENT_ID = "other-client";
+  assert.equal(
+    (await invitationCall("auth/invitation", { token: second.token })).status,
+    403,
+  );
+  process.env.OIDC_CLIENT_ID = "test-client";
+  await pool.query(
+    "UPDATE organization_invitations SET expires_at=now()-interval '1 second' WHERE id=$1",
+    [second.id],
+  );
+  assert.equal(
+    (await invitationCall("auth/invitation", { token: second.token })).status,
+    403,
+  );
+  const revoked = await invitation(cookie);
+  await invitationCall("invitations/" + revoked.id, {}, cookie);
+  assert.equal(
+    (await invitationCall("auth/invitation", { token: revoked.token })).status,
+    403,
+  );
+  const pending = await invitation(cookie);
+  const attempt = await joinAttempt(pending.token);
+  await invitationCall("invitations/" + pending.id, {}, cookie);
+  assert.match(
+    (await call(attempt.path, "GET", attempt.cookie)).headers.get("location")!,
+    /error=invitation/,
+  );
+});
+test("Invitation acceptance requires verified matching email and cannot elevate or revive existing membership", async () => {
+  const cookie = cookieOf(await login(), "session");
+  const offered = await invitation(cookie, claimEmail, "OPERATOR");
+  subject = "invited-unit";
+  try {
+    for (const invalid of [
+      "email-unverified",
+      "email-string",
+      "email-missing",
+      "email-wrong",
+    ]) {
+      fault = invalid;
+      assert.match(
+        (await redeem(offered.token)).headers.get("location")!,
+        /error=invitation/,
+      );
+    }
+    fault = "";
+    const joined = await redeem(offered.token);
+    assert.equal(joined.headers.get("location"), origin + "/");
+    const invitedActor = principalActor(issuer, subject);
+    assert.equal(
+      (
+        await pool.query("SELECT role FROM memberships WHERE user_subject=$1", [
+          invitedActor,
+        ])
+      ).rows[0].role,
+      "OPERATOR",
+    );
+    assert.equal(
+      (await invitationCall("auth/invitation", { token: offered.token }))
+        .status,
+      403,
+    );
+    const higher = await invitation(cookie, claimEmail, "ADMIN");
+    await redeem(higher.token);
+    assert.equal(
+      (
+        await pool.query("SELECT role FROM memberships WHERE user_subject=$1", [
+          invitedActor,
+        ])
+      ).rows[0].role,
+      "OPERATOR",
+    );
+    await pool.query(
+      "UPDATE memberships SET status='SUSPENDED' WHERE user_subject=$1",
+      [invitedActor],
+    );
+    const suspended = await invitation(cookie);
+    assert.match(
+      (await redeem(suspended.token)).headers.get("location")!,
+      /error=invitation/,
+    );
+    assert.equal(
+      (
+        await pool.query(
+          "SELECT status FROM memberships WHERE user_subject=$1",
+          [invitedActor],
+        )
+      ).rows[0].status,
+      "SUSPENDED",
+    );
+  } finally {
+    subject = "approved-user";
+    fault = "";
+  }
+});
+test("Concurrent invitation callbacks grant membership once; demoted issuers cannot grant access", async () => {
+  const cookie = cookieOf(await login(), "session"),
+    offered = await invitation(cookie, "race@example.test");
+  subject = "invited-race";
+  claimEmail = "race@example.test";
+  try {
+    const a = await joinAttempt(offered.token),
+      b = await joinAttempt(offered.token);
+    const results = await Promise.all([
+      call(a.path, "GET", a.cookie),
+      call(b.path, "GET", b.cookie),
+    ]);
+    assert.equal(
+      results.filter((r) => r.headers.get("location") === origin + "/").length,
+      1,
+    );
+    assert.equal(
+      (
+        await pool.query(
+          "SELECT count(*)::int AS n FROM audit_events WHERE action='INVITATION_ACCEPT' AND resource_id=$1",
+          [offered.id],
+        )
+      ).rows[0].n,
+      1,
+    );
+    const stale = await invitation(cookie);
+    const pending = await joinAttempt(stale.token);
+    await pool.query(
+      "UPDATE memberships SET role='OPERATOR' WHERE user_subject=$1 AND tenant_id='local-demo'",
+      [actor],
+    );
+    assert.match(
+      (await call(pending.path, "GET", pending.cookie)).headers.get(
+        "location",
+      )!,
+      /error=invitation/,
+    );
+  } finally {
+    await pool.query(
+      "UPDATE memberships SET role='ADMIN' WHERE user_subject=$1 AND tenant_id='local-demo'",
+      [actor],
+    );
+    subject = "approved-user";
+    claimEmail = "new.member@example.test";
+  }
+});
 test("Production requires HTTPS and uses host-only secure cookies", () => {
   process.env.FAKTURAPASS_ENV = "PRODUCTION";
   assert.throws(settings);
@@ -502,6 +831,73 @@ for (const [name, browserType] of [
       await pool.query(
         "UPDATE memberships SET role='READ_ONLY' WHERE user_subject='workspace-tab-target'",
       );
+      const invitationsPanel = tabA.locator("section").filter({
+        has: tabA.getByRole("heading", {
+          name: "Invite your team",
+          exact: true,
+        }),
+      });
+      const recipient = `browser-${name.toLowerCase()}@example.test`;
+      await invitationsPanel
+        .getByLabel("Email address", { exact: true })
+        .fill(recipient);
+      await invitationsPanel
+        .getByRole("button", { name: "Create invitation link", exact: true })
+        .click();
+      const linkInput = invitationsPanel.getByLabel("Invitation link", {
+        exact: true,
+      });
+      await expect(linkInput).toBeVisible();
+      const inviteUrl = await linkInput.inputValue();
+      const guestContext = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+      });
+      await guestContext.addCookies([
+        { name: "fakturapass-language", value: "en", url: origin },
+        { name: "fakturapass-theme", value: "dark", url: origin },
+      ]);
+      subject = `browser-invite-${name}`;
+      claimEmail = recipient;
+      try {
+        const guest = await guestContext.newPage();
+        await guest.goto(inviteUrl);
+        await expect(
+          guest.getByRole("button", { name: "Sign in and join", exact: true }),
+        ).toBeVisible();
+        assert.equal(new URL(guest.url()).hash, "");
+        await guest.screenshot({
+          path: `test-results/invitation-${name.toLowerCase()}.png`,
+          fullPage: true,
+        });
+        await guest
+          .getByRole("button", { name: "Sign in and join", exact: true })
+          .click();
+        await expect(
+          guest.getByRole("link", { name: "Switch workspace" }),
+        ).toBeVisible();
+        assert.equal(
+          (
+            await pool.query(
+              "SELECT role FROM memberships WHERE user_subject=$1",
+              [principalActor(issuer, subject)],
+            )
+          ).rows[0].role,
+          "READ_ONLY",
+        );
+      } finally {
+        subject = "approved-user";
+        claimEmail = "new.member@example.test";
+        await guestContext.close();
+      }
+      await invitationsPanel
+        .getByRole("button", { name: "Refresh", exact: true })
+        .click();
+      await expect(
+        invitationsPanel
+          .locator("article")
+          .filter({ hasText: recipient })
+          .getByText(/Invitation accepted/),
+      ).toBeVisible();
       await pool.query(
         "UPDATE memberships SET status='SUSPENDED' WHERE tenant_id='local-test-b' AND user_subject=$1",
         [actor],

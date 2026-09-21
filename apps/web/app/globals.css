@@ -2419,3 +2419,34 @@ td,
   height: auto;
   min-height: 68px;
 }
+.invitation-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  margin: 20px 0;
+}
+.invitation-form label,
+.invitation-link label {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 180px;
+}
+.invitation-link {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+  overflow-wrap: anywhere;
+}
+.invitation-item {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.invitation-item button {
+  justify-self: start;
+}

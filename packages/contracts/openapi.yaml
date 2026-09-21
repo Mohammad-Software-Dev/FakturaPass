@@ -2837,6 +2837,294 @@ paths:
           description: Session missing or expired
         "404":
           description: OIDC disabled
+  /invitations:
+    get:
+      operationId: listInvitations
+      description: Administrator-only invitation history for this workspace. No
+        secrets are returned.
+      security:
+        - browserSession: []
+      parameters:
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+        - name: workspace
+          in: query
+          required: false
+          schema:
+            type: string
+          description:
+            OIDC navigation/download alternative to X-Workspace-Id. Conflicting
+            or repeated selectors are rejected.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        email:
+                          type: string
+                        role:
+                          enum:
+                            - ADMIN
+                            - OPERATOR
+                            - APPROVER
+                            - READ_ONLY
+                        expiresAt:
+                          type: string
+                        status:
+                          enum:
+                            - PENDING
+                            - ACCEPTED
+                            - REVOKED
+                            - EXPIRED
+                            - UNAVAILABLE
+                      required:
+                        - id
+                        - email
+                        - role
+                        - expiresAt
+                        - status
+                      additionalProperties: false
+                required:
+                  - items
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found or OIDC disabled
+        "409":
+          description: Conflict
+    post:
+      operationId: createInvitation
+      description: Create a 72-hour invitation. The one-time response contains a
+        private fragment link to share manually. Replaces pending invitations to
+        this exact address.
+      security:
+        - browserSession: []
+      parameters:
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  url:
+                    type: string
+                  expiresAt:
+                    type: string
+                required:
+                  - id
+                  - url
+                  - expiresAt
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found or OIDC disabled
+        "409":
+          description: Conflict
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                role:
+                  enum:
+                    - ADMIN
+                    - OPERATOR
+                    - APPROVER
+                    - READ_ONLY
+              required:
+                - email
+                - role
+              additionalProperties: false
+  /invitations/{invitationId}:
+    post:
+      operationId: revokeInvitation
+      description: Administrator revocation; cannot revoke accepted invitations.
+        Suspend the membership instead.
+      security:
+        - browserSession: []
+      parameters:
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Workspace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description:
+            Required in OIDC mode. Explicit tab workspace; active membership is
+            checked on every request. LOCAL identities remain server-scoped.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    const: REVOKED
+                required:
+                  - id
+                  - status
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found or OIDC disabled
+        "409":
+          description: Conflict
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+  /auth/invitation:
+    post:
+      operationId: previewInvitation
+      description:
+        Preview a valid invitation by secret token; requires same-origin
+        POST. No membership is granted.
+      security: []
+      parameters: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    enum:
+                      - ADMIN
+                      - OPERATOR
+                      - APPROVER
+                      - READ_ONLY
+                  organization:
+                    type: string
+                  expiresAt:
+                    type: string
+                required:
+                  - id
+                  - email
+                  - role
+                  - organization
+                  - expiresAt
+                additionalProperties: false
+        "400":
+          description: Invalid request
+        "401":
+          description: Sign-in required
+        "403":
+          description: Access denied
+        "404":
+          description: Not found or OIDC disabled
+        "409":
+          description: Conflict
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required:
+                - token
+              additionalProperties: false
+  /auth/join:
+    post:
+      operationId: joinInvitation
+      description:
+        Same-origin form POST starts OIDC with an invitation bound to its
+        login transaction. Callback requires a matching provider-verified email
+        before granting membership.
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required:
+                - token
+              additionalProperties: false
+      responses:
+        "303":
+          description: Continue to provider or invitation error
+          headers:
+            Location:
+              schema:
+                type: string
+        "400":
+          description: Invalid request
+        "403":
+          description: Origin rejected
+        "404":
+          description: OIDC disabled
+        "413":
+          description: Body too large
 components:
   securitySchemes:
     browserSession:

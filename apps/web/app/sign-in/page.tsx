@@ -7,7 +7,15 @@ export default async function Page({
   const p = await searchParams;
   return (
     <SignIn
-      error={p.error === "access" ? "access" : p.error ? "failed" : ""}
+      error={
+        p.error === "invitation"
+          ? "invitation"
+          : p.error === "access"
+            ? "access"
+            : p.error
+              ? "failed"
+              : ""
+      }
       loggedOut={p.loggedOut === "1"}
     />
   );

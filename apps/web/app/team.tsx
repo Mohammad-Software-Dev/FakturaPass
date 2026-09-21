@@ -1,4 +1,5 @@
 "use client";
+import { Invitations } from "./invitations";
 import { workspaceFetch } from "./workspace-request";
 import { useEffect, useState } from "react";
 import { useLanguage } from "./language";
@@ -79,7 +80,11 @@ function MemberCard({
     </article>
   );
 }
-export function Team() {
+export function Team({
+  invitationsEnabled = false,
+}: {
+  invitationsEnabled?: boolean;
+}) {
   const { t } = useLanguage();
   const [data, setData] = useState<{ actor: string; items: Member[] } | null>(
       null,
@@ -192,6 +197,7 @@ export function Team() {
           ))}
         </div>
       </section>
+      {invitationsEnabled && data && !error && <Invitations />}
     </>
   );
 }

@@ -1,3 +1,5 @@
+import * as invitations from "../../../../../../packages/identity/invitations";
+import { settings as oidcSettings } from "../../../../../../packages/identity/oidc";
 import { authRoute } from "../../../../../../packages/identity/auth-routes";
 import {
   oidcEnabled,
@@ -146,6 +148,30 @@ async function handler(
     }
     if (p[0] === "auth" && p.length === 2) return await authRoute(req, p[1]);
     const ctx = await identity(req, requestId);
+    if (p[0] === "invitations") {
+      if (!oidcEnabled()) throw new service.ApiError("RESOURCE_NOT_FOUND", 404);
+      if (p.length === 1 && method === "GET")
+        return send(
+          await invitations.listInvitations(ctx, oidcSettings().authority),
+        );
+      if (p.length === 1 && method === "POST") {
+        const result = await invitations.createInvitation(
+          ctx,
+          (await body(req)).json,
+          oidcSettings().authority,
+        );
+        return send(
+          {
+            id: result.id,
+            expiresAt: result.expiresAt,
+            url: `${oidcSettings().origin}/join#${result.token}`,
+          },
+          201,
+        );
+      }
+      if (p.length === 2 && method === "POST")
+        return send(await invitations.revokeInvitation(ctx, p[1]));
+    }
     if (p.join("/") === "memberships" && method === "GET")
       return send(await memberships.listMembers(ctx));
     if (p[0] === "memberships" && p.length === 2 && method === "POST")

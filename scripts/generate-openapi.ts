@@ -714,6 +714,107 @@ paths["/auth/workspaces"] = {
     },
   },
 };
+const inviteRole = { enum: ["ADMIN", "OPERATOR", "APPROVER", "READ_ONLY"] };
+const inviteInput = object({ email: str, role: inviteRole });
+const inviteItem = object({
+  id: str,
+  email: str,
+  role: inviteRole,
+  expiresAt: str,
+  status: {
+    enum: ["PENDING", "ACCEPTED", "REVOKED", "EXPIRED", "UNAVAILABLE"],
+  },
+});
+const inviteOperation = (
+  operationId: string,
+  description: string,
+  schema: unknown,
+  status = 200,
+) => ({
+  operationId,
+  description,
+  security: [{ browserSession: [] }],
+  parameters: [],
+  responses: {
+    [status]: { description: "Success", content: content(schema) },
+    "400": { description: "Invalid request" },
+    "401": { description: "Sign-in required" },
+    "403": { description: "Access denied" },
+    "404": { description: "Not found or OIDC disabled" },
+    "409": { description: "Conflict" },
+  },
+});
+paths["/invitations"] = {
+  get: inviteOperation(
+    "listInvitations",
+    "Administrator-only invitation history for this workspace. No secrets are returned.",
+    object({ items: { type: "array", items: inviteItem } }),
+  ),
+  post: {
+    ...inviteOperation(
+      "createInvitation",
+      "Create a 72-hour invitation. The one-time response contains a private fragment link to share manually. Replaces pending invitations to this exact address.",
+      object({ id: str, url: str, expiresAt: str }),
+      201,
+    ),
+    requestBody: { required: true, content: content(inviteInput) },
+  },
+};
+paths["/invitations/{invitationId}"] = {
+  post: {
+    ...inviteOperation(
+      "revokeInvitation",
+      "Administrator revocation; cannot revoke accepted invitations. Suspend the membership instead.",
+      object({ id: str, status: { const: "REVOKED" } }),
+    ),
+    parameters: [
+      { name: "invitationId", in: "path", required: true, schema: str },
+    ],
+    requestBody: { required: false, content: content({ type: "object" }) },
+  },
+};
+paths["/auth/invitation"] = {
+  post: {
+    ...inviteOperation(
+      "previewInvitation",
+      "Preview a valid invitation by secret token; requires same-origin POST. No membership is granted.",
+      object({
+        id: str,
+        email: str,
+        role: inviteRole,
+        organization: str,
+        expiresAt: str,
+      }),
+    ),
+    security: [],
+    requestBody: { required: true, content: content(object({ token: str })) },
+  },
+};
+paths["/auth/join"] = {
+  post: {
+    operationId: "joinInvitation",
+    description:
+      "Same-origin form POST starts OIDC with an invitation bound to its login transaction. Callback requires a matching provider-verified email before granting membership.",
+    security: [],
+    parameters: [],
+    requestBody: {
+      required: true,
+      content: {
+        "application/x-www-form-urlencoded": { schema: object({ token: str }) },
+      },
+    },
+    responses: {
+      "303": {
+        description: "Continue to provider or invitation error",
+        headers: { Location: { schema: str } },
+      },
+      "400": { description: "Invalid request" },
+      "403": { description: "Origin rejected" },
+      "404": { description: "OIDC disabled" },
+      "413": { description: "Body too large" },
+    },
+  },
+};
 for (const [path, methods] of Object.entries(paths)) {
   if (path.startsWith("/auth") || path.startsWith("/health")) continue;
   for (const [method, operation] of Object.entries(methods) as [

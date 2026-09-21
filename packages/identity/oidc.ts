@@ -1,3 +1,4 @@
+import { invitationPreview, acceptInvitation } from "./invitations";
 import * as oidc from "openid-client";
 import { randomBytes, randomUUID } from "node:crypto";
 import { pool, transaction } from "../database";
@@ -85,9 +86,12 @@ async function configuration() {
     ],
   });
 }
-export async function beginLogin() {
+export async function beginLogin(invitationToken?: string) {
   const s = settings(),
     config = await configuration();
+  const invitation = invitationToken
+    ? await invitationPreview(invitationToken, s.authority)
+    : undefined;
   const browserToken = token(),
     state = oidc.randomState(),
     nonce = oidc.randomNonce(),
@@ -96,12 +100,19 @@ export async function beginLogin() {
     "DELETE FROM oidc_login_transactions WHERE expires_at<=now()",
   );
   await pool.query(
-    "INSERT INTO oidc_login_transactions(token_sha256,authority_sha256,state,nonce,code_verifier,expires_at) VALUES($1,$2,$3,$4,$5,now()+interval '10 minutes')",
-    [sha256(browserToken), s.authority, state, nonce, verifier],
+    "INSERT INTO oidc_login_transactions(token_sha256,authority_sha256,state,nonce,code_verifier,invitation_id,expires_at) VALUES($1,$2,$3,$4,$5,$6,now()+interval '10 minutes')",
+    [
+      sha256(browserToken),
+      s.authority,
+      state,
+      nonce,
+      verifier,
+      invitation?.id ?? null,
+    ],
   );
   const url = oidc.buildAuthorizationUrl(config, {
     redirect_uri: s.callback,
-    scope: "openid",
+    scope: invitation ? "openid email" : "openid",
     response_type: "code",
     state,
     nonce,
@@ -142,6 +153,15 @@ export async function finishLogin(request: Request) {
   const actor = principalActor(claims.iss, claims.sub);
   const sessionToken = token();
   await transaction(async (db) => {
+    if (attempt.invitation_id)
+      await acceptInvitation(
+        db,
+        attempt.invitation_id,
+        s.authority,
+        actor,
+        claims,
+        s.environment,
+      );
     const members = (
       await db.query(
         "SELECT tenant_id FROM memberships WHERE user_subject=$1 AND status='ACTIVE' ORDER BY tenant_id",

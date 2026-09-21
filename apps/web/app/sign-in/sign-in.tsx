@@ -26,9 +26,11 @@ export function SignIn({
           {error && (
             <p role="alert" className="error-banner">
               {t(
-                error === "access"
-                  ? "Für dieses Konto ist kein eindeutiger aktiver Arbeitsbereich verfügbar. Bitte wenden Sie sich an Ihre Administration."
-                  : "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
+                error === "invitation"
+                  ? "Die Einladung konnte nicht angenommen werden. Verwenden Sie die eingeladene, bestätigte E-Mail-Adresse oder bitten Sie um einen neuen Link."
+                  : error === "access"
+                    ? "Für dieses Konto ist kein eindeutiger aktiver Arbeitsbereich verfügbar. Bitte wenden Sie sich an Ihre Administration."
+                    : "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
               )}
             </p>
           )}

@@ -1,3 +1,4 @@
+import { invitationPreview } from "./invitations";
 import { ApiError } from "../domain/service";
 import {
   authCookie,
@@ -26,6 +27,54 @@ export async function authRoute(request: Request, action: string) {
       await sessionWorkspaces(request.headers.get("cookie")),
       { headers: { "Cache-Control": "no-store" } },
     );
+  if (
+    (action === "invitation" || action === "join") &&
+    request.method === "POST"
+  ) {
+    requireOrigin(request);
+    const expected =
+      action === "invitation"
+        ? "application/json"
+        : "application/x-www-form-urlencoded";
+    if (!request.headers.get("content-type")?.startsWith(expected))
+      throw new ApiError("INVALID_REQUEST");
+    const reader = request.body?.getReader();
+    if (!reader) throw new ApiError("INVALID_REQUEST");
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > 1024) {
+        await reader.cancel();
+        throw new ApiError("INVALID_REQUEST", 413);
+      }
+      chunks.push(value);
+    }
+    const raw = Buffer.concat(chunks).toString("utf8");
+    if (action === "invitation") {
+      let input;
+      try {
+        input = JSON.parse(raw);
+      } catch {
+        throw new ApiError("INVALID_REQUEST");
+      }
+      return Response.json(await invitationPreview(input?.token, s.authority), {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
+    const token = new URLSearchParams(raw).get("token");
+    try {
+      if (!token) throw Error();
+      const started = await beginLogin(token);
+      const response = redirect(started.url);
+      response.headers.append("Set-Cookie", started.cookie);
+      return response;
+    } catch {
+      return redirect("/join?error=invalid");
+    }
+  }
   if (action === "login" && request.method === "POST") {
     requireOrigin(request);
     try {
@@ -49,7 +98,13 @@ export async function authRoute(request: Request, action: string) {
       response.headers.append("Set-Cookie", cookie);
     } catch (error) {
       response = redirect(
-        `/sign-in?error=${error instanceof ApiError && error.code === "ACCESS_DENIED" ? "access" : "failed"}`,
+        `/sign-in?error=${
+          error instanceof ApiError && error.code === "INVITATION_INVALID"
+            ? "invitation"
+            : error instanceof ApiError && error.code === "ACCESS_DENIED"
+              ? "access"
+              : "failed"
+        }`,
       );
     }
     response.headers.append("Set-Cookie", authCookie("login", "", 0));

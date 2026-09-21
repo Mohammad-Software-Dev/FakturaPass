@@ -460,7 +460,7 @@ export default function Workspace({
           <AppearanceControls />
         </header>
         <main>
-          {view === "team" && <Team />}
+          {view === "team" && <Team invitationsEnabled={signedIn} />}
           {view === "review" && errorView}
           {view === "review" && (
             <ReviewQueue
