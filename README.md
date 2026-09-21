@@ -76,3 +76,5 @@ Local database backup and verified recovery: [Recovery guide](docs/RECOVERY.md).
 Remaining delivery stages: [Completion plan](docs/COMPLETION_PLAN.md). Team authorization: [Team access](docs/TEAM_ACCESS.md).
 
 Configurable browser sign-in and initial-member provisioning are documented in [Identity operations](docs/IDENTITY.md). The [provider recommendation](docs/reviews/2026-09-15-identity-provider.md) remains pending owner review and live-provider acceptance.
+
+Organization bootstrap and manually shared, verified invitation links are covered in [Organization onboarding](docs/ORGANIZATION_ONBOARDING.md).

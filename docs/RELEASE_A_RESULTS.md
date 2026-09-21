@@ -114,3 +114,13 @@ The first browser regression pass completed all 52 workflows. A later full run e
 Workspace coverage includes a chooser for multiple active memberships, explicit request/download selectors, missing/conflicting/repeated selector rejection, organization-specific roles, zero-active-membership state and suspension while another workspace stays available. Chromium and WebKit open two workspaces in related tabs, make a real membership edit in the original tab after switching the second tab, and verify that only the original workspace changes. They also verify suspended-workspace removal and logout. The mobile dark chooser was visually inspected.
 
 Migration 009 was applied to the local workspace, which retains all 21 invoices. This closes workspace selection within stage 1. Organization creation, verified invitations, scoped API credentials, support grants and live-provider acceptance remain open.
+
+## Organization bootstrap and verified invitations — 21 September 2026
+
+The complete verification run passed 113 tests: 29 domain/localization tests, 11 database/validator integration tests, 7 API suites, 52 invoice browser tests, 12 identity/onboarding tests and 2 recovery tests. Formatting, TypeScript, ESLint, the 34-operation contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+New coverage verifies atomic organization bootstrap and duplicate-ID rejection; administrator-only invitation creation; token-hash persistence and one-time disclosure; replacement, expiry, revocation and authority separation; signed, matching, boolean-verified email claims; one successful grant under concurrent callbacks; rejection after inviter demotion; preservation of existing roles; and refusal to reactivate suspended members. Chromium and WebKit exercise administrator link creation, a separate recipient browser context, removal of the secret URL fragment, provider sign-in, assigned read-only access and accepted status in the administrator's refreshed list. The mobile dark invitation page was visually inspected.
+
+Migration 010 was applied locally and all 21 existing invoices were preserved. Recovery verification includes organization invitations and login-transaction bindings. Pending invitation links must be revoked before a restored database is promoted; see RECOVERY.md.
+
+Organization setup is operator-assisted and invitation links are shared manually. No emails were sent and no provider account or production deployment was created. Live provider claim/MFA/recovery acceptance, automated email delivery, self-service/commercial onboarding, scoped API credentials and support grants remain open.

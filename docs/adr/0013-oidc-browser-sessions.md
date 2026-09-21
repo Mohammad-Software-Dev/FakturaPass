@@ -9,3 +9,5 @@ Persist opaque session hashes and resolve active memberships on every request. B
 The initial adapter requires a single active tenant membership. Invitations, tenant selection, scoped API credentials and support grants remain separate increments. Local development authentication is mutually exclusive with OIDC mode. Provider tokens are not persisted. App logout revokes the app session; provider SSO logout is outside this increment.
 
 Update, 21 September 2026: ADR 0014 replaces the single-active-membership restriction with an explicit workspace chooser and per-tab request context. Session expiry, identity verification and membership authority remain unchanged.
+
+Update, 21 September 2026: ADR 0015 adds operator organization bootstrap and verified invitation links. Invitation sign-in requests the email scope and binds the invitation to the PKCE transaction; ordinary sign-in and persistent identity keys retain their existing behavior.

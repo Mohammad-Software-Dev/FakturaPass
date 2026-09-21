@@ -4,7 +4,7 @@ FakturaPass supports configurable OpenID Connect authorization-code sign-in. App
 
 ## Configuration
 
-Set `AUTH_MODE=oidc`, `FAKTURAPASS_ENV`, `APP_ORIGIN`, `OIDC_ISSUER`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` in the server secret environment. Register the exact callback `${APP_ORIGIN}/api/v1/auth/callback` with the provider. Use a confidential web application with code flow and client-secret POST authentication. The issuer must exactly match the discovery issuer, including its trailing slash. Only the `openid` scope is requested.
+Set `AUTH_MODE=oidc`, `FAKTURAPASS_ENV`, `APP_ORIGIN`, `OIDC_ISSUER`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` in the server secret environment. Register the exact callback `${APP_ORIGIN}/api/v1/auth/callback` with the provider. Use a confidential web application with code flow and client-secret POST authentication. The issuer must exactly match the discovery issuer, including its trailing slash. Ordinary sign-in requests `openid`. Invitation sign-in requests `openid email` and requires the provider to include the invited email and boolean `email_verified: true` in the signed ID token.
 
 HTTPS is required. HTTP loopback URLs are accepted only in LOCAL for isolated testing. LOCAL browser identities and bearer tokens cannot bypass OIDC when that mode is enabled. API keys are not yet implemented. Keep the ordinary local developer setup without AUTH_MODE for the existing local workspace.
 
@@ -16,13 +16,13 @@ An operator with approved database access must obtain the verified subject from 
 npm run identity:provision -- TENANT_ID https://verified-issuer.example/ VERIFIED_SUBJECT ADMIN
 ```
 
-The command adds an audited active membership, derives its opaque actor from the exact issuer/subject pair and refuses to overwrite an existing membership. Roles are ADMIN, OPERATOR, APPROVER or READ_ONLY. It does not create a tenant or provider account. Verified invitations and organization onboarding are subsequent increments.
+The command adds an audited active membership, derives its opaque actor from the exact issuer/subject pair and refuses to overwrite an existing membership. Roles are ADMIN, OPERATOR, APPROVER or READ_ONLY. It does not create a tenant or provider account. Use [organization bootstrap and invitations](ORGANIZATION_ONBOARDING.md) to create an organization and onboard colleagues.
 
 Sign-in requires at least one active workspace membership. A single membership opens that workspace; multiple memberships open the workspace chooser. **Switch workspace** returns to the chooser, which lists only the signed-in identity’s active memberships and current roles. An existing session with no active memberships sees a contact-administrator message and can sign out.
 
 The selected workspace belongs to the tab URL, not a shared selection cookie. Every workspace API request in OIDC mode requires `X-Workspace-Id`; GET navigation and download links may use the `workspace` query parameter instead. Missing, conflicting and repeated selectors fail closed, and every selected workspace still requires an active database membership. UI requests and downloads carry the server-rendered tab context, so choosing another workspace in a second tab does not redirect edits from the first tab.
 
-`GET /api/v1/auth/workspaces` lists available workspaces using the verified identity session. Selecting a workspace does not extend the session, modify memberships or grant additional access. Local development identities remain scoped to their server-configured tenant. Invitations and organization creation remain separate work.
+`GET /api/v1/auth/workspaces` lists available workspaces using the verified identity session. Selecting a workspace does not extend the session, modify memberships or grant additional access. Local development identities remain scoped to their server-configured tenant. Organization bootstrap and verified invitation links are documented in ORGANIZATION_ONBOARDING.md. Self-service registration and automated email delivery remain separate work.
 
 ## Security and lifetime
 

@@ -45,3 +45,5 @@ The implementation uses PostgreSQL 17's [exported snapshots](https://www.postgre
 ## Restored identity sessions
 
 Before routing users to a restored database, invalidate restored `auth_sessions` and `oidc_login_transactions` using the recovery operator's database access. A snapshot can contain sessions that were revoked after the snapshot was taken. Invalidate them even when restoring to the same origin and issuer; require users to sign in again. Do not promote a restored environment until this step and its environment/secret checks are complete.
+
+Restored invitation records require the same attention: before exposing a restored database, revoke all restored PENDING invitations and record the action in the recovery report. A snapshot may precede a link's later revocation or acceptance. Keeping its original pending state could make that old link usable again. Verify the restored fingerprints first, then invalidate sessions/login transactions and revoke pending invitations as part of the separately recorded cutover procedure. Administrators can issue fresh links afterward.
