@@ -40,7 +40,7 @@ Individual commands: `npm test`, `npm run test:integration`, `npm run test:api`,
 
 ## Architecture
 
-- `apps/web`: Next.js German interface and all 15 REST operations.
+- `apps/web`: Next.js English/German interface and the versioned REST API.
 - `apps/worker`: durable PostgreSQL jobs with leases, deduplication and retry.
 - `packages/contracts`: closed JSON Schema, TypeScript contracts, OpenAPI 3.1.
 - `packages/domain`: exact decimal arithmetic, deterministic UBL, support policy, official validator adapter, workflow service.
@@ -80,3 +80,5 @@ Configurable browser sign-in and initial-member provisioning are documented in [
 Organization bootstrap and manually shared, verified invitation links are covered in [Organization onboarding](docs/ORGANIZATION_ONBOARDING.md).
 
 Registered specialists can receive customer-authorized, time-limited read access to one invoice revision under **Team → Support access**. See [support operations](docs/SUPPORT_ACCESS.md). This requires configured OIDC sign-in and does not create a customer role.
+
+Operational health, queue/worker alerts and private metrics: [Monitoring guide](docs/OBSERVABILITY.md). Run `npm run operations:check` against the configured local stack.

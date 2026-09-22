@@ -14,7 +14,7 @@ Stopping the worker leaves jobs in PostgreSQL. Restart `npm run worker` with the
 
 ## Integrity and privacy
 
-The local identity is only for synthetic data on loopback. Request logs contain opaque request/job identifiers and stable error codes, never invoice bodies or bank details. Invoice routes are not exposed with production identity. Downloads verify hashes and tenant relationships; there are no public object URLs. The official engine validates generated UBL only; DOCTYPE/entity declarations are rejected before submission.
+The local identity is only for synthetic data on loopback. Optional structured request completion logs contain server-generated observation IDs, declared operations, HTTP status classes and durations; error logs use stable codes. Configurable OIDC identity is implemented, with live-provider acceptance still pending. Downloads verify hashes and tenant relationships; there are no public object URLs. The official engine validates generated UBL only; DOCTYPE/entity declarations are rejected before submission.
 
 The pinned engine container has a read-only filesystem, non-root UID, dropped capabilities, a dedicated bridge network and loopback-only port. Container image digests and validator/config archive hashes are fixed in source. No runtime rule updates occur.
 
@@ -24,4 +24,8 @@ Create a new dependency manifest and ADR; verify licenses/checksums; run all pos
 
 ## Release boundary
 
-Production backup/restore guarantees, customer retention periods, external security review, production identity, monitoring SLAs, billing and transport remain Release B/C gates. No real customer data or production secrets belong in this demonstrator.
+Production backup/restore guarantees, customer retention periods, external security review, live identity-provider acceptance, monitoring SLAs, billing and transport remain launch gates. The local installation remains restricted to synthetic data.
+
+## Monitoring
+
+Run `npm run operations:check` for aggregate database, validator, queue and worker health. The private HTTP snapshot and optional structured request logs are documented in [OBSERVABILITY.md](OBSERVABILITY.md), including credentials, thresholds, alert response and migration/recovery procedures.

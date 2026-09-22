@@ -148,3 +148,15 @@ Chromium and WebKit exercise customer selection and explicit consent, separate s
 Migration 012 was applied to the local workspace. All 21 existing invoices remain, the application reports ready and no real specialists or grants were created. Recovery verification includes the specialist registry, immutable registry events and support grants. Before recovery cutover, revoke restored grants and reconcile the personnel registry; see RECOVERY.md.
 
 Local stage-1 identity/support behavior and the onboarding/offboarding operations checklist are implemented. Live-provider claims/MFA/recovery acceptance, approved support personnel/processes and production security/capacity acceptance remain open. No provider account, external message, deployment or paid service was created. The next engineering increment is stage-2 observability and deployment readiness.
+
+## Operational monitoring baseline — 22 September 2026
+
+The complete verification run passed 128 tests: 29 domain/localization tests, 11 database/validator integration tests, 7 API suites, 7 operations tests, 52 invoice browser tests, 20 identity/onboarding/support tests and 2 recovery tests. Formatting, TypeScript, ESLint, the 45-operation contract, production build and dependency audit passed; zero vulnerabilities were reported.
+
+Operations coverage verifies the disabled-by-default endpoint, dedicated secret and rejection of customer credentials, no-store responses, schema-valid degraded snapshots, bounded request metric cardinality and omission of private path data. It exercises missing/stale workers, delayed queues and retries, expired leases, validator outage, environment-isolated job claims, distinct rejection/retry/recovery accounting, real worker startup/shutdown and bounded database lock failure. Durable metrics commit with business outcomes. Recovery acceptance includes the new tables.
+
+A related support-screen correction maps persisted PASS/FAIL validation results to localized customer-facing labels. The synthetic fixture now uses the real saved status, and Chromium/WebKit assert the English label alongside the existing support journey.
+
+Migration 013 was applied through a coordinated local stack restart. All 21 existing invoices remain. Readiness returns 200; the operator health command reports healthy with one active LOCAL worker, no queued jobs and no alerts. The HTTP operations endpoint remains disabled (404) because no operations secret was configured. Request logging remains opt-in.
+
+This closes the provider-independent observability increment, not production monitoring acceptance. No collector, paging destination, production deployment or paid service was configured. Next: reproducible deployment images, software bill of materials and retained release evidence, followed by the remaining stage 2 acceptance gates in COMPLETION_PLAN.md.

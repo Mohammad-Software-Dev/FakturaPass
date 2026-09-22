@@ -51,3 +51,7 @@ Restored invitation records require the same attention: before exposing a restor
 Before exposing the restored database, also revoke all restored `api_credentials` and record the action. A backup can restore the digest of a key that was later rotated or revoked. Perform this after fingerprint verification, alongside session invalidation and invitation revocation; issue new keys after cutover.
 
 Also revoke all restored `support_grants` before cutover, and reconcile `support_agents` against the current approved support-personnel list. A restored grant or registry entry may predate a later revocation or offboarding. Suspend any no-longer-approved specialists, retain the recovery audit record and require fresh customer grants. As with other security invalidations, perform this after fingerprint verification.
+
+## Restored monitoring state
+
+After fingerprint verification, delete restored `worker_heartbeats` before routing traffic or starting replacement workers. A recent snapshot can otherwise make a stopped worker appear alive. Keep durable `job_metrics`, record the restore point and account for counters rewinding to that point in the collector. Process-local request counters restart with the web process. These are operational attempt counts, not billing records. See [OBSERVABILITY.md](OBSERVABILITY.md).
