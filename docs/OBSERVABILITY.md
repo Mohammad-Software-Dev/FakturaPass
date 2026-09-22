@@ -43,3 +43,5 @@ Verify restored table fingerprints before any cutover cleanup. Delete restored w
 ## Acceptance boundary
 
 The isolated operations tests cover credential rejection, bounded/private telemetry, queue and lease alerts, environment isolation, validation rejection versus retry, replay accounting, real worker startup/shutdown, and a locked database probe. Production load, monitoring collection, on-call routing and disaster recovery remain acceptance work. This baseline does not complete the broader stage 2 deployment and security gates.
+
+Idle application database connection failures are handled with the stable `DATABASE_UNAVAILABLE` code. The pool discards failed idle connections and can reconnect when PostgreSQL is available; it does not print the connection/client object or crash the worker solely because an idle connection was lost. In-flight request failures still return errors and durable jobs retain their retry behavior. This follows the [node-postgres pool error contract](https://node-postgres.com/apis/pool#events).

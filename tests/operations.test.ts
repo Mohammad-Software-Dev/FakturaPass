@@ -336,3 +336,41 @@ test("A blocked database probe times out and reports unavailable data rather tha
     blocker.release();
   }
 });
+
+test("An idle application connection failure is sanitized and the pool reconnects", async () => {
+  const client = await pool.connect();
+  const pid = (await client.query("SELECT pg_backend_pid() AS pid")).rows[0]
+    .pid;
+  const logs: string[] = [];
+  const original = console.error;
+  console.error = (value: unknown) => {
+    logs.push(String(value));
+  };
+  let onError: () => void = () => {};
+  const failed = new Promise<void>((resolve) => {
+    onError = resolve;
+    pool.once("error", onError);
+  });
+  client.release();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await operationsPool.query("SELECT pg_terminate_backend($1)", [pid]);
+    await Promise.race([
+      failed,
+      new Promise((_, reject) => {
+        timeout = setTimeout(
+          () => reject(Error("Missing idle connection error")),
+          5000,
+        );
+      }),
+    ]);
+    assert.deepEqual(logs, [
+      JSON.stringify({ service: "database", code: "DATABASE_UNAVAILABLE" }),
+    ]);
+    assert.equal((await pool.query("SELECT 1 AS ok")).rows[0].ok, 1);
+  } finally {
+    clearTimeout(timeout);
+    pool.off("error", onError);
+    console.error = original;
+  }
+});

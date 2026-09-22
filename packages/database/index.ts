@@ -5,6 +5,13 @@ export const pool = new pg.Pool({
     "postgres://fakturapass:local-synthetic-only@127.0.0.1:5440/fakturapass",
   max: 10,
 });
+// Idle connections can fail during an outage; pg discards them and reconnects.
+// Never log the error/client object because it can contain connection secrets.
+pool.on("error", () => {
+  console.error(
+    JSON.stringify({ service: "database", code: "DATABASE_UNAVAILABLE" }),
+  );
+});
 export type DB = Pick<pg.PoolClient, "query">;
 export async function transaction<T>(fn: (db: DB) => Promise<T>): Promise<T> {
   const db = await pool.connect();
