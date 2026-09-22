@@ -35,7 +35,10 @@
     "organization:bootstrap": "tsx scripts/bootstrap-organization.ts",
     "support:agent": "tsx scripts/support-agent.ts",
     "operations:check": "tsx scripts/operations-check.ts",
-    "test:operations": "tsx --test tests/operations.test.ts"
+    "test:operations": "tsx --test tests/operations.test.ts",
+    "build:runtime": "node scripts/build-runtime.mjs",
+    "test:containers": "node scripts/test-containers.mjs",
+    "release:images": "node scripts/release-images.mjs"
   },
   "dependencies": {
     "ajv": "8.20.0",

@@ -4,6 +4,7 @@ export default tseslint.config(
     ignores: [
       "**/.next/**",
       "node_modules/**",
+      ".data/**",
       "services/invoice-engine/vendor/**",
       "next-env.d.ts",
       "apps/web/next-env.d.ts",
