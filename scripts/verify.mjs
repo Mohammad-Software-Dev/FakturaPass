@@ -73,6 +73,7 @@ try {
   );
   await run("npm", ["run", "test:integration"], env);
   await run("npm", ["run", "test:api"], env);
+  await run("npm", ["run", "test:operations"], env);
   await run("npm", ["run", "build"], env);
   children.push(
     spawn(process.execPath, ["--import", "tsx", "apps/worker/index.ts"], {

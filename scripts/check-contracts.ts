@@ -1,3 +1,4 @@
+import { operationRoutes } from "../packages/operations/routes";
 import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import YAML from "yaml";
@@ -7,6 +8,7 @@ const spec = YAML.parse(
 );
 assert.equal(spec.openapi, "3.1.0");
 const expected = [
+  "operationsStatus",
   "listSupportAgents",
   "listSupportGrants",
   "createSupportGrant",
@@ -79,4 +81,15 @@ assert.equal(
 );
 console.log(
   `OpenAPI 3.1 contract: ${ids.length} operations, canonical fixture and decimal types verified.`,
+);
+
+assert.deepEqual(
+  [...operationRoutes].map((row) => row.join(" ")).sort(),
+  Object.entries(spec.paths)
+    .flatMap(([path, methods]) =>
+      Object.entries(methods as any).map(([method, op]: [string, any]) =>
+        [method.toUpperCase(), path, op.operationId].join(" "),
+      ),
+    )
+    .sort(),
 );

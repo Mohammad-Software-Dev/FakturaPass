@@ -1,3 +1,8 @@
+import { observeRequest } from "../../../../../../packages/operations/telemetry";
+import {
+  operationsAuthorization,
+  operationalStatus,
+} from "../../../../../../packages/operations/status";
 import * as support from "../../../../../../packages/identity/support";
 import { sessionIdentity } from "../../../../../../packages/identity/oidc";
 import * as credentials from "../../../../../../packages/identity/credentials";
@@ -118,7 +123,7 @@ async function body(req: Request) {
     });
   }
 }
-async function handler(
+async function handle(
   req: Request,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
@@ -137,6 +142,14 @@ async function handler(
     const { path: p } = await params;
     const method = req.method;
     const url = new URL(req.url);
+    if (p.join("/") === "operations/status") {
+      const permission = operationsAuthorization(req);
+      if (permission !== 200)
+        return send({ status: "unavailable" }, permission);
+      if (method !== "GET") return send({ status: "unavailable" }, 405);
+      const report = await operationalStatus();
+      return send(report, report.status === "healthy" ? 200 : 503);
+    }
     if (p.join("/") === "health/live" && method === "GET")
       return send({ status: "ok" });
     if (p.join("/") === "health/ready" && method === "GET") {
@@ -448,9 +461,7 @@ async function handler(
         ? error
         : new service.ApiError("INTERNAL_ERROR", 500);
     if (e.status === 500)
-      console.error(
-        JSON.stringify({ service: "web", requestId, code: e.code }),
-      );
+      console.error(JSON.stringify({ service: "web", code: e.code }));
     return Response.json(
       {
         error: {
@@ -474,5 +485,23 @@ async function handler(
       },
     );
   }
+}
+async function handler(
+  req: Request,
+  context: { params: Promise<{ path: string[] }> },
+) {
+  const started = performance.now();
+  const resolved = await context.params;
+  const response = await handle(req, { params: Promise.resolve(resolved) });
+  response.headers.set(
+    "X-Observation-Id",
+    observeRequest(
+      req.method,
+      resolved.path,
+      response.status,
+      performance.now() - started,
+    ),
+  );
+  return response;
 }
 export { handler as GET, handler as POST };

@@ -997,9 +997,10 @@ for (const [path, method, id, request, response, status] of [
   paths[path] ??= {};
   paths[path][method] = {
     operationId: id,
-    summary: path.startsWith("/support/")
-      ? "Verified OIDC specialist; explicit active grant only. Read-only selected revision; no customer membership or file download."
-      : "OIDC workspace administrator only. Explicit consent, selected revision and finite expiry.",
+    summary:
+      path.startsWith("/support/") || path.startsWith("/operations/")
+        ? "Verified OIDC specialist; explicit active grant only. Read-only selected revision; no customer membership or file download."
+        : "OIDC workspace administrator only. Explicit consent, selected revision and finite expiry.",
     security: [{ browserSession: [] }],
     parameters: path.includes("{grantId}")
       ? [{ name: "grantId", in: "path", required: true, schema: str }]
@@ -1021,11 +1022,124 @@ for (const [path, method, id, request, response, status] of [
     },
   };
 }
+const nonnegative = { type: "number", minimum: 0 };
+const operationalSchema = object({
+  schemaVersion: { type: "string", const: "fakturapass.operations.v1" },
+  environment: {
+    type: "string",
+    enum: ["LOCAL", "SANDBOX", "PILOT", "PRODUCTION"],
+  },
+  observedAt: { type: "string", format: "date-time" },
+  status: { type: "string", enum: ["healthy", "degraded"] },
+  alerts: {
+    type: "array",
+    items: {
+      type: "string",
+      enum: [
+        "DATABASE_UNAVAILABLE",
+        "ENGINE_UNAVAILABLE",
+        "WORKER_MISSING",
+        "JOB_LEASE_EXPIRED",
+        "QUEUE_DELAYED",
+        "JOB_RETRY_DELAYED",
+      ],
+    },
+  },
+  components: object({
+    database: { type: "string", enum: ["up", "down"] },
+    engine: { type: "string", enum: ["up", "down"] },
+  }),
+  queue: {
+    anyOf: [
+      { type: "null" },
+      object({
+        pending: nonnegative,
+        running: nonnegative,
+        due: nonnegative,
+        retrying: nonnegative,
+        expiredLeases: nonnegative,
+        oldestDueSeconds: nonnegative,
+        oldestRetrySeconds: nonnegative,
+      }),
+    ],
+  },
+  workers: {
+    anyOf: [
+      { type: "null" },
+      object({
+        active: nonnegative,
+        lastSeenSeconds: { type: ["number", "null"] },
+      }),
+    ],
+  },
+  jobs: {
+    anyOf: [
+      { type: "null" },
+      {
+        type: "array",
+        items: object({
+          type: { type: "string", enum: ["VALIDATE", "GENERATE", "OTHER"] },
+          outcome: {
+            type: "string",
+            enum: ["PASSED", "REJECTED", "RETRY", "RECOVERED"],
+          },
+          attempts: nonnegative,
+          durationMs: nonnegative,
+        }),
+      },
+    ],
+  },
+  requests: object({
+    startedAt: { type: "string", format: "date-time" },
+    scope: { type: "string", const: "serving_process" },
+    durationBucketUpperBoundsMs: { type: "array", items: nonnegative },
+    items: {
+      type: "array",
+      items: object({
+        operation: str,
+        method: { type: "string", enum: ["GET", "POST", "HEAD", "OTHER"] },
+        statusClass: {
+          type: "string",
+          enum: ["2xx", "3xx", "4xx", "5xx", "other"],
+        },
+        count: nonnegative,
+        durationMs: nonnegative,
+        buckets: { type: "array", items: nonnegative },
+      }),
+    },
+  }),
+  thresholds: object({
+    workerStaleSeconds: nonnegative,
+    queueWarningSeconds: nonnegative,
+  }),
+});
+paths["/operations/status"] = {
+  get: {
+    operationId: "operationsStatus",
+    summary:
+      "Internal operator aggregate health; disabled without a valid operations token. No customer identity fallback. Readiness remains a separate traffic-routing check.",
+    security: [{ operationsToken: [] }],
+    parameters: [],
+    responses: {
+      "200": {
+        description: "Healthy operational snapshot",
+        content: content(operationalSchema),
+      },
+      "503": {
+        description: "Degraded snapshot",
+        content: content(operationalSchema),
+      },
+      "401": { description: "Invalid operator credential" },
+      "404": { description: "Disabled" },
+    },
+  },
+};
 for (const [path, methods] of Object.entries(paths)) {
   if (
     path.startsWith("/auth") ||
     path.startsWith("/health") ||
-    path.startsWith("/support/")
+    path.startsWith("/support/") ||
+    path.startsWith("/operations/")
   )
     continue;
   for (const [method, operation] of Object.entries(methods) as [
@@ -1068,6 +1182,13 @@ const spec = {
   paths,
   components: {
     securitySchemes: {
+      operationsToken: {
+        type: "apiKey",
+        in: "header",
+        name: "X-Operations-Token",
+        description:
+          "Separate internal operator secret; never expose to customer browsers. Disabled unless configured with 43–128 base64url characters.",
+      },
       browserSession: {
         type: "apiKey",
         in: "cookie",
@@ -1101,4 +1222,21 @@ const spec = {
 writeFileSync(
   "packages/contracts/openapi.yaml",
   YAML.stringify(spec, { aliasDuplicateObjects: false }),
+);
+
+writeFileSync(
+  "packages/operations/routes.ts",
+  "// Generated by scripts/generate-openapi.ts; bounded telemetry labels, no resource identifiers.\nexport const operationRoutes = " +
+    JSON.stringify(
+      Object.entries(paths).flatMap(([path, methods]) =>
+        Object.entries(methods).map(([method, op]: [string, any]) => [
+          method.toUpperCase(),
+          path,
+          op.operationId,
+        ]),
+      ),
+      null,
+      2,
+    ) +
+    " as const;\n",
 );

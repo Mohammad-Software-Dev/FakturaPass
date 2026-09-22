@@ -1,3 +1,4 @@
+import { recordJobMetric, runtimeEnvironment } from "../operations/telemetry";
 import * as recipients from "../recipients/service";
 import { checkRecipient, coverage } from "../recipients/model";
 import { randomUUID } from "node:crypto";
@@ -467,13 +468,14 @@ export async function enqueueValidation(
       ["VALIDATION_PENDING", ctx.tenantId, revisionId],
     );
     await db.query(
-      "INSERT INTO jobs(id,tenant_id,type,dedupe_key,payload_json) VALUES($1,$2,$3,$4,$5)",
+      "INSERT INTO jobs(id,tenant_id,type,dedupe_key,payload_json,environment) VALUES($1,$2,$3,$4,$5,$6)",
       [
         uid(),
         ctx.tenantId,
         "VALIDATE",
         dedupe,
         { invoiceId, revisionId, validationRunId: id, profileId },
+        ctx.environment,
       ],
     );
     await audit(db, ctx, "VALIDATE", invoiceId);
@@ -627,7 +629,7 @@ export async function enqueueGeneration(
       ],
     );
     await db.query(
-      "INSERT INTO jobs(id,tenant_id,type,dedupe_key,payload_json) VALUES($1,$2,$3,$4,$5)",
+      "INSERT INTO jobs(id,tenant_id,type,dedupe_key,payload_json,environment) VALUES($1,$2,$3,$4,$5,$6)",
       [
         uid(),
         ctx.tenantId,
@@ -640,6 +642,7 @@ export async function enqueueGeneration(
           approvalId: a.id,
           profileId: a.profile_version_id,
         },
+        ctx.environment,
       ],
     );
     await db.query(
@@ -680,11 +683,14 @@ export async function evidence(
   return manifest.manifest;
 }
 export async function processJob(): Promise<boolean> {
+  const environment = runtimeEnvironment(),
+    started = performance.now();
   const job = await transaction(
     async (db) =>
       (
         await db.query(
-          `UPDATE jobs SET state='RUNNING',attempts=attempts+1,lease_until=now()+interval '120 seconds' WHERE id=(SELECT id FROM jobs WHERE (state='PENDING' AND available_at<=now()) OR (state='RUNNING' AND lease_until<now()) ORDER BY available_at FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING *`,
+          `UPDATE jobs SET state='RUNNING',attempts=attempts+1,lease_until=now()+interval '120 seconds' WHERE id=(SELECT id FROM jobs WHERE environment=$1 AND ((state='PENDING' AND available_at<=now()) OR (state='RUNNING' AND lease_until<now())) ORDER BY available_at FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING *`,
+          [environment],
         )
       ).rows[0],
   );
@@ -693,7 +699,7 @@ export async function processJob(): Promise<boolean> {
     tenantId: job.tenant_id,
     actor: "worker",
     role: "ADMIN",
-    environment: "LOCAL",
+    environment,
     requestId: job.id,
   };
   const p = job.payload_json;
@@ -707,10 +713,20 @@ export async function processJob(): Promise<boolean> {
     ).rows[0];
     if (!run) throw Error("INTERNAL_ERROR");
     if (run.status === "PASS" || run.status === "FAIL") {
-      await pool.query(
-        "UPDATE jobs SET state='DONE',lease_until=NULL WHERE tenant_id=$1 AND id=$2",
-        [ctx.tenantId, job.id],
-      );
+      await transaction(async (db) => {
+        const changed = await db.query(
+          "UPDATE jobs SET state='DONE',lease_until=NULL WHERE tenant_id=$1 AND id=$2 AND state='RUNNING' AND attempts=$3",
+          [ctx.tenantId, job.id, job.attempts],
+        );
+        if (changed.rowCount)
+          await recordJobMetric(
+            db,
+            environment,
+            job.type,
+            "RECOVERED",
+            started,
+          );
+      });
       return true;
     }
     let recipientSnapshot = checkRecipient(
@@ -894,14 +910,23 @@ export async function processJob(): Promise<boolean> {
         "UPDATE jobs SET state='DONE',lease_until=NULL,last_error_code=NULL WHERE tenant_id=$1 AND id=$2",
         [ctx.tenantId, job.id],
       );
+      await recordJobMetric(
+        db,
+        environment,
+        job.type,
+        pass ? "PASSED" : "REJECTED",
+        started,
+      );
       await audit(db, ctx, `COMPLETED_${job.type}`, p.invoiceId);
     });
   } catch {
     await transaction(async (db) => {
-      await db.query(
-        "UPDATE jobs SET state='PENDING',available_at=now()+interval '5 seconds',lease_until=NULL,last_error_code='ENGINE_UNAVAILABLE' WHERE tenant_id=$1 AND id=$2 AND attempts=$3",
+      const changed = await db.query(
+        "UPDATE jobs SET state='PENDING',available_at=now()+interval '5 seconds',lease_until=NULL,last_error_code='ENGINE_UNAVAILABLE' WHERE tenant_id=$1 AND id=$2 AND attempts=$3 AND state='RUNNING'",
         [ctx.tenantId, job.id, job.attempts],
       );
+      if (!changed.rowCount) return;
+      await recordJobMetric(db, environment, job.type, "RETRY", started);
       await db.query(
         "UPDATE validation_runs SET status='ERROR',findings=$1 WHERE tenant_id=$2 AND id=$3 AND status IN ('PENDING','ERROR')",
         [
