@@ -18,6 +18,8 @@ type Diagnosis = {
   }[];
 };
 const resultLabels: Record<string, string> = {
+  PASS: "Technisch gültig",
+  FAIL: "Fehler gefunden",
   PENDING: "Prüfung läuft",
   VALID: "Technisch gültig",
   INVALID: "Fehler gefunden",

@@ -1047,7 +1047,7 @@ async function supportFixture(suffix: string) {
     evidenceSource: "synthetic-support-fixture",
   };
   await pool.query(
-    "INSERT INTO validation_runs(id,tenant_id,revision_id,rule_manifest_json,engine_version,status,kind,canonical_sha256,dedupe_key,findings,completed_at) VALUES($1,'local-demo',$2,'{}','synthetic-support-validator','INVALID','PRECHECK',$3,$1,$4,now())",
+    "INSERT INTO validation_runs(id,tenant_id,revision_id,rule_manifest_json,engine_version,status,kind,canonical_sha256,dedupe_key,findings,completed_at) VALUES($1,'local-demo',$2,'{}','synthetic-support-validator','FAIL','PRECHECK',$3,$1,$4,now())",
     [
       randomUUID(),
       created.revisionId,
@@ -1660,6 +1660,9 @@ for (const [name, browserType] of [
         ).toBeVisible();
         await expect(
           specialist.getByText("seller.contact.telephone", { exact: false }),
+        ).toBeVisible();
+        await expect(
+          specialist.getByText("Errors found", { exact: true }),
         ).toBeVisible();
         await specialist
           .getByText("Technical details", { exact: true })
