@@ -19,7 +19,18 @@ jobs:
       - run: npm install --global npm@11.6.1
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
-      - run: npm run verify
+      - run: npm run verify 2>&1 | tee /tmp/fakturapass-verification.log
+        shell: bash
+      - run: npm run release:images
+        env:
+          VERIFICATION_LOG: /tmp/fakturapass-verification.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-evidence
+          path: .data/releases/
+          include-hidden-files: true
+          retention-days: 30
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

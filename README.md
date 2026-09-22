@@ -82,3 +82,5 @@ Organization bootstrap and manually shared, verified invitation links are covere
 Registered specialists can receive customer-authorized, time-limited read access to one invoice revision under **Team → Support access**. See [support operations](docs/SUPPORT_ACCESS.md). This requires configured OIDC sign-in and does not create a customer role.
 
 Operational health, queue/worker alerts and private metrics: [Monitoring guide](docs/OBSERVABILITY.md). Run `npm run operations:check` against the configured local stack.
+
+Build and accept local web/worker images from a clean commit with `npm run release:images`. See [Deployment images and release evidence](docs/DEPLOYMENT_IMAGES.md) for runtime configuration, inventory scope and remaining production gates.
