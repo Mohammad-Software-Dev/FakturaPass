@@ -34,7 +34,6 @@ for (const target of ["web", "worker"]) {
       "buildx",
       "build",
       "--load",
-      "--provenance=mode=min",
       "--metadata-file",
       metadata,
       "--target",
