@@ -3,6 +3,8 @@ export default {
   outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
   serverExternalPackages: ["pg"],
   poweredByHeader: false,
+  // The invoice UI does not transform images; runtime omits optional native codecs.
+  images: { unoptimized: true },
   async headers() {
     return [
       {

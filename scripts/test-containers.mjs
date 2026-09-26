@@ -115,7 +115,7 @@ try {
       "node",
       image,
       "-e",
-      "const fs=require('node:fs'); for(const p of ['.env','.git','.data','node_modules/typescript']) if(fs.existsSync('/app/'+p)) process.exit(1); for(const p of ['/usr/local/lib/node_modules/npm','/usr/local/lib/node_modules/corepack','/usr/local/bin/npm','/usr/local/bin/npx','/usr/local/bin/yarn','/usr/local/bin/corepack']) if(fs.existsSync(p)) process.exit(1)",
+      "const fs=require('node:fs'); for(const p of ['.env','.git','.data','node_modules/typescript','node_modules/sharp']) if(fs.existsSync('/app/'+p)) process.exit(1); for(const p of ['/usr/local/lib/node_modules/npm','/usr/local/lib/node_modules/corepack','/usr/local/bin/npm','/usr/local/bin/npx','/usr/local/bin/yarn','/usr/local/bin/corepack']) if(fs.existsSync(p)) process.exit(1)",
     );
     assert.throws(
       () =>
@@ -142,6 +142,11 @@ try {
     assert.equal(sbom.bomFormat, "CycloneDX");
     assert(sbom.components.some((c) => c.name === "pg"));
     assert(!sbom.components.some((c) => c.name === "typescript"));
+    assert(
+      !sbom.components.some(
+        (c) => c.name === "sharp" || c.name.startsWith("@img/"),
+      ),
+    );
     assert.throws(
       () => docker("run", "--rm", image),
       "Missing runtime configuration must fail closed",
@@ -168,6 +173,10 @@ try {
     })
   ).json();
   assert.equal(status.status, "healthy");
+  assert.equal(
+    (await request(base + "/_next/image?url=%2Ffavicon.ico&w=64&q=75")).status,
+    404,
+  );
   async function api(path, body) {
     const response = await request(base + "/api/v1/" + path, {
       method: body ? "POST" : "GET",

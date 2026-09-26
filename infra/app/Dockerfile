@@ -1,4 +1,4 @@
-FROM node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 AS base
+FROM node:22.23.3-trixie-slim@sha256:b26b04c123d9ff8ab646ceb18b9d75a1173acf64b9a401094b906d27b29338d4 AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -16,7 +16,7 @@ COPY scripts ./scripts
 RUN node scripts/build-runtime.mjs && npm run build
 
 FROM dependencies AS production-dependencies
-RUN npm sbom --sbom-format=cyclonedx --omit=dev > /tmp/npm-sbom.cdx.json && npm prune --omit=dev --no-audit --no-fund
+RUN npm sbom --sbom-format=cyclonedx --omit=dev --omit=optional > /tmp/npm-sbom.cdx.json && npm prune --omit=dev --omit=optional --no-audit --no-fund
 
 FROM base AS runtime
 # Runtime entry points use Node directly; package managers belong in build stages.
