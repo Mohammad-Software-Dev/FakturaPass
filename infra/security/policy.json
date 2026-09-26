@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "fakturapass.security-policy.v1",
+  "blockedSeverities": ["High", "Critical", "Unknown"],
+  "maxDatabaseAgeHours": 120,
+  "allowedDependencyLicenseExpressions": [
+    "MIT",
+    "ISC",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "0BSD",
+    "CC0-1.0",
+    "CC-BY-4.0",
+    "Unlicense"
+  ],
+  "exceptions": []
+}

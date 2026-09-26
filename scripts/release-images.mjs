@@ -1,3 +1,5 @@
+import { scanImage } from "./scan-image.mjs";
+import { evaluateLicenses } from "./security-policy.mjs";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -24,6 +26,8 @@ function save(name, value) {
 if (process.env.VERIFICATION_LOG)
   save("verification.log", readFileSync(process.env.VERIFICATION_LOG, "utf8"));
 const images = {};
+const security = {};
+const policy = JSON.parse(readFileSync("infra/security/policy.json", "utf8"));
 for (const target of ["web", "worker"]) {
   const tag = `fakturapass-${target}:${revision}`;
   console.log(`Building ${target} for ${revision}`);
@@ -72,15 +76,22 @@ for (const target of ["web", "worker"]) {
   if (parsed.bomFormat !== "CycloneDX" || !parsed.components?.length)
     throw Error("Missing dependency inventory");
   save(`${target}-npm-sbom.cdx.json`, sbom);
-  save(
-    `${target}-licenses.json`,
-    parsed.components.map((c) => ({
-      name: c.name,
-      version: c.version,
-      licenses: c.licenses ?? [],
-      reviewRequired: !c.licenses?.length,
-    })),
-  );
+  const licenses = evaluateLicenses(parsed, policy);
+  save(`${target}-licenses.json`, licenses);
+  const vulnerabilities = scanImage(image.Id, target, directory);
+  for (const suffix of [
+    "sbom.syft.json",
+    "sbom.spdx.json",
+    "vulnerabilities.json",
+    "security.json",
+  ]) {
+    const name = `${target}-${suffix}`;
+    files[name] = hash(readFileSync(join(directory, name)));
+  }
+  security[target] = {
+    licenses: licenses.status,
+    vulnerabilities: vulnerabilities.status,
+  };
   save(
     `${target}-os-packages.tsv`,
     run("docker", [
@@ -94,6 +105,16 @@ for (const target of ["web", "worker"]) {
     ]),
   );
 }
+save("security-summary.json", security);
+if (
+  Object.values(security).some(
+    (result) =>
+      result.licenses !== "passed" || result.vulnerabilities !== "passed",
+  )
+)
+  throw Error(
+    "Release security policy blocked promotion; inspect retained security and license reports. No final manifest was created.",
+  );
 console.log(
   "Testing the exact recorded image IDs against a disposable database",
 );
@@ -136,9 +157,12 @@ save("manifest.json", {
   validatorManifestSha256: hash(
     readFileSync("services/invoice-engine/dependencies.lock.json"),
   ),
+  securityPolicySha256: hash(readFileSync("infra/security/policy.json")),
+  scannerLockSha256: hash(readFileSync("infra/security/scanners.lock.json")),
+  security,
   images,
   files: { ...files },
   scope:
-    "Local image packaging acceptance; not production release approval. npm SBOM plus OS inventory; no OS CVE scan or legal license approval.",
+    "Local image security and packaging acceptance; not production release approval or legal license approval. OS/application vulnerability scans and exact npm license policy passed.",
 });
 console.log(`Release evidence saved: ${directory}`);

@@ -63,6 +63,7 @@ try {
     "typecheck",
     "lint",
     "test",
+    "test:security",
     "contracts:check",
   ])
     await run("npm", ["run", task], env);
