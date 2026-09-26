@@ -131,3 +131,41 @@ export function evaluateVulnerabilities(report, policy, now = new Date()) {
     findings,
   };
 }
+
+// Use filesystem evidence: npm's dependency graph can retain omitted transitive packages.
+export function evaluateImageLicenses(sbom, policy) {
+  if (sbom?.source?.type !== "image" || !Array.isArray(sbom.artifacts))
+    throw Error("Invalid image license inventory");
+  const packages = sbom.artifacts.filter((a) => a.type === "npm");
+  const firstParty = (a) =>
+    a.name === "fakturapass" &&
+    a.locations?.length === 1 &&
+    a.locations[0].path === "/app/package.json";
+  const result = evaluateLicenses(
+    {
+      bomFormat: "CycloneDX",
+      components: packages
+        .filter((a) => !firstParty(a))
+        .map((a) => ({
+          name: a.name,
+          version: a.version,
+          licenses: (a.licenses ?? []).map((l) => ({
+            expression: l.spdxExpression || l.value,
+          })),
+        })),
+    },
+    policy,
+  );
+  return {
+    ...result,
+    scope:
+      "Installed third-party npm packages, including bundled packages; OS/native notice obligations require separate review",
+    firstParty: packages
+      .filter(firstParty)
+      .map((a) => ({
+        name: a.name,
+        version: a.version,
+        path: a.locations[0].path,
+      })),
+  };
+}

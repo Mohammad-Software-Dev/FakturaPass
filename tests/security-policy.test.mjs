@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   validateScanTarget,
   evaluateLicenses,
+  evaluateImageLicenses,
   evaluateVulnerabilities,
 } from "../scripts/security-policy.mjs";
 const policy = JSON.parse(readFileSync("infra/security/policy.json", "utf8"));
@@ -175,4 +176,36 @@ test("Malformed policy cannot weaken the release gate", () => {
       }),
     );
   }
+});
+
+test("Image license gate covers bundled dependencies and only excludes the exact first-party root", () => {
+  const artifact = (
+    name,
+    licenses,
+    path = "/app/node_modules/example/package.json",
+  ) => ({
+    type: "npm",
+    name,
+    version: "1.0",
+    licenses: licenses.map((value) => ({ value })),
+    locations: [{ path }],
+  });
+  const sbom = (artifacts) => ({ source: { type: "image" }, artifacts });
+  const root = artifact("fakturapass", [], "/app/package.json");
+  const good = artifact("example", ["MIT"]);
+  assert.equal(
+    evaluateImageLicenses(sbom([root, good]), policy).status,
+    "passed",
+  );
+  for (const a of [
+    artifact("bundled", []),
+    artifact("codec", ["LGPL-3.0-or-later"]),
+    artifact("fakturapass", []),
+  ])
+    assert.equal(
+      evaluateImageLicenses(sbom([root, good, a]), policy).status,
+      "blocked",
+    );
+  assert.throws(() => evaluateImageLicenses(sbom([root]), policy));
+  assert.throws(() => evaluateImageLicenses({}, policy));
 });

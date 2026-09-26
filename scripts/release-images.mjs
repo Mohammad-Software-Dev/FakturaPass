@@ -1,5 +1,5 @@
 import { scanImage } from "./scan-image.mjs";
-import { evaluateLicenses } from "./security-policy.mjs";
+import { evaluateImageLicenses } from "./security-policy.mjs";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -76,9 +76,14 @@ for (const target of ["web", "worker"]) {
   if (parsed.bomFormat !== "CycloneDX" || !parsed.components?.length)
     throw Error("Missing dependency inventory");
   save(`${target}-npm-sbom.cdx.json`, sbom);
-  const licenses = evaluateLicenses(parsed, policy);
-  save(`${target}-licenses.json`, licenses);
   const vulnerabilities = scanImage(image.Id, target, directory);
+  const licenses = evaluateImageLicenses(
+    JSON.parse(
+      readFileSync(join(directory, `${target}-sbom.syft.json`), "utf8"),
+    ),
+    policy,
+  );
+  save(`${target}-licenses.json`, licenses);
   for (const suffix of [
     "sbom.syft.json",
     "sbom.spdx.json",
@@ -163,6 +168,6 @@ save("manifest.json", {
   images,
   files: { ...files },
   scope:
-    "Local image security and packaging acceptance; not production release approval or legal license approval. OS/application vulnerability scans and exact npm license policy passed.",
+    "Local image security and packaging acceptance; not production release approval or legal license approval. OS/application vulnerability scans and installed npm license policy passed.",
 });
 console.log(`Release evidence saved: ${directory}`);
