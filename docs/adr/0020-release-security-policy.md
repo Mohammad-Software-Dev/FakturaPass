@@ -9,3 +9,5 @@ Export each immutable local image ID and inventory it with checksum-pinned nativ
 Native tools avoid dependence on scanner containers or giving scanners access to the Docker socket. The platform-specific archive lock supports macOS ARM64 and Linux AMD64/ARM64. Network and several GB of disk capacity are required for database updates. Release artifacts remain unsigned local evidence until approved registry publication and signing are implemented.
 
 A failing gate intentionally prevents final release-manifest creation. Neither a clean npm audit nor passing application tests override image findings. See SECURITY_RELEASE.md for operator instructions and RELEASE_A_RESULTS.md for the observed acceptance result.
+
+Follow-up, 27 September 2026: license policy now uses installed npm artifacts from the Syft filesystem inventory, including bundled dependencies. npm's dependency-graph SBOM retained an omitted transitive Sharp package and is retained only as comparative evidence. The exact first-party `/app/package.json` artifact is reported separately; third-party packages with the same name are still evaluated. Missing bundled declarations remain review requirements.

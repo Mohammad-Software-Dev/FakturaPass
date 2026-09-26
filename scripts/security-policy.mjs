@@ -160,12 +160,10 @@ export function evaluateImageLicenses(sbom, policy) {
     ...result,
     scope:
       "Installed third-party npm packages, including bundled packages; OS/native notice obligations require separate review",
-    firstParty: packages
-      .filter(firstParty)
-      .map((a) => ({
-        name: a.name,
-        version: a.version,
-        path: a.locations[0].path,
-      })),
+    firstParty: packages.filter(firstParty).map((a) => ({
+      name: a.name,
+      version: a.version,
+      path: a.locations[0].path,
+    })),
   };
 }
