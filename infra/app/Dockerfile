@@ -19,6 +19,9 @@ FROM dependencies AS production-dependencies
 RUN npm sbom --sbom-format=cyclonedx --omit=dev > /tmp/npm-sbom.cdx.json && npm prune --omit=dev --no-audit --no-fund
 
 FROM base AS runtime
+# Runtime entry points use Node directly; package managers belong in build stages.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/pnpm /usr/local/bin/pnpx
 ENV NODE_ENV=production AUTH_MODE=oidc FAKTURAPASS_ENV=PRODUCTION
 COPY --from=production-dependencies /app/node_modules ./node_modules
 COPY package.json package-lock.json ./
