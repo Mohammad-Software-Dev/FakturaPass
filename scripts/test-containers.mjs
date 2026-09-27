@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 const web = process.env.WEB_IMAGE ?? "fakturapass-web:packaging-check";
@@ -209,21 +209,38 @@ try {
     return ["PASS", "FAIL"].includes(r.status) ? r : null;
   });
   assert.equal(result.status, "PASS");
-  execFileSync(
-    process.execPath,
-    [
-      "node_modules/@playwright/test/cli.js",
-      "test",
-      "tests/browser/import-review.spec.ts",
-      "tests/browser/language.spec.ts",
-      "tests/browser/theme.spec.ts",
-    ],
-    {
-      stdio: "inherit",
-      timeout: 300000,
-      env: { ...process.env, PLAYWRIGHT_BASE_URL: base },
-    },
+  const initialMetrics = await (
+    await request(base + "/api/v1/operations/status", {
+      headers: { "X-Operations-Token": token },
+    })
+  ).json();
+  assert(
+    initialMetrics.jobs.some((j) => j.outcome === "PASSED" && j.attempts === 1),
   );
+  // Keep the event loop responsive so idle HTTP connections close while browsers run.
+  await new Promise((resolve, reject) => {
+    const browsers = spawn(
+      process.execPath,
+      [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "tests/browser/import-review.spec.ts",
+        "tests/browser/language.spec.ts",
+        "tests/browser/theme.spec.ts",
+      ],
+      {
+        stdio: "inherit",
+        signal: AbortSignal.timeout(300000),
+        env: { ...process.env, PLAYWRIGHT_BASE_URL: base },
+      },
+    );
+    browsers.once("error", reject);
+    browsers.once("exit", (code) =>
+      code === 0
+        ? resolve()
+        : reject(Error(`Container browser acceptance failed (${code})`)),
+    );
+  });
   docker("stop", "--time", "15", workerId);
   assert.equal(JSON.parse(docker("inspect", workerId))[0].State.ExitCode, 0);
   const stopped = await (
@@ -233,7 +250,7 @@ try {
   ).json();
   assert(stopped.alerts.includes("WORKER_MISSING"));
   assert.equal(stopped.workers.active, 0);
-  assert(stopped.jobs.some((j) => j.outcome === "PASSED" && j.attempts === 1));
+  assert(stopped.jobs.some((j) => j.outcome === "PASSED" && j.attempts >= 1));
   console.log(
     "Container acceptance passed: non-root/read-only images, SBOM, configuration rejection, migration, web readiness, import/official validation, metrics, Chromium/WebKit import/language/theme journeys and graceful shutdown.",
   );
