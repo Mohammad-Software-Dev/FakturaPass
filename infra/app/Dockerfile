@@ -16,9 +16,13 @@ COPY scripts ./scripts
 RUN node scripts/build-runtime.mjs && npm run build
 
 FROM dependencies AS production-dependencies
-RUN npm sbom --sbom-format=cyclonedx --omit=dev --omit=optional > /tmp/npm-sbom.cdx.json && npm prune --omit=dev --omit=optional --no-audit --no-fund
+RUN npm sbom --sbom-format=cyclonedx --omit=dev --omit=optional > /tmp/npm-sbom.cdx.json && npm prune --omit=dev --omit=optional --no-audit --no-fund \
+    && test -z "$(find node_modules -name '*.node' -print -quit)"
 
-FROM base AS runtime
+# Build native tooling on Debian; production installs contain only portable JS.
+FROM node:22.23.3-alpine3.24@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS runtime
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 # Runtime entry points use Node directly; package managers belong in build stages.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
     && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/pnpm /usr/local/bin/pnpx

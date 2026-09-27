@@ -12,6 +12,7 @@ import { resolve, join } from "node:path";
 import {
   evaluateVulnerabilities,
   validateScanTarget,
+  validateImageInventory,
 } from "./security-policy.mjs";
 import { scannerLock, scannerTools } from "./scanner-tools.mjs";
 const policy = JSON.parse(readFileSync("infra/security/policy.json", "utf8"));
@@ -68,13 +69,7 @@ export function scanImage(imageId, target, directory) {
     const sbom = JSON.parse(
       readFileSync(join(output, "sbom.syft.json"), "utf8"),
     );
-    if (
-      !sbom.artifacts?.length ||
-      sbom.source?.type !== "image" ||
-      !sbom.artifacts.some((a) => a.type === "deb") ||
-      !sbom.artifacts.some((a) => a.type === "npm")
-    )
-      throw Error("Incomplete image inventory: expected OS and npm packages");
+    validateImageInventory(sbom);
     for (const name of ["sbom.syft.json", "sbom.spdx.json"])
       copyFileSync(join(output, name), join(directory, `${target}-${name}`));
     rmSync(archive);

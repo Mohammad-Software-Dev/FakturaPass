@@ -167,3 +167,20 @@ export function evaluateImageLicenses(sbom, policy) {
     })),
   };
 }
+
+export function validateImageInventory(sbom) {
+  const packageType = { debian: "deb", ubuntu: "deb", alpine: "apk" }[
+    sbom?.distro?.id
+  ];
+  if (
+    !packageType ||
+    sbom?.source?.type !== "image" ||
+    !Array.isArray(sbom.artifacts) ||
+    !sbom.artifacts.some((a) => a.type === packageType) ||
+    !sbom.artifacts.some((a) => a.type === "npm")
+  )
+    throw Error(
+      "Incomplete image inventory: expected supported OS and npm packages",
+    );
+  return packageType;
+}

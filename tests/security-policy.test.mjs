@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   validateScanTarget,
+  validateImageInventory,
   evaluateLicenses,
   evaluateImageLicenses,
   evaluateVulnerabilities,
@@ -208,4 +209,28 @@ test("Image license gate covers bundled dependencies and only excludes the exact
     );
   assert.throws(() => evaluateImageLicenses(sbom([root]), policy));
   assert.throws(() => evaluateImageLicenses({}, policy));
+});
+
+test("Image inventory requires OS-specific packages and application coverage", () => {
+  const inventory = (id, types) => ({
+    source: { type: "image" },
+    distro: { id },
+    artifacts: types.map((type) => ({ type })),
+  });
+  assert.equal(
+    validateImageInventory(inventory("debian", ["deb", "npm"])),
+    "deb",
+  );
+  assert.equal(
+    validateImageInventory(inventory("alpine", ["apk", "npm"])),
+    "apk",
+  );
+  for (const input of [
+    inventory("alpine", ["deb", "npm"]),
+    inventory("alpine", ["apk"]),
+    inventory("debian", ["npm"]),
+    inventory("unknown", ["deb", "npm"]),
+    {},
+  ])
+    assert.throws(() => validateImageInventory(input));
 });

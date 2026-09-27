@@ -1,5 +1,8 @@
 import { scanImage } from "./scan-image.mjs";
-import { evaluateImageLicenses } from "./security-policy.mjs";
+import {
+  evaluateImageLicenses,
+  validateImageInventory,
+} from "./security-policy.mjs";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -77,12 +80,11 @@ for (const target of ["web", "worker"]) {
     throw Error("Missing dependency inventory");
   save(`${target}-npm-sbom.cdx.json`, sbom);
   const vulnerabilities = scanImage(image.Id, target, directory);
-  const licenses = evaluateImageLicenses(
-    JSON.parse(
-      readFileSync(join(directory, `${target}-sbom.syft.json`), "utf8"),
-    ),
-    policy,
+  const installed = JSON.parse(
+    readFileSync(join(directory, `${target}-sbom.syft.json`), "utf8"),
   );
+  const osType = validateImageInventory(installed);
+  const licenses = evaluateImageLicenses(installed, policy);
   save(`${target}-licenses.json`, licenses);
   for (const suffix of [
     "sbom.syft.json",
@@ -97,18 +99,17 @@ for (const target of ["web", "worker"]) {
     licenses: licenses.status,
     vulnerabilities: vulnerabilities.status,
   };
-  save(
-    `${target}-os-packages.tsv`,
-    run("docker", [
-      "run",
-      "--rm",
-      "--entrypoint",
-      "dpkg-query",
-      image.Id,
-      "-W",
-      "-f=${Package}\t${Version}\t${Architecture}\n",
-    ]),
-  );
+  save(`${target}-os-packages.json`, {
+    distribution: installed.distro,
+    packages: installed.artifacts
+      .filter((a) => a.type === osType)
+      .map((a) => ({
+        name: a.name,
+        version: a.version,
+        purl: a.purl,
+        licenses: a.licenses,
+      })),
+  });
 }
 save("security-summary.json", security);
 if (
