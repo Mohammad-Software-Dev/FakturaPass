@@ -200,6 +200,21 @@ try {
     return ["PASS", "FAIL"].includes(r.status) ? r : null;
   });
   assert.equal(result.status, "PASS");
+  execFileSync(
+    process.execPath,
+    [
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "tests/browser/import-review.spec.ts",
+      "tests/browser/language.spec.ts",
+      "tests/browser/theme.spec.ts",
+    ],
+    {
+      stdio: "inherit",
+      timeout: 300000,
+      env: { ...process.env, PLAYWRIGHT_BASE_URL: base },
+    },
+  );
   docker("stop", "--time", "15", workerId);
   assert.equal(JSON.parse(docker("inspect", workerId))[0].State.ExitCode, 0);
   const stopped = await (
@@ -211,7 +226,7 @@ try {
   assert.equal(stopped.workers.active, 0);
   assert(stopped.jobs.some((j) => j.outcome === "PASSED" && j.attempts === 1));
   console.log(
-    "Container acceptance passed: non-root/read-only images, SBOM, configuration rejection, migration, web readiness, import/official validation, metrics and graceful shutdown.",
+    "Container acceptance passed: non-root/read-only images, SBOM, configuration rejection, migration, web readiness, import/official validation, metrics, Chromium/WebKit import/language/theme journeys and graceful shutdown.",
   );
 } finally {
   for (const id of ids.reverse()) docker("rm", "-f", "-v", id);
