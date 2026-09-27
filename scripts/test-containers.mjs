@@ -115,7 +115,16 @@ try {
       "node",
       image,
       "-e",
-      "const fs=require('node:fs'); for(const p of ['.env','.git','.data','node_modules/typescript','node_modules/sharp']) if(fs.existsSync('/app/'+p)) process.exit(1); for(const p of ['/usr/local/lib/node_modules/npm','/usr/local/lib/node_modules/corepack','/usr/local/bin/npm','/usr/local/bin/npx','/usr/local/bin/yarn','/usr/local/bin/corepack']) if(fs.existsSync(p)) process.exit(1); if(fs.existsSync('/app/node_modules/@img') && fs.readdirSync('/app/node_modules/@img').length) process.exit(1)",
+      "const fs=require('node:fs'); for(const p of ['.env','.git','.data','node_modules/typescript','node_modules/sharp']) if(fs.existsSync('/app/'+p)) process.exit(1); for(const p of ['/usr/local/lib/node_modules/npm','/usr/local/lib/node_modules/corepack','/usr/local/bin/npm','/usr/local/bin/npx','/usr/local/bin/yarn','/usr/local/bin/corepack','/sbin/apk','/usr/lib/libz.so.1']) if(fs.existsSync(p)) process.exit(1); if(fs.existsSync('/app/node_modules/@img') && fs.readdirSync('/app/node_modules/@img').length) process.exit(1)",
+    );
+    docker(
+      "run",
+      "--rm",
+      "--entrypoint",
+      "node",
+      image,
+      "-e",
+      "const z=require('node:zlib');const a=require('node:assert/strict');a.equal(z.gunzipSync(z.gzipSync('FakturaPass')).toString(),'FakturaPass');console.log(JSON.stringify({node:process.version,zlib:process.versions.zlib}))",
     );
     assert.throws(
       () =>

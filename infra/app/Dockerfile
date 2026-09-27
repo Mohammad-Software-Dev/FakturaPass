@@ -24,6 +24,8 @@ FROM node:22.23.3-alpine3.24@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 # Runtime entry points use Node directly; package managers belong in build stages.
+# Removing apk also removes its unused system zlib dependency through the package manager.
+RUN apk del apk-tools libapk zlib
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
     && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/pnpm /usr/local/bin/pnpx
 ENV NODE_ENV=production AUTH_MODE=oidc FAKTURAPASS_ENV=PRODUCTION
