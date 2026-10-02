@@ -13,11 +13,8 @@ COPY packages ./packages
 COPY examples ./examples
 COPY services/invoice-engine/dependencies.lock.json ./services/invoice-engine/dependencies.lock.json
 COPY scripts ./scripts
-RUN node scripts/build-runtime.mjs && npm run build
-
-FROM dependencies AS production-dependencies
-RUN npm sbom --sbom-format=cyclonedx --omit=dev --omit=optional > /tmp/npm-sbom.cdx.json && npm prune --omit=dev --omit=optional --no-audit --no-fund \
-    && test -z "$(find node_modules -name '*.node' -print -quit)"
+RUN node scripts/build-runtime.mjs && npm run build && node scripts/package-runtime.mjs \
+    && npm sbom --sbom-format=cyclonedx --omit=dev --omit=optional > .data/runtime/npm-sbom.cdx.json
 
 # Build native tooling on Debian; production installs contain only portable JS.
 FROM node:22.23.3-alpine3.24@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS runtime
@@ -29,9 +26,9 @@ RUN apk del apk-tools libapk zlib
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
     && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/pnpm /usr/local/bin/pnpx
 ENV NODE_ENV=production AUTH_MODE=oidc FAKTURAPASS_ENV=PRODUCTION
-COPY --from=production-dependencies /app/node_modules ./node_modules
-COPY package.json package-lock.json ./
-COPY --from=production-dependencies /tmp/npm-sbom.cdx.json ./release/npm-sbom.cdx.json
+COPY --from=build /app/.data/runtime-dependencies/node_modules ./node_modules
+COPY --from=build /app/.data/runtime/package.json ./package.json
+COPY --from=build /app/.data/runtime/npm-sbom.cdx.json ./release/npm-sbom.cdx.json
 COPY --from=build /app/.data/runtime ./runtime
 COPY packages/database/migrations ./packages/database/migrations
 COPY infra/app/entrypoint.mjs ./entrypoint.mjs
@@ -44,7 +41,7 @@ FROM runtime AS worker
 CMD ["worker"]
 
 FROM runtime AS web
-COPY --from=build /app/apps/web/.next ./apps/web/.next
-COPY apps/web/next.config.mjs ./apps/web/next.config.mjs
+COPY --from=build /app/apps/web/.next/standalone ./
+COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 EXPOSE 3010
 CMD ["web"]

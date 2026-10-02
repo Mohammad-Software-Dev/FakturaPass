@@ -108,6 +108,16 @@ try {
   for (const image of [web, worker]) {
     const meta = JSON.parse(docker("image", "inspect", image))[0];
     assert.equal(meta.Config.User, "10001:10001");
+    if (image === worker)
+      docker(
+        "run",
+        "--rm",
+        "--entrypoint",
+        "node",
+        image,
+        "-e",
+        "if(require('node:fs').existsSync('/app/node_modules/next'))process.exit(1)",
+      );
     docker(
       "run",
       "--rm",

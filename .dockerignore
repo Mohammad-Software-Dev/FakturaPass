@@ -18,6 +18,7 @@
 !services/invoice-engine/dependencies.lock.json
 !scripts/
 !scripts/build-runtime.mjs
+!scripts/package-runtime.mjs
 !scripts/operations-check.ts
 !scripts/provision-oidc-member.ts
 !scripts/bootstrap-organization.ts

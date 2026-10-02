@@ -1,14 +1,6 @@
 import { spawn } from "node:child_process";
 const commands = {
-  web: [
-    "node_modules/next/dist/bin/next",
-    "start",
-    "apps/web",
-    "-p",
-    "3010",
-    "--hostname",
-    "0.0.0.0",
-  ],
+  web: ["apps/web/server.js"],
   worker: ["runtime/worker.mjs"],
   migrate: ["runtime/migrate.mjs"],
   operations: ["runtime/operations.mjs"],
@@ -46,7 +38,13 @@ if (
 const child = spawn(
   process.execPath,
   [...commands[command], ...process.argv.slice(3)],
-  { stdio: "inherit" },
+  {
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      ...(command === "web" ? { PORT: "3010", HOSTNAME: "0.0.0.0" } : {}),
+    },
+  },
 );
 for (const signal of ["SIGTERM", "SIGINT"])
   process.on(signal, () => child.kill(signal));
