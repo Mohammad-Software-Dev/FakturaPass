@@ -29,7 +29,7 @@ ENV NODE_ENV=production AUTH_MODE=oidc FAKTURAPASS_ENV=PRODUCTION
 COPY --from=build /app/.data/runtime-dependencies/node_modules ./node_modules
 COPY --from=build /app/.data/runtime/package.json ./package.json
 COPY --from=build /app/.data/runtime/npm-sbom.cdx.json ./release/npm-sbom.cdx.json
-COPY --from=build /app/.data/runtime ./runtime
+COPY --from=build /app/.data/runtime/*.mjs ./runtime/
 COPY packages/database/migrations ./packages/database/migrations
 COPY infra/app/entrypoint.mjs ./entrypoint.mjs
 ARG SOURCE_REVISION=unknown
