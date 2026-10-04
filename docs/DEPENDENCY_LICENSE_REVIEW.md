@@ -1,6 +1,18 @@
 # Installed dependency license review
 
-Status: four review requirements remain open. This is a concrete evidence packet, not legal approval. The release license gate remains blocked; no allowlist expansion or license exception has been added.
+Status (4 October 2026): one web-image review requirement remains open; the worker license gate passes. No allowlist expansion or license exception has been added. This evidence does not constitute legal approval.
+
+## Current standalone packaging
+
+The web image now uses Next.js 16.3.6 standalone output; worker/operator dependencies are traced separately and the worker no longer ships Next.js. The installed inventories no longer include `@vercel/og`, `babel-packages` or `constants-browserify`. The only remaining npm license finding is compiled `tar`: BlueOak-1.0.0, version UNKNOWN. Its LICENSE is retained.
+
+Current evidence: `.data/releases/ccc79d24a1558320e7019500509da1d18e2a3c64-1791124929352/`. The `license-review-evidence.json` packet records the immutable web image, declarations, license text, missing NOTICE record and executable bundle hash. Native installed inventories and license reports cover both images.
+
+The pinned [Next.js source declaration](https://github.com/vercel/next.js/blob/v16.3.6/packages/next/package.json) names tar 7.5.11; its [bundle task](https://github.com/vercel/next.js/blob/v16.3.6/packages/next/taskfile.js) compiles tar into this location. This suggests provenance but does not prove the installed compiled bundle version. The local framework references it from the SWC downloader. Version UNKNOWN limits vulnerability matching: establish the actual bundled version and assess applicable advisories before promotion, as well as reviewing distribution obligations. A passing scanner result cannot close this gap. Do not simply allowlist the license or invent a version in package metadata.
+
+Next: establish bundle provenance and remove unused compiler-download dependencies through a verified packaging change if feasible; otherwise retain notices and obtain a bounded review of the actual version and distribution.
+
+## Previous full dependency installation
 
 The affected packages are bundled inside Next.js 16.3.5. Evidence was read from the immutable web image built at `7056816e4451859faaafdc24e8aa4867706be3bb`; the same four findings occur in the shared worker dependency set. Installed package declarations, available LICENSE files, missing-file records and SHA-256 hashes are retained in `.data/releases/7056816e4451859faaafdc24e8aa4867706be3bb-1790515523014/license-review-evidence.json`.
 
