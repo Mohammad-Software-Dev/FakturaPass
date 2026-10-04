@@ -63,6 +63,37 @@ function preserveNoticesAndCheck(root, current = root) {
 if (config.images?.unoptimized !== true)
   throw Error("Codec-free runtime requires unoptimized images");
 const standalone = "apps/web/.next/standalone";
+// Turbopack retains the SWC fallback downloader in its server trace. This
+// precompiled runtime must never install a compiler. Review on framework upgrades.
+const nextRoot = join(standalone, "node_modules/next");
+if (
+  JSON.parse(readFileSync(join(nextRoot, "package.json"))).version !== "16.3.6"
+)
+  throw Error("Review compiler-download pruning for the new Next.js version");
+const downloaders = new Set(["lib/download-swc.js", "esm/lib/download-swc.js"]);
+function checkTarConsumers(directory, relative = "") {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    const name = relative ? `${relative}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) checkTarConsumers(path, name);
+    else if (
+      entry.name.endsWith(".js") &&
+      readFileSync(path, "utf8").includes("next/dist/compiled/tar") &&
+      !downloaders.has(name)
+    )
+      throw Error(`Unexpected tar consumer requires packaging review: ${name}`);
+  }
+}
+checkTarConsumers(join(nextRoot, "dist"));
+for (const path of [
+  "dist/lib/download-swc.js",
+  "dist/lib/download-swc.js.map",
+  "dist/lib/download-swc.d.ts",
+  "dist/esm/lib/download-swc.js",
+  "dist/esm/lib/download-swc.js.map",
+  "dist/compiled/tar",
+])
+  rmSync(join(nextRoot, path), { recursive: true, force: true });
 rmSync(join(standalone, "node_modules/sharp"), {
   recursive: true,
   force: true,
