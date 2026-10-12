@@ -22,7 +22,9 @@ const docker = (args) =>
     maxBuffer: 64 * 1024 * 1024,
     timeout: 20 * 60 * 1000,
   });
-export function scanImage(imageId, target, directory, profile = "npm") {
+export function scanImage(imageId, target, directory, profile = "npm", enrich) {
+  if (enrich && profile !== "validator")
+    throw Error("Metadata enrichment is restricted to validator images");
   validateScanTarget(imageId, target);
   const parent = resolve(".data/security-work"),
     cache = resolve(".data/security-cache");
@@ -93,7 +95,72 @@ export function scanImage(imageId, target, directory, profile = "npm") {
       sbom.descriptor?.version !== scannerLock.syft.version
     )
       throw Error("Scanner version differs from the pinned lock");
-    const result = evaluateVulnerabilities(report, policy);
+    let result = evaluateVulnerabilities(report, policy);
+    if (enrich) {
+      const supplemented = enrich(sbom);
+      if (
+        supplemented.inventory.artifacts.length !== sbom.artifacts.length ||
+        supplemented.inventory.artifacts.some(
+          (a, i) => a.id !== sbom.artifacts[i].id,
+        )
+      )
+        throw Error("Enrichment must preserve all scanned artifacts");
+      validateImageInventory(supplemented.inventory, profile);
+      const effective = join(output, "sbom.enriched.syft.json");
+      writeFileSync(
+        effective,
+        JSON.stringify(supplemented.inventory, null, 2) + "\n",
+      );
+      copyFileSync(
+        effective,
+        join(directory, `${target}-sbom.enriched.syft.json`),
+      );
+      writeFileSync(
+        join(directory, `${target}-metadata-enrichment.json`),
+        JSON.stringify(supplemented.changes, null, 2) + "\n",
+      );
+      execute(tools.grype, [
+        `sbom:${effective}`,
+        "-o",
+        "json",
+        "--file",
+        join(output, "vulnerabilities.enriched.json"),
+      ]);
+      const enrichedReport = JSON.parse(
+        readFileSync(join(output, "vulnerabilities.enriched.json"), "utf8"),
+      );
+      if (enrichedReport.descriptor?.version !== scannerLock.grype.version)
+        throw Error("Enriched scanner version mismatch");
+      copyFileSync(
+        join(output, "vulnerabilities.enriched.json"),
+        join(directory, `${target}-vulnerabilities.enriched.json`),
+      );
+      const enrichedResult = evaluateVulnerabilities(enrichedReport, policy);
+      // Keep findings from BOTH scans; metadata corrections cannot suppress raw matches.
+      const findings = [
+        ...new Map(
+          [...result.findings, ...enrichedResult.findings].map((f) => [
+            JSON.stringify([
+              f.id,
+              f.package,
+              f.purl,
+              f.version,
+              f.severity,
+              f.status,
+            ]),
+            f,
+          ]),
+        ).values(),
+      ];
+      result = {
+        ...enrichedResult,
+        status: findings.some((f) => f.status === "blocked")
+          ? "blocked"
+          : "passed",
+        findings,
+        inventoryScope: "Union of raw and evidence-enriched scan findings",
+      };
+    }
     const evidence = {
       schemaVersion: "fakturapass.image-security.v1",
       imageId,

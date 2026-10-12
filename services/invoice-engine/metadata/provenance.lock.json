@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "fakturapass.validator-metadata.v1",
+  "records": [
+    {
+      "path": "/engine/distribution/libs/Saxon-HE-12.9.jar",
+      "sha256": "8f3a9216a537367132293eacbba9df062eace8f8b16a184af59e2e4839d4cd41",
+      "groupId": "net.sf.saxon",
+      "artifactId": "Saxon-HE",
+      "version": "12.9",
+      "classifier": "",
+      "pom": "Saxon-HE.pom",
+      "pomSha256": "f880e9d1d400c99c1892f5964e5fc920dd1def05622359b9b058f32b5b426975",
+      "sourceUrl": "https://repo.maven.apache.org/maven2/net/sf/saxon/Saxon-HE/12.9/Saxon-HE-12.9.pom",
+      "licenseExpression": "MPL-2.0",
+      "licenseUrl": "http://www.mozilla.org/MPL/2.0/",
+      "artifactSourceUrl": "https://repo.maven.apache.org/maven2/net/sf/saxon/Saxon-HE/12.9/Saxon-HE-12.9.jar"
+    },
+    {
+      "path": "/engine/distribution/libs/picocli-4.7.7.jar",
+      "sha256": "f86e30fffd10d2b13b8caa8d4b237a7ee61f2ffccf5b1941de718b765d235bf8",
+      "groupId": "info.picocli",
+      "artifactId": "picocli",
+      "version": "4.7.7",
+      "classifier": "",
+      "pom": "picocli.pom",
+      "pomSha256": "1b18d363134df66631d2b9f7475068d734225ba389cdf9082a1bd8bda90d57d3",
+      "sourceUrl": "https://repo.maven.apache.org/maven2/info/picocli/picocli/4.7.7/picocli-4.7.7.pom",
+      "licenseExpression": "Apache-2.0",
+      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+      "artifactSourceUrl": "https://repo.maven.apache.org/maven2/info/picocli/picocli/4.7.7/picocli-4.7.7.jar"
+    },
+    {
+      "path": "/engine/distribution/libs/xmlresolver-5.3.3.jar",
+      "sha256": "1fe4d5b92f708dcdb82dbce12919e0171e6b5ca62c6dca6220483625098feb5f",
+      "groupId": "org.xmlresolver",
+      "artifactId": "xmlresolver",
+      "version": "5.3.3",
+      "classifier": "",
+      "pom": "xmlresolver.pom",
+      "pomSha256": "261ada76d9e6676008dcac377a4d4589749166b606559f59f2e45ea62d8b75ec",
+      "sourceUrl": "https://repo.maven.apache.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3.pom",
+      "licenseExpression": "Apache-2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "artifactSourceUrl": "https://repo.maven.apache.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3.jar"
+    },
+    {
+      "path": "/engine/distribution/libs/xmlresolver-5.3.3-data.jar",
+      "sha256": "b0c487ad2f3e558be8d829c916d2458d10aca6a5bafa7a4d0524b70845e48a5c",
+      "groupId": "org.xmlresolver",
+      "artifactId": "xmlresolver",
+      "version": "5.3.3",
+      "classifier": "data",
+      "pom": "xmlresolver.pom",
+      "pomSha256": "261ada76d9e6676008dcac377a4d4589749166b606559f59f2e45ea62d8b75ec",
+      "sourceUrl": "https://repo.maven.apache.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3.pom",
+      "licenseExpression": "Apache-2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "artifactSourceUrl": "https://repo.maven.apache.org/maven2/org/xmlresolver/xmlresolver/5.3.3/xmlresolver-5.3.3-data.jar"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { enrichValidatorInventory } from "./validator-metadata.mjs";
 import { scanImage } from "./scan-image.mjs";
 import {
   evaluateImageLicenses,
@@ -69,7 +70,9 @@ const installed = run("docker", [
   .split("\n");
 if (installed.length !== distribution.files.length)
   throw Error("Incomplete installed distribution checksums");
+const verifiedFiles = {};
 distribution.files.forEach((f, i) => {
+  verifiedFiles[`/engine/distribution/${f.path}`] = installed[i].split(/\s/)[0];
   if (installed[i].split(/\s/)[0] !== f.sha256)
     throw Error(`Installed library checksum mismatch: ${f.path}`);
 });
@@ -123,14 +126,49 @@ save(
       text: readFileSync(`${localRoot}/${f.path}`, "utf8"),
     })),
 );
+const metadataRoot = "services/invoice-engine/metadata";
+const metadataLock = JSON.parse(
+  readFileSync(`${metadataRoot}/provenance.lock.json`),
+);
+save("validator-metadata-inputs.json", metadataLock);
+for (const name of new Set(metadataLock.records.map((r) => r.pom))) {
+  if (!/^[a-zA-Z0-9_.-]+\.pom$/.test(name))
+    throw Error("Unsafe metadata evidence path");
+  save(`upstream-${name}`, readFileSync(`${metadataRoot}/${name}`, "utf8"));
+}
+const jrePaths = [
+  "/opt/java/openjdk/legal/java.base/LICENSE",
+  "/opt/java/openjdk/legal/java.base/ADDITIONAL_LICENSE_INFO",
+  "/opt/java/openjdk/legal/java.base/ASSEMBLY_EXCEPTION",
+];
+save(
+  "validator-jre-notices.json",
+  jrePaths.map((path) => {
+    const text = run("docker", [
+      "run",
+      "--rm",
+      "--read-only",
+      "--entrypoint",
+      "cat",
+      image.Id,
+      path,
+    ]);
+    return { path, sha256: hash(text), text };
+  }),
+);
 const vulnerabilities = scanImage(
   image.Id,
   "validator",
   directory,
   "validator",
+  (raw) =>
+    enrichValidatorInventory(raw, metadataLock, verifiedFiles, (name) =>
+      readFileSync(`${metadataRoot}/${name}`),
+    ),
 );
+
 const sbom = JSON.parse(
-  readFileSync(join(directory, "validator-sbom.syft.json")),
+  readFileSync(join(directory, "validator-sbom.enriched.syft.json")),
 );
 const osType = validateImageInventory(sbom, "validator");
 const policy = JSON.parse(readFileSync("infra/security/policy.json"));
@@ -152,6 +190,9 @@ for (const suffix of [
   "sbom.spdx.json",
   "vulnerabilities.json",
   "security.json",
+  "sbom.enriched.syft.json",
+  "metadata-enrichment.json",
+  "vulnerabilities.enriched.json",
 ])
   files[`validator-${suffix}`] = hash(
     readFileSync(join(directory, `validator-${suffix}`)),
