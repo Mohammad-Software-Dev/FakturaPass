@@ -4,6 +4,10 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 const web = process.env.WEB_IMAGE ?? "fakturapass-web:packaging-check";
 const worker = process.env.WORKER_IMAGE ?? "fakturapass-worker:packaging-check";
+const validator =
+  process.env.VALIDATOR_IMAGE ?? "fakturapass-engine:container-check";
+if (process.env.VALIDATOR_IMAGE && !/^sha256:[a-f0-9]{64}$/.test(validator))
+  throw Error("VALIDATOR_IMAGE must be an immutable image ID");
 const docker = (...args) =>
   execFileSync("docker", args, { encoding: "utf8", timeout: 300000 }).trim();
 const request = (url, options = {}) =>
@@ -46,13 +50,8 @@ try {
     stdio: "inherit",
     timeout: 300000,
   });
-  docker(
-    "build",
-    "-q",
-    "-t",
-    "fakturapass-engine:container-check",
-    "services/invoice-engine",
-  );
+  if (!process.env.VALIDATOR_IMAGE)
+    docker("build", "-q", "-t", validator, "services/invoice-engine");
   docker("network", "create", network);
   const database = docker(
     "run",
@@ -101,7 +100,7 @@ try {
     "/tmp",
     "--cap-drop=ALL",
     "--security-opt=no-new-privileges",
-    "fakturapass-engine:container-check",
+    validator,
   );
   ids.push(engine);
   docker("run", "--rm", ...common, worker, "migrate");
