@@ -176,6 +176,12 @@
         "url": "https://raw.githubusercontent.com/Saxonica/Saxon-HE/355db68f8012ec7440bc87d3379de970610b9ab3/12/Java/SaxonHE12-9J.zip",
         "sha256": "f2895bef3794112c650a158be27c39a86e88c1717ebb8e0e88067d1f07635d12"
       }
-    ]
+    ],
+    "preferredSource": {
+      "repository": "https://saxonica.plan.io/saxonica/saxonmirrorhe.he.git",
+      "tag": "he_mirror_saxon_12_9",
+      "tagObject": "388b0b3411ed2dd43fe27ad2ff99fbad09e48f6c",
+      "commit": "5eb669bbd792335c104f2b7e5674a2c7628eb7c0"
+    }
   }
 }

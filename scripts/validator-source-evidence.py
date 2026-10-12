@@ -6,6 +6,8 @@ import re
 import subprocess
 import sys
 import time
+import tarfile
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -56,6 +58,50 @@ def compare_saxon(installed, upstream):
             raise ValueError('Empty Saxon class inventory')
         return {'identicalClasses': count, 'differingMembers': differences,
                 'installedJarSha256': sha(installed), 'upstreamJarSha256': sha(upstream)}
+
+
+def zip_files(data):
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
+        files = {}
+        for entry in z.infolist():
+            if entry.is_dir():
+                continue
+            name = entry.filename
+            if name.startswith('/') or any(p in ('', '.', '..') for p in name.split('/')) or name in files:
+                raise ValueError('Unsafe or duplicate ZIP member')
+            files[name] = z.read(entry)
+        return files
+
+
+def compare_configuration(upstream, installed_tar):
+    expected = zip_files(upstream)
+    actual = {}
+    with tarfile.open(fileobj=io.BytesIO(installed_tar)) as archive:
+        for entry in archive:
+            if entry.isdir():
+                continue
+            name = entry.name.removeprefix('./')
+            if (not entry.isfile() or name in actual or name.startswith('/') or
+                    any(p in ('', '.', '..') for p in name.split('/'))):
+                raise ValueError('Unexpected configuration member')
+            actual[name] = archive.extractfile(entry).read()
+    if not expected or actual.keys() != expected.keys():
+        raise ValueError('Installed configuration file set differs')
+    if any(actual[n] != expected[n] for n in expected):
+        raise ValueError('Installed configuration bytes differ')
+    return notice_inventory(expected)
+
+
+def notice_inventory(files):
+    # A search aid, never a declaration that files without hits have no obligations.
+    records = []
+    for name, data in sorted(files.items()):
+        text = data.decode('utf8', errors='replace')
+        lines = [i for i, line in enumerate(text.splitlines(), 1)
+                 if re.search(r'copyright|licen[cs]e|permission|redistribut', line, re.I)]
+        records.append({'path': name, 'sha256': sha(data), 'noticeLines': lines,
+                        'review': 'NOTICE_TEXT_PRESENT' if lines else 'NO_NOTICE_DETECTED_REVIEW_REQUIRED'})
+    return records
 
 
 def collect(image):
@@ -122,11 +168,51 @@ def collect(image):
         for name in z.namelist():
             if name.startswith('notices/') and not name.endswith('/'):
                 save('saxon-' + Path(name).name, z.read(name))
+    preferred = saxon['preferredSource']
+    if (preferred['repository'] != 'https://saxonica.plan.io/saxonica/saxonmirrorhe.he.git' or
+        not re.fullmatch(r'[A-Za-z0-9_-]+', preferred['tag']) or
+        not all(re.fullmatch(r'[a-f0-9]{40}', preferred[k]) for k in ['commit', 'tagObject'])):
+        raise ValueError('Invalid preferred-source identity')
+    with tempfile.TemporaryDirectory(prefix='fakturapass-saxon-') as temporary:
+        repo = str(Path(temporary) / 'source')
+        command('git', '-c', 'core.hooksPath=/dev/null', 'clone', '--depth', '1', '--no-checkout',
+                '--single-branch', '--branch', preferred['tag'], preferred['repository'], repo)
+        for ref, expected in [('HEAD', preferred['commit']),
+                              ('refs/tags/' + preferred['tag'], preferred['tagObject'])]:
+            if command('git', '-C', repo, 'rev-parse', ref).decode().strip() != expected:
+                raise ValueError('Preferred-source tag moved')
+        tree = command('git', '-C', repo, 'ls-tree', '-r', preferred['commit'])
+        if any(line.startswith(b'160000 ') for line in tree.splitlines()):
+            raise ValueError('Preferred source has uncollected submodules')
+        save('saxon-preferred-tree.txt', tree)
+        save('saxon-preferred-source.tar.gz', command('git', '-C', repo, 'archive',
+             '--format=tar.gz', preferred['commit']))
+    dependency_bytes = (ROOT / 'services/invoice-engine/dependencies.lock.json').read_bytes()
+    dependencies = json.loads(dependency_bytes)
+    config = next(c for c in dependencies['components'] if c['component'] == 'XRechnung rules')
+    config_bytes = checked((ROOT / 'services/invoice-engine/vendor/config.zip').read_bytes(), config['sha256'])
+    config_tar = command('docker', 'run', '--rm', '--read-only', '--network', 'none',
+                         '--entrypoint', 'tar', image, '-C', '/engine/config', '-cf', '-', '.')
+    config_inventory = compare_configuration(config_bytes, config_tar)
+    save('dependencies.lock.json', dependency_bytes)
+    save('configuration.zip', config_bytes)
+    save('configuration-inventory.json', (json.dumps(config_inventory, indent=2) + '\n').encode())
+    distribution_bytes = (ROOT / 'services/invoice-engine/distribution.lock.json').read_bytes()
+    distribution = json.loads(distribution_bytes)
+    xml_path = 'libs/xmlresolver-5.3.3-data.jar'
+    xml_hash = next(f['sha256'] for f in distribution['files'] if f['path'] == xml_path)
+    xml_data = checked(image_file('/engine/distribution/' + xml_path), xml_hash)
+    xml_files = zip_files(xml_data)
+    save('distribution.lock.json', distribution_bytes)
+    save('xmlresolver-data.jar', xml_data)
+    save('xmlresolver-w3c-license.txt', xml_files['org/xmlresolver/notices/w3c-license.txt'])
+    save('xmlresolver-resource-inventory.json', (json.dumps(notice_inventory(xml_files), indent=2) + '\n').encode())
     report = {'schemaVersion': 'fakturapass.validator-source-evidence.v1',
               'imageId': image, 'sourceRevision': command('git', 'rev-parse', 'HEAD').decode().strip(),
               'workingTreeDirty': bool(command('git', 'status', '--porcelain').strip()),
-              'jre': coverage, 'saxon': comparison, 'files': hashes,
-              'scope': 'Source/header and notice evidence only; not a reproducible-build claim, license approval or release manifest. Saxon source ZIP is preprocessed; preferred-form source review remains separate.'}
+              'jre': coverage, 'saxon': comparison, 'configurationFiles': len(config_inventory),
+              'xmlResolverFiles': len(xml_files), 'preferredSource': preferred, 'files': hashes,
+              'scope': 'Source/header and notice evidence only; not a reproducible-build claim, license approval or release manifest. Both preprocessed and preferred-form Saxon sources are retained; distribution obligations require separate review.'}
     (out / 'source-evidence.json').write_text(json.dumps(report, indent=2) + '\n')
     print(out)
 
