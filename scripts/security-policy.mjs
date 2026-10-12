@@ -35,15 +35,29 @@ export function evaluateLicenses(bom, policy) {
   )
     throw Error("Invalid or empty dependency SBOM");
   const findings = [];
+  const normalizedDeclarations = [];
+  // OSI explicitly identifies this exact URL as SPDX MIT. No fuzzy URL matching.
+  const aliases = { "https://opensource.org/license/mit": "MIT" };
   for (const component of bom.components) {
     if (!component.name || !component.version)
       throw Error("Unidentified dependency");
     const declarations = (component.licenses ?? []).map(
       (item) => item.expression ?? item.license?.id ?? item.license?.name,
     );
+    const canonical = declarations.map((value) => {
+      const normalized = Object.hasOwn(aliases, value) ? aliases[value] : value;
+      if (normalized !== value)
+        normalizedDeclarations.push({
+          name: component.name,
+          version: component.version,
+          declared: value,
+          canonical: normalized,
+        });
+      return normalized;
+    });
     if (
-      !declarations.length ||
-      declarations.some(
+      !canonical.length ||
+      canonical.some(
         (value) => !policy.allowedDependencyLicenseExpressions.includes(value),
       )
     )
@@ -59,6 +73,7 @@ export function evaluateLicenses(bom, policy) {
     scope:
       "npm dependencies; OS/third-party notice obligations require separate review",
     components: bom.components.length,
+    normalizedDeclarations,
     findings,
   };
 }

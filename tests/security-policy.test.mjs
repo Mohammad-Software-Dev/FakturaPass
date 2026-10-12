@@ -335,3 +335,32 @@ test("Distribution coverage rejects missing, misplaced and mismatched versions",
     evaluateValidatorCoverage(javaInventory([root]), [{ name: "Saxon-HE" }]),
   );
 });
+
+test("Exact MIT URL normalization retains evidence and rejects URL lookalikes", () => {
+  const result = evaluateLicenses(
+    bom([{ license: { name: "https://opensource.org/license/mit" } }]),
+    policy,
+  );
+  assert.equal(result.status, "passed");
+  assert.equal(
+    result.normalizedDeclarations[0].declared,
+    "https://opensource.org/license/mit",
+  );
+  assert.equal(result.normalizedDeclarations[0].canonical, "MIT");
+  for (const value of [
+    "https://opensource.org.evil.test/license/mit",
+    "https://opensource.org/license/mit?custom",
+    "MIT OR unknown",
+  ])
+    assert.equal(
+      evaluateLicenses(bom([{ expression: value }]), policy).status,
+      "blocked",
+    );
+  assert.equal(
+    evaluateLicenses(
+      bom([{ license: { name: "https://opensource.org/license/mit" } }]),
+      { ...policy, allowedDependencyLicenseExpressions: ["Apache-2.0"] },
+    ).status,
+    "blocked",
+  );
+});
