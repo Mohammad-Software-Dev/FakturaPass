@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "fakturapass.validator-sources.v1",
+  "jre": {
+    "commit": "520406d871955300957ef01e406ac2acd0f9b75c",
+    "version": "25.0.4.1",
+    "jarSha256": "0ab41b15684030fbb2dfce29b2f3d981c6c80edb3b3c58fd1b62e252805f4432",
+    "sources": [
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/BasicImageReader.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/BasicImageReader.java",
+        "sha256": "81dd36300a255aa8af99919c426efbb125235b3d30a4483900911ff98a3a084f"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/ImageBufferCache.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/ImageBufferCache.java",
+        "sha256": "efb43db4f12eff092ac81ece892bacac361b055707421645f37cbf59e5754d2b"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/ImageHeader.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/ImageHeader.java",
+        "sha256": "f9db9d6d58b75598c52edb79cb6dfc4317e9b729e7b82877610e695583e5f510"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/ImageLocation.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/ImageLocation.java",
+        "sha256": "9ed3693e3b1d5c16f372150714e2010de29b3ef6f71bd8ebcbc0374564667990"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/ImageReader.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/ImageReader.java",
+        "sha256": "30167248cd034a91131aad69cee3ba093cec023a1033945382a892fd9ef59f26"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/ImageReaderFactory.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/ImageReaderFactory.java",
+        "sha256": "ee85b37307afb7eb71cf5f78dab619cefcfb945613989bf1e426b5c06b9f31c9"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/ImageStream.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/ImageStream.java",
+        "sha256": "9abd7e6234362226fa2837779625a0282dc15eeca9caaaa0b6150f28e39bd064"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/ImageStrings.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/ImageStrings.java",
+        "sha256": "2bb2e578ac71e094243480cdd18067c24bf52b4c715562be85c9e529b27906ec"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/ImageStringsReader.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/ImageStringsReader.java",
+        "sha256": "227b05a2ec218855874a4240535331786303e3af63bb5209923f4562f1bca2db"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/NativeImageBuffer.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/NativeImageBuffer.java",
+        "sha256": "7383937fb0a79659534cea9546c8b1b9ee9ad04a9db97605464411f41c569966"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/CompressIndexes.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/CompressIndexes.java",
+        "sha256": "7e87962087feed1dfa6bb13c98f88776e74006de8cf44747cbf42d8d00b732fc"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/CompressedResourceHeader.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/CompressedResourceHeader.java",
+        "sha256": "57648302edfa65ddb5ebac953879059f5fd713283f94cbdd3bc804493ad9ff60"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/Decompressor.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/Decompressor.java",
+        "sha256": "0f54747c4ca131334f77c7967adca9bf145d8218e0cb6f9ea4adc9748c7bc32a"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/ResourceDecompressor.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/ResourceDecompressor.java",
+        "sha256": "561d23505885601cd00ce8cffd9a4d2dfd00bf59685f4ea07b0dec6371809c9a"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/ResourceDecompressorFactory.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/ResourceDecompressorFactory.java",
+        "sha256": "4fbc4964fe6b536199e65979e7abeb08cca63fb2ae19e05a8aa81585391aa0a0"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/ResourceDecompressorRepository.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/ResourceDecompressorRepository.java",
+        "sha256": "ffe53d51850f98359f5dd3dc9260d64bd1f397aced636cd75d5523905abcaa2e"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/SignatureParser.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/SignatureParser.java",
+        "sha256": "12ec5b9db43fadf726b240e645b62c833749050cb16fc9d7f794720ac58a1a15"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/StringSharingDecompressor.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/StringSharingDecompressor.java",
+        "sha256": "e3ff10565798eecebc00788f180da443547b3752640ef1f3a5d42515e6f954f1"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/StringSharingDecompressorFactory.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/StringSharingDecompressorFactory.java",
+        "sha256": "5659cf71fc0a7e9bf1185318fec27dffa921902ebe7b29380c180a04a7eaa335"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/ZipDecompressor.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/ZipDecompressor.java",
+        "sha256": "6bded7db6cec0be551cbbac79c0dba3c62b10df186fb20ce542656c3010750fa"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jimage/decompressor/ZipDecompressorFactory.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jimage/decompressor/ZipDecompressorFactory.java",
+        "sha256": "a611db31b6586b62ee5d2ec48391ce0ac6b28de69870d3c0660601a5b2e06083"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/ExplodedImage.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/ExplodedImage.java",
+        "sha256": "928be43deac1dee249defdf7704cc31e88b557cdd9865f432d7814fb4fea9b04"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/JrtDirectoryStream.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/JrtDirectoryStream.java",
+        "sha256": "fed5030f3b3d34941d3d0ebac8cee313c5a589a94fd77d4845880705a5e25894"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/JrtFileAttributeView.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/JrtFileAttributeView.java",
+        "sha256": "4a3a6864ed0d8d82c69b662917c87c2588f928231244705d5f8151658e30b727"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/JrtFileAttributes.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/JrtFileAttributes.java",
+        "sha256": "db62b1513245f221cd1f5f010f40120d52ece0635092d90bbd2f137f1770c0c1"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/JrtFileStore.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/JrtFileStore.java",
+        "sha256": "2a4fd9992e40997cc45ff0bf40aeeca30fe0da4357a599af84887dd0fae33bed"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/JrtFileSystem.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/JrtFileSystem.java",
+        "sha256": "6161dd35da2b6801d445d8850e5414bdb101bea13db5732de67d26202bd42d38"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/JrtFileSystemProvider.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/JrtFileSystemProvider.java",
+        "sha256": "265209b99eb9f1449966bdc3e176ccb9226dfac215733aa5329e05bcd6145d72"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/JrtPath.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/JrtPath.java",
+        "sha256": "9ec63ddeb6d3ec64954396b536a3674106f6c44d170d1dc908b06eff0183875c"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/JrtUtils.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/JrtUtils.java",
+        "sha256": "23d07ccc460191ce5cc8e7be7456a4e91a2b50e8d86d4d14125f065b614069df"
+      },
+      {
+        "path": "src/java.base/share/classes/jdk/internal/jrtfs/SystemImage.java",
+        "url": "https://raw.githubusercontent.com/adoptium/jdk25u/520406d871955300957ef01e406ac2acd0f9b75c/src/java.base/share/classes/jdk/internal/jrtfs/SystemImage.java",
+        "sha256": "db65052c58e91305f2a81a69f3fc47465a73198348feebd8e938fc02e9134eab"
+      }
+    ]
+  },
+  "saxon": {
+    "version": "12.9",
+    "jarSha256": "8f3a9216a537367132293eacbba9df062eace8f8b16a184af59e2e4839d4cd41",
+    "archives": [
+      {
+        "file": "saxon12-9source.zip",
+        "url": "https://raw.githubusercontent.com/Saxonica/Saxon-HE/355db68f8012ec7440bc87d3379de970610b9ab3/12/source/saxon12-9source.zip",
+        "sha256": "d57bec0f6b8fb88fca4ffe35bca228c1c2085f64dd32c468fdd67da5ed7e0cbf"
+      },
+      {
+        "file": "SaxonHE12-9J.zip",
+        "url": "https://raw.githubusercontent.com/Saxonica/Saxon-HE/355db68f8012ec7440bc87d3379de970610b9ab3/12/Java/SaxonHE12-9J.zip",
+        "sha256": "f2895bef3794112c650a158be27c39a86e88c1717ebb8e0e88067d1f07635d12"
+      }
+    ]
+  }
+}

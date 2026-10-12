@@ -41,7 +41,9 @@
     "release:images": "node scripts/release-images.mjs",
     "test:security": "node --test tests/security-policy.test.mjs tests/validator-metadata.test.mjs",
     "security:image": "node scripts/security-check.mjs",
-    "release:validator": "node scripts/release-validator.mjs"
+    "release:validator": "node scripts/release-validator.mjs",
+    "validator:source-evidence": "python3 scripts/validator-source-evidence.py",
+    "test:source-evidence": "python3 -B -m unittest discover -s tests -p validator_source_evidence_test.py"
   },
   "dependencies": {
     "ajv": "8.20.0",
