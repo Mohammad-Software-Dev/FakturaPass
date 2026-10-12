@@ -278,3 +278,9 @@ Revision `b10532f44fe5caadffc8d1a8bd25f83fbd885585`; Linux ARM64 image `sha256:e
 - Expected release command exit: nonzero due to license gate. No final manifest, registry publication or deployment. Policy unchanged.
 
 Next: source/notice evidence and license review, matching application-image rebuild and combined acceptance, then signed provenance and staging/rollback. See VALIDATOR_SECURITY.md for the complete boundaries.
+
+## Validator source evidence continuation — 12 October 2026
+
+Added an immutable-image source/notice collector with a hash-pinned upstream lock. End-to-end collection maps all 57 jrt-fs classes to 31 exact-commit source files with explicit GPLv2/Classpath exception headers. All 2,600 Saxon classes match the notice-bearing upstream distribution; three manifest/signature differences are retained explicitly. The packet includes source files, Saxon's preprocessed source ZIP, original notices and a hash index. Three negative/positive evidence tests pass and are included in validator CI. No runtime change or policy expansion was made.
+
+See VALIDATOR_SOURCE_EVIDENCE.md for usage, exact evidence, architecture scope and source-form limitations. The two policy reviews remain open, but JRE source-header provenance is now established. Next: preferred-form Saxon source availability and XML Resolver/configuration notice review, then the recorded license-policy decision and matching release rebuild. Stage 2 and production acceptance remain incomplete.
