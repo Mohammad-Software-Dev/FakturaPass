@@ -199,28 +199,33 @@ export function validateImageInventory(sbom, profile = "npm") {
       (a) =>
         a.type === "java-archive" &&
         a.name === "validator" &&
-        a.locations?.some((l) => l.path === "/engine/validator.jar"),
+        a.locations?.some((l) =>
+          /^\/engine\/distribution\/validator-[0-9][a-zA-Z0-9.-]*\.jar$/.test(
+            l.path,
+          ),
+        ),
     )
   )
     throw Error("Missing executable validator JAR inventory");
   return packageType;
 }
 
-// Compare the scanned shaded JAR with independently retained build declarations.
+// Compare every pinned distribution JAR with its exact installed inventory path.
 export function evaluateValidatorCoverage(sbom, expected) {
   validateImageInventory(sbom, "validator");
   if (!Array.isArray(expected) || !expected.length)
     throw Error("Missing validator dependency coverage expectations");
-  const packages = sbom.artifacts.filter(
-    (a) =>
-      a.type === "java-archive" &&
-      a.locations?.some((l) => l.path === "/engine/validator.jar"),
-  );
+  const packages = sbom.artifacts.filter((a) => a.type === "java-archive");
   const findings = expected.flatMap((e) => {
-    if (!e.name || !e.evidence)
+    if (!e.name || !e.evidence || !e.version || e.version === "UNKNOWN")
       throw Error("Unidentified coverage expectation");
-    const found = packages.find(
-      (a) => a.name.toLowerCase() === e.name.toLowerCase(),
+    if (
+      !e.path ||
+      !/^\/engine\/distribution\/(?:libs\/)?[a-zA-Z0-9_.-]+\.jar$/.test(e.path)
+    )
+      throw Error("Missing or unsafe library inventory path");
+    const found = packages.find((a) =>
+      a.locations?.some((l) => l.path === e.path),
     );
     if (!found) return [{ ...e, status: "MISSING_FROM_INVENTORY" }];
     if (
@@ -242,6 +247,6 @@ export function evaluateValidatorCoverage(sbom, expected) {
     expected,
     findings,
     scope:
-      "Declared non-test dependencies and known shaded class markers; not proof of exhaustive transitive coverage",
+      "Every checksum-pinned upstream distribution JAR at its exact installed path and version; embedded unidentifiable code still requires review",
   };
 }

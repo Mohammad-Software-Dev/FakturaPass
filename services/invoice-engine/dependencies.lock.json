@@ -5,15 +5,15 @@
     {
       "component": "KoSIT Validator",
       "purpose": "Official offline validation",
-      "upstreamUrl": "https://github.com/itplr-kosit/validator/releases/download/v1.6.3/validator-1.6.3-standalone.jar",
+      "upstreamUrl": "https://github.com/itplr-kosit/validator/releases/download/v1.6.3/validator-1.6.3.zip",
       "version": "1.6.3",
       "releaseTag": "v1.6.3",
-      "artifactName": "validator-1.6.3-standalone.jar",
-      "sha256": "799e64befca97d4080e03608c80b85dd5a5ecc5f4ae4f35d1116ec2855b9a7c9",
+      "artifactName": "validator-1.6.3.zip",
+      "sha256": "95d5a399ff5186dae5ddb7edd9a14a9c8352610159a90bfa27d4739a8bc37822",
       "license": "Apache-2.0",
-      "retrievedAt": "2026-09-12T08:00:00Z",
-      "supportNotes": "Latest official executable verified at implementation; STRICT_LOCAL URI security fix included.",
-      "replacementReviewDate": "2026-10-12"
+      "retrievedAt": "2026-10-12T00:00:00Z",
+      "supportNotes": "Official separate-library distribution; per-file hashes pinned in distribution.lock.json. Same validator version and STRICT_LOCAL fix.",
+      "replacementReviewDate": "2026-11-12"
     },
     {
       "component": "XRechnung rules",

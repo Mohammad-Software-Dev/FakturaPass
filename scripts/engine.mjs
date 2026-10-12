@@ -6,8 +6,9 @@ const processHandle = spawn(
   "java",
   [
     "-Xmx768m",
-    "-jar",
-    "services/invoice-engine/vendor/validator.jar",
+    "-cp",
+    "services/invoice-engine/vendor/distribution/validator-1.6.3.jar:services/invoice-engine/vendor/distribution/libs/*",
+    "de.kosit.validationtool.cmd.CommandLineApplication",
     "-s",
     "services/invoice-engine/vendor/config/scenarios.xml",
     "-r",

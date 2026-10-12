@@ -239,7 +239,7 @@ test("Image inventory requires OS-specific packages and application coverage", (
 const javaArtifact = (
   name,
   version = "1.0",
-  path = "/engine/validator.jar",
+  path = "/engine/distribution/validator-1.0.jar",
   licenses = ["Apache-2.0"],
 ) => ({
   type: "java-archive",
@@ -287,12 +287,21 @@ test("Java license checks include shaded libraries and JRE archives with no firs
       "blocked",
     );
 });
-test("Shaded dependency coverage rejects missing, misplaced and mismatched versions", () => {
+test("Distribution coverage rejects missing, misplaced and mismatched versions", () => {
   const expected = [
-    { name: "Saxon-HE", version: "12.9", evidence: "Pinned executable POM" },
+    {
+      name: "Saxon-HE",
+      version: "12.9",
+      evidence: "Pinned distribution member",
+      path: "/engine/distribution/libs/Saxon-HE-12.9.jar",
+    },
   ];
   const root = javaArtifact("validator");
-  const good = javaArtifact("Saxon-HE", "12.9");
+  const good = javaArtifact(
+    "Saxon-HE",
+    "12.9",
+    "/engine/distribution/libs/Saxon-HE-12.9.jar",
+  );
   assert.equal(
     evaluateValidatorCoverage(javaInventory([root, good]), expected).status,
     "passed",
@@ -300,8 +309,22 @@ test("Shaded dependency coverage rejects missing, misplaced and mismatched versi
   for (const artifacts of [
     [root],
     [root, javaArtifact("Saxon-HE", "12.9", "/different.jar")],
-    [root, javaArtifact("Saxon-HE", "UNKNOWN")],
-    [root, javaArtifact("Saxon-HE", "12.8")],
+    [
+      root,
+      javaArtifact(
+        "Saxon-HE",
+        "UNKNOWN",
+        "/engine/distribution/libs/Saxon-HE-12.9.jar",
+      ),
+    ],
+    [
+      root,
+      javaArtifact(
+        "Saxon-HE",
+        "12.8",
+        "/engine/distribution/libs/Saxon-HE-12.9.jar",
+      ),
+    ],
   ])
     assert.equal(
       evaluateValidatorCoverage(javaInventory(artifacts), expected).status,

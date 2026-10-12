@@ -2,7 +2,6 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { XMLParser } from "fast-xml-parser";
 import { scanImage } from "./scan-image.mjs";
 import {
   evaluateImageLicenses,
@@ -53,70 +52,76 @@ save("validator-image.json", image);
 const lock = JSON.parse(
   readFileSync("services/invoice-engine/dependencies.lock.json"),
 );
-const jar = "services/invoice-engine/vendor/validator.jar";
-const installedHash = run("docker", [
+const distribution = JSON.parse(
+  readFileSync("services/invoice-engine/distribution.lock.json"),
+);
+const localRoot = "services/invoice-engine/vendor/distribution";
+const installed = run("docker", [
   "run",
   "--rm",
   "--read-only",
   "--entrypoint",
   "sha256sum",
   image.Id,
-  "/engine/validator.jar",
-]).split(/\s/)[0];
-if (installedHash !== lock.components[0].sha256)
-  throw Error("Installed validator checksum mismatch");
+  ...distribution.files.map((f) => `/engine/distribution/${f.path}`),
+])
+  .trim()
+  .split("\n");
+if (installed.length !== distribution.files.length)
+  throw Error("Incomplete installed distribution checksums");
+distribution.files.forEach((f, i) => {
+  if (installed[i].split(/\s/)[0] !== f.sha256)
+    throw Error(`Installed library checksum mismatch: ${f.path}`);
+});
 save("validator-inputs.json", {
   revision,
-  jarSha256: installedHash,
   dependencies: lock,
+  distribution,
   dockerfileSha256: hash(readFileSync("services/invoice-engine/Dockerfile")),
 });
-const entries = run("unzip", ["-Z1", jar]).trim().split("\n");
-save("validator-jar-entries.json", entries);
-const pomPath = "META-INF/maven/org.kosit/validator/pom.xml";
-const pom = run("unzip", ["-p", jar, pomPath]);
-save("validator-pom.xml", pom);
-const project = new XMLParser().parse(pom).project;
-const array = (v) => (v ? (Array.isArray(v) ? v : [v]) : []);
-const expected = [
-  {
-    name: "validator",
-    version: lock.components[0].version,
-    evidence: "Pinned executable checksum",
-  },
-];
-for (const d of array(project.dependencies?.dependency)) {
-  if (["test", "provided", "system"].includes(d.scope)) continue;
-  const version = String(d.version ?? "").replace(
-    /\$\{([^}]+)\}/g,
-    (_, key) => project.properties?.[key] ?? `UNRESOLVED:${key}`,
-  );
-  if (!version || version.includes("UNRESOLVED:"))
-    throw Error(`Unresolved validator dependency version: ${d.artifactId}`);
+const expected = [];
+const libraries = [];
+for (const file of distribution.files) {
+  if (!file.path.endsWith(".jar")) continue;
+  const jar = `${localRoot}/${file.path}`;
+  const entries = run("unzip", ["-Z1", jar]).trim().split("\n");
+  const match = file.path
+    .split("/")
+    .pop()
+    .match(/^(.+?)-(\d+\.\d+.*?)(?:-data)?\.jar$/);
+  if (!match) throw Error(`Unidentified library file: ${file.path}`);
   expected.push({
-    name: d.artifactId,
-    version,
-    evidence: `${pomPath}: ${d.groupId}:${d.artifactId}`,
+    name: match[1],
+    version: match[2],
+    path: `/engine/distribution/${file.path}`,
+    evidence: `Official ZIP member SHA-256 ${file.sha256}`,
+  });
+  const evidence = entries.filter(
+    (p) =>
+      !p.endsWith("/") &&
+      ((/license|notice|copying/i.test(p) && !p.endsWith(".class")) ||
+        /pom\.(xml|properties)$/.test(p) ||
+        p === "META-INF/MANIFEST.MF"),
+  );
+  libraries.push({
+    path: file.path,
+    sha256: file.sha256,
+    entries,
+    evidence: evidence.map((path) => {
+      const text = run("unzip", ["-p", jar, path]);
+      return { path, sha256: hash(text), text };
+    }),
   });
 }
-// This transitive shaded library has classes but no Maven declaration in the executable.
-if (
-  entries.some((p) => p.startsWith("org/xmlresolver/") && p.endsWith(".class"))
-)
-  expected.push({
-    name: "xmlresolver",
-    evidence: "org/xmlresolver/*.class in pinned executable",
-  });
-const notices = entries.filter(
-  (p) =>
-    /(^|[/.])(license|notice|copying)([./_-]|$)/i.test(p) && !p.endsWith("/"),
-);
+save("validator-library-evidence.json", libraries);
 save(
   "validator-notices.json",
-  notices.map((path) => {
-    const text = run("unzip", ["-p", jar, path]);
-    return { path, sha256: hash(text), text };
-  }),
+  distribution.files
+    .filter((f) => !f.path.endsWith(".jar"))
+    .map((f) => ({
+      ...f,
+      text: readFileSync(`${localRoot}/${f.path}`, "utf8"),
+    })),
 );
 const vulnerabilities = scanImage(
   image.Id,
