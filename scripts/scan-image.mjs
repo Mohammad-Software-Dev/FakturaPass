@@ -22,7 +22,7 @@ const docker = (args) =>
     maxBuffer: 64 * 1024 * 1024,
     timeout: 20 * 60 * 1000,
   });
-export function scanImage(imageId, target, directory) {
+export function scanImage(imageId, target, directory, profile = "npm") {
   validateScanTarget(imageId, target);
   const parent = resolve(".data/security-work"),
     cache = resolve(".data/security-cache");
@@ -69,7 +69,7 @@ export function scanImage(imageId, target, directory) {
     const sbom = JSON.parse(
       readFileSync(join(output, "sbom.syft.json"), "utf8"),
     );
-    validateImageInventory(sbom);
+    validateImageInventory(sbom, profile);
     for (const name of ["sbom.syft.json", "sbom.spdx.json"])
       copyFileSync(join(output, name), join(directory, `${target}-${name}`));
     rmSync(archive);
@@ -97,6 +97,7 @@ export function scanImage(imageId, target, directory) {
     const evidence = {
       schemaVersion: "fakturapass.image-security.v1",
       imageId,
+      profile,
       scannedAt: new Date().toISOString(),
       scanners: scannerLock,
       policySha256: createHash("sha256")

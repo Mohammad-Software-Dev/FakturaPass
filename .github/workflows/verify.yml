@@ -36,3 +36,24 @@ jobs:
         with:
           name: browser-traces
           path: test-results/
+
+  validator-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install --global npm@11.6.1
+      - run: npm ci
+      - run: npm run test:security
+      - run: npm run release:validator
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validator-security-evidence
+          path: .data/releases/
+          include-hidden-files: true
+          retention-days: 30

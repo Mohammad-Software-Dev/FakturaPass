@@ -133,11 +133,19 @@ export function evaluateVulnerabilities(report, policy, now = new Date()) {
 }
 
 // Use filesystem evidence: npm's dependency graph can retain omitted transitive packages.
-export function evaluateImageLicenses(sbom, policy) {
+function applicationPackageType(profile) {
+  if (profile === "npm") return "npm";
+  if (profile === "validator") return "java-archive";
+  throw Error("Unsupported image inventory profile");
+}
+
+export function evaluateImageLicenses(sbom, policy, profile = "npm") {
+  const packageType = applicationPackageType(profile);
   if (sbom?.source?.type !== "image" || !Array.isArray(sbom.artifacts))
     throw Error("Invalid image license inventory");
-  const packages = sbom.artifacts.filter((a) => a.type === "npm");
+  const packages = sbom.artifacts.filter((a) => a.type === packageType);
   const firstParty = (a) =>
+    profile === "npm" &&
     a.name === "fakturapass" &&
     a.locations?.length === 1 &&
     a.locations[0].path === "/app/package.json";
@@ -159,7 +167,9 @@ export function evaluateImageLicenses(sbom, policy) {
   return {
     ...result,
     scope:
-      "Installed third-party npm packages, including bundled packages; OS/native notice obligations require separate review",
+      profile === "validator"
+        ? "Installed Java archives, including shaded dependencies; OS/JRE and rule-configuration notices require separate review"
+        : "Installed third-party npm packages, including bundled packages; OS/native notice obligations require separate review",
     firstParty: packages.filter(firstParty).map((a) => ({
       name: a.name,
       version: a.version,
@@ -168,7 +178,8 @@ export function evaluateImageLicenses(sbom, policy) {
   };
 }
 
-export function validateImageInventory(sbom) {
+export function validateImageInventory(sbom, profile = "npm") {
+  const applicationType = applicationPackageType(profile);
   const packageType = { debian: "deb", ubuntu: "deb", alpine: "apk" }[
     sbom?.distro?.id
   ];
@@ -177,10 +188,60 @@ export function validateImageInventory(sbom) {
     sbom?.source?.type !== "image" ||
     !Array.isArray(sbom.artifacts) ||
     !sbom.artifacts.some((a) => a.type === packageType) ||
-    !sbom.artifacts.some((a) => a.type === "npm")
+    !sbom.artifacts.some((a) => a.type === applicationType)
   )
     throw Error(
-      "Incomplete image inventory: expected supported OS and npm packages",
+      `Incomplete image inventory: expected supported OS and ${applicationType} packages`,
     );
+  if (
+    profile === "validator" &&
+    !sbom.artifacts.some(
+      (a) =>
+        a.type === "java-archive" &&
+        a.name === "validator" &&
+        a.locations?.some((l) => l.path === "/engine/validator.jar"),
+    )
+  )
+    throw Error("Missing executable validator JAR inventory");
   return packageType;
+}
+
+// Compare the scanned shaded JAR with independently retained build declarations.
+export function evaluateValidatorCoverage(sbom, expected) {
+  validateImageInventory(sbom, "validator");
+  if (!Array.isArray(expected) || !expected.length)
+    throw Error("Missing validator dependency coverage expectations");
+  const packages = sbom.artifacts.filter(
+    (a) =>
+      a.type === "java-archive" &&
+      a.locations?.some((l) => l.path === "/engine/validator.jar"),
+  );
+  const findings = expected.flatMap((e) => {
+    if (!e.name || !e.evidence)
+      throw Error("Unidentified coverage expectation");
+    const found = packages.find(
+      (a) => a.name.toLowerCase() === e.name.toLowerCase(),
+    );
+    if (!found) return [{ ...e, status: "MISSING_FROM_INVENTORY" }];
+    if (
+      !found.version ||
+      found.version === "UNKNOWN" ||
+      (e.version && e.version !== found.version)
+    )
+      return [
+        {
+          ...e,
+          actualVersion: found.version,
+          status: "VERSION_REVIEW_REQUIRED",
+        },
+      ];
+    return [];
+  });
+  return {
+    status: findings.length ? "blocked" : "passed",
+    expected,
+    findings,
+    scope:
+      "Declared non-test dependencies and known shaded class markers; not proof of exhaustive transitive coverage",
+  };
 }

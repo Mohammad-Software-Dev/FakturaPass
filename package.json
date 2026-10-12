@@ -40,7 +40,8 @@
     "test:containers": "node scripts/test-containers.mjs",
     "release:images": "node scripts/release-images.mjs",
     "test:security": "node --test tests/security-policy.test.mjs",
-    "security:image": "node scripts/security-check.mjs"
+    "security:image": "node scripts/security-check.mjs",
+    "release:validator": "node scripts/release-validator.mjs"
   },
   "dependencies": {
     "ajv": "8.20.0",

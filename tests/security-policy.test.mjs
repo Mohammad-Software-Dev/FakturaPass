@@ -7,6 +7,7 @@ import {
   evaluateLicenses,
   evaluateImageLicenses,
   evaluateVulnerabilities,
+  evaluateValidatorCoverage,
 } from "../scripts/security-policy.mjs";
 const policy = JSON.parse(readFileSync("infra/security/policy.json", "utf8"));
 const bom = (licenses) => ({
@@ -233,4 +234,81 @@ test("Image inventory requires OS-specific packages and application coverage", (
     {},
   ])
     assert.throws(() => validateImageInventory(input));
+});
+
+const javaArtifact = (
+  name,
+  version = "1.0",
+  path = "/engine/validator.jar",
+  licenses = ["Apache-2.0"],
+) => ({
+  type: "java-archive",
+  name,
+  version,
+  locations: [{ path }],
+  licenses: licenses.map((value) => ({ value })),
+});
+const javaInventory = (artifacts) => ({
+  source: { type: "image" },
+  distro: { id: "ubuntu" },
+  artifacts: [{ type: "deb" }, ...artifacts],
+});
+test("Validator coverage requires the executable at its exact path without weakening npm checks", () => {
+  const valid = javaInventory([javaArtifact("validator")]);
+  assert.equal(validateImageInventory(valid, "validator"), "deb");
+  assert.throws(() => validateImageInventory(valid));
+  assert.throws(() => validateImageInventory(valid, "typo"));
+  assert.throws(() =>
+    validateImageInventory(javaInventory([javaArtifact("other")]), "validator"),
+  );
+  assert.throws(() =>
+    validateImageInventory(
+      javaInventory([javaArtifact("validator", "1.0", "/other.jar")]),
+      "validator",
+    ),
+  );
+  assert.throws(() => evaluateImageLicenses(valid, policy, "typo"));
+});
+test("Java license checks include shaded libraries and JRE archives with no first-party exemption", () => {
+  const root = javaArtifact("validator");
+  assert.equal(
+    evaluateImageLicenses(javaInventory([root]), policy, "validator").status,
+    "passed",
+  );
+  for (const a of [
+    javaArtifact("shaded", "1.0", undefined, []),
+    javaArtifact("jrt-fs", "25", "/opt/java/lib/jrt-fs.jar", []),
+    javaArtifact("fakturapass", "1.0", "/app/package.json", []),
+    javaArtifact("restricted", "1.0", undefined, ["MPL-2.0"]),
+  ])
+    assert.equal(
+      evaluateImageLicenses(javaInventory([root, a]), policy, "validator")
+        .status,
+      "blocked",
+    );
+});
+test("Shaded dependency coverage rejects missing, misplaced and mismatched versions", () => {
+  const expected = [
+    { name: "Saxon-HE", version: "12.9", evidence: "Pinned executable POM" },
+  ];
+  const root = javaArtifact("validator");
+  const good = javaArtifact("Saxon-HE", "12.9");
+  assert.equal(
+    evaluateValidatorCoverage(javaInventory([root, good]), expected).status,
+    "passed",
+  );
+  for (const artifacts of [
+    [root],
+    [root, javaArtifact("Saxon-HE", "12.9", "/different.jar")],
+    [root, javaArtifact("Saxon-HE", "UNKNOWN")],
+    [root, javaArtifact("Saxon-HE", "12.8")],
+  ])
+    assert.equal(
+      evaluateValidatorCoverage(javaInventory(artifacts), expected).status,
+      "blocked",
+    );
+  assert.throws(() => evaluateValidatorCoverage(javaInventory([root]), []));
+  assert.throws(() =>
+    evaluateValidatorCoverage(javaInventory([root]), [{ name: "Saxon-HE" }]),
+  );
 });
