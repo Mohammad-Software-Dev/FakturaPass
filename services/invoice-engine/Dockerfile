@@ -1,4 +1,6 @@
 FROM eclipse-temurin:25-jre@sha256:15090d159279e5c158473eccb48cd87f57b3e3a47511a797eb5a7a7ea6f86b0f
+# The validator starts Java directly and does not use the inherited Pebble supervisor.
+RUN rm -f /usr/bin/pebble
 WORKDIR /engine
 COPY vendor/validator.jar /engine/validator.jar
 COPY vendor/config /engine/config
