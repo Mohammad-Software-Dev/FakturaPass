@@ -132,3 +132,11 @@ Implemented `release:validator`, Java/OS inventory requirements, exact installed
 Removed the unused inherited Pebble supervisor and pinned an updated Temurin 25 base with patched OpenSSL. Blocking matches fell from 22 to zero on the final local ARM64 image. Thirteen license reviews and three inventory gaps remain; the gate correctly withholds its final validator manifest. See VALIDATOR_SECURITY.md and RELEASE_A_RESULTS.md for immutable identities, database date, lower-severity findings and runtime acceptance. No policy relaxation or production deployment occurred.
 
 Next: establish complete shaded-library versions/provenance and notices, evaluate an upstream distribution retaining separate library metadata, and rerun security plus official-validation acceptance. Signed provenance, platform-specific staging/rollback, off-site recovery, live identity-provider acceptance and stages 3–6 remain open.
+
+## Validator library provenance continuation — 12 October 2026
+
+Switched both validator launchers from the shaded standalone JAR to the official checksum-pinned 1.6.3 separate-library distribution. Every library and notice is pinned and verified before use; obsolete generated libraries are removed. The inventory now identifies Saxon, picocli and XML Resolver. Coverage checks match every distributed JAR by installed path and version instead of relying on a partial dependency list.
+
+The vulnerability gate remains passing. License reviews reduced from 13 to five, including exact, evidence-retaining normalization of the official MIT URL. One coverage discrepancy remains for XML Resolver's data classifier versus its manifest version; no exception or invented version was used. All 20 exact-validator browser journeys, 29 domain tests, 14 policy tests, contracts, lint and types passed. See VALIDATOR_SECURITY.md for image IDs and report scope.
+
+Next: resolve that version/classifier discrepancy, complete the remaining Saxon/JRE/picocli/XML Resolver license evidence, then rebuild matching application and validator images because the engine input fingerprint changed. Signed provenance, staging/rollback and later stages remain open.
