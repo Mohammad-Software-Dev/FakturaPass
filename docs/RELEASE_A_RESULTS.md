@@ -266,3 +266,15 @@ Image: `sha256:22b0ca341127b7748be34508b34027954137eb01e2619026268e350491101212`
 The initial seven license reviews fall to five after exact MIT URL normalization at `30b6b479faf64afdebe0b2b5066382bd4ab2354a`; the separate normalized report retains source image, inventory/policy hashes and original declarations. Coverage remains blocked solely by XML Resolver data's scanned `5.3.3-data` version versus manifest `5.3.3`. This mismatch was not silently rewritten. No final validator manifest or production approval exists.
 
 Twenty-nine domain tests, 14 policy tests, OpenAPI/contracts, lint, type checking and formatting passed. All 20 Chromium/WebKit journeys plus migrations, official validation, non-root/read-only checks, metrics and graceful shutdown passed against the exact new validator with the existing `504cf88` web/worker images. Compatibility logs are retained as `container-acceptance.log`. Before deployment, rebuild matching application images because the pinned engine-input metadata changed; this focused acceptance does not replace a combined release or repeat the full application suite. See VALIDATOR_SECURITY.md for remaining reviews and next steps.
+
+## Validator metadata acceptance — 12 October 2026
+
+Revision `b10532f44fe5caadffc8d1a8bd25f83fbd885585`; Linux ARM64 image `sha256:e5bd737a6abe2f8270d42ef4d0647467c96e232301ef5a0edbb36210c8328728`. Reports: `.data/releases/validator-b10532f44fe5caadffc8d1a8bd25f83fbd885585-1791831383796/`.
+
+- Exact coverage: passed for all 17 distribution JARs; 125 total packages, including 18 Java components.
+- Raw and metadata-enriched vulnerability scans: passed, using database `2026-10-12T06:45:22Z`; union contains 113 Medium and 6 Low, no blocking matches.
+- Licenses: blocked on Saxon-HE MPL-2.0 and missing jrt-fs declaration. Five prior reviews reduced to two. Original JRE notices and verified upstream POMs retained; resource/configuration notice review remains separate.
+- Validation: 16 security/metadata tests, lint, type checks and formatting passed. Runtime unchanged; prior 20-journey container acceptance remains the functional baseline, not a new combined release.
+- Expected release command exit: nonzero due to license gate. No final manifest, registry publication or deployment. Policy unchanged.
+
+Next: source/notice evidence and license review, matching application-image rebuild and combined acceptance, then signed provenance and staging/rollback. See VALIDATOR_SECURITY.md for the complete boundaries.
